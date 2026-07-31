@@ -1,0 +1,56 @@
+spring:
+  application:
+    name: parque-erick-barrondo-api
+  config:
+    import: "optional:file:../.env[.properties],optional:file:.env[.properties]"
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration
+  datasource:
+    url: "jdbc:sqlserver://${BDSERVIDOR:localhost}:${BDPUERTO:1433};databaseName=${BDNOMBRE:ParqueErickBarrondo};encrypt=${BDCIFRAR:true};trustServerCertificate=${BDCONFIARCERTIFICADOSERVIDOR:false}"
+    username: ${BDUSUARIO:parqueaplicacion}
+    password: ${BDCONTRASENA}
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    hikari:
+      pool-name: conexiones-parque-erick-barrondo
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    user: ${BDUSUARIOMIGRACION:${BDUSUARIO:parqueaplicacion}}
+    password: ${BDCONTRASENAMIGRACION:${BDCONTRASENA}}
+    sql-migration-prefix: Migracion
+    sql-migration-separator: " "
+    table: HistorialMigraciones
+    validate-migration-naming: true
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate.jdbc.time_zone: UTC
+  mvc:
+    problemdetails:
+      enabled: true
+
+server:
+  port: ${PUERTOSERVIDOR:8080}
+  servlet:
+    session:
+      cookie:
+        http-only: true
+        same-site: lax
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+springdoc:
+  api-docs:
+    path: /api/v1/openapi
+  swagger-ui:
+    path: /api/v1/swagger-ui

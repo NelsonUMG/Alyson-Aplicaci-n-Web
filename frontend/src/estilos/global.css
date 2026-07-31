@@ -1,0 +1,174 @@
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #10231c;
+  background: #f4f6f1;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  background: #f4f6f1;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+button,
+a {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 3px solid #d89b2b;
+  outline-offset: 3px;
+}
+
+.envoltura-sitio {
+  display: grid;
+  min-height: 100vh;
+  grid-template-rows: auto 1fr auto;
+}
+
+.encabezado-sitio,
+.pie-sitio {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.1rem clamp(1rem, 5vw, 5rem);
+  background: #153c2e;
+  color: #fff;
+}
+
+.encabezado-sitio {
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.marca-sitio {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 45%);
+  border-radius: 50%;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
+
+.pagina-base,
+.pagina-estado {
+  width: min(72rem, 100%);
+  margin: auto;
+  padding: clamp(3rem, 9vw, 8rem) clamp(1.25rem, 6vw, 5rem);
+}
+
+.pagina-base h1,
+.pagina-estado h1 {
+  max-width: 15ch;
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.6rem, 7vw, 6rem);
+  font-weight: 500;
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+}
+
+.etiqueta-fase,
+.codigo-estado {
+  margin: 0 0 1rem;
+  color: #47695d;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.introduccion,
+.pagina-estado > p:not(.codigo-estado) {
+  max-width: 62ch;
+  margin: 1.75rem 0 0;
+  color: #40564e;
+  font-size: clamp(1.05rem, 2vw, 1.25rem);
+  line-height: 1.7;
+}
+
+.base-sistema {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  margin: clamp(2.5rem, 7vw, 5rem) 0 0;
+  overflow: hidden;
+  border: 1px solid #b8c4bd;
+  border-radius: 0.75rem;
+  background: #b8c4bd;
+}
+
+.base-sistema div {
+  min-width: 0;
+  padding: 1.4rem;
+  background: #fff;
+}
+
+.base-sistema dt {
+  color: #5a6b64;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.base-sistema dd {
+  margin: 0.5rem 0 0;
+  font-weight: 700;
+}
+
+.pie-sitio {
+  justify-content: center;
+  background: #e3e8e2;
+  color: #40564e;
+  font-size: 0.9rem;
+}
+
+.pagina-estado {
+  min-height: 100vh;
+}
+
+.enlace-principal {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  margin-top: 2rem;
+  padding: 0 1.1rem;
+  border-radius: 0.35rem;
+  background: #153c2e;
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+@media (max-width: 42rem) {
+  .base-sistema {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}

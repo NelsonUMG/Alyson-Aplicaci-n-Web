@@ -21,6 +21,7 @@ target/
 *.jar
 *.war
 .mvn/timing.properties
+application-local.yml
 
 # IDE y sistema operativo
 .idea/
@@ -42,7 +43,8 @@ uploads/
 *.hprof
 
 # Datos y copias locales
-*.sql
+backups/
+*.local.sql
 *.dump
 *.bak
 
