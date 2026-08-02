@@ -10,11 +10,27 @@ function mostrarRuta(ruta) {
 }
 
 describe("Aplicacion", () => {
-  it("muestra la base técnica en la ruta principal", async () => {
+  it("muestra la portada institucional en la ruta principal", async () => {
     mostrarRuta("/");
 
-    expect(await screen.findByRole("heading", { name: "Sistema web en preparación" })).toBeTruthy();
-    expect(screen.getByText("Microsoft SQL Server")).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Parque Erick Barrondo" })).toBeTruthy();
+    expect(screen.getByRole("navigation", { name: "Navegación principal" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Últimas publicaciones" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Mapa del parque" })).toBeNull();
+  });
+
+  it("navega a páginas públicas independientes", async () => {
+    mostrarRuta("/nosotros");
+
+    expect(await screen.findByRole("heading", { name: "Nosotros", level: 1 })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Misión" })).toBeTruthy();
+  });
+
+  it("mantiene el mapa en su propia página", async () => {
+    mostrarRuta("/mapa");
+
+    expect(await screen.findByRole("heading", { name: "Mapa del parque", level: 1 })).toBeTruthy();
+    expect(screen.getByLabelText("Mapa pendiente de habilitación")).toBeTruthy();
   });
 
   it("muestra una página accesible para rutas inexistentes", async () => {
@@ -22,5 +38,19 @@ describe("Aplicacion", () => {
 
     expect(await screen.findByRole("heading", { name: "Página no encontrada" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Volver al inicio" })).toBeTruthy();
+  });
+
+  it("muestra el formulario de inicio de sesión", async () => {
+    mostrarRuta("/iniciar-sesion");
+
+    expect(await screen.findByRole("heading", { name: "Iniciar sesión" })).toBeTruthy();
+    expect(screen.getByLabelText("Correo electrónico")).toBeTruthy();
+    expect(screen.getByLabelText("Contraseña")).toBeTruthy();
+  });
+
+  it("redirige al acceso cuando el perfil no tiene sesión", async () => {
+    mostrarRuta("/perfil");
+
+    expect(await screen.findByRole("heading", { name: "Iniciar sesión" })).toBeTruthy();
   });
 });

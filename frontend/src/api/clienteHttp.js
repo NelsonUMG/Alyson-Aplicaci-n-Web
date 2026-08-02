@@ -64,6 +64,9 @@ export async function solicitarApi(ruta, opciones = {}) {
 
   if (!respuesta.ok) {
     const problema = await leerProblema(respuesta);
+    if (respuesta.status === 401 && problema?.codigo === "AUTENTICACIONREQUERIDA") {
+      window.dispatchEvent(new Event("sesionexpirada"));
+    }
     throw new ErrorApi(problema?.detail || "No fue posible completar la solicitud.", {
       estado: respuesta.status,
       problema,

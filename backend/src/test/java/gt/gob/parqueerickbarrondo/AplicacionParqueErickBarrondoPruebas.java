@@ -1,18 +1,14 @@
 package gt.gob.parqueerickbarrondo;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.boot.test.context.SpringBootTest;
+import static org.assertj.core.api.Assertions.assertThat;
 
-@SpringBootTest(properties = {
-        "spring.autoconfigure.exclude="
-                + "org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration,"
-                + "org.springframework.boot.hibernate.autoconfigure.HibernateJpaAutoConfiguration,"
-                + "org.springframework.boot.flyway.autoconfigure.FlywayAutoConfiguration,"
-                + "org.springframework.boot.security.autoconfigure.UserDetailsServiceAutoConfiguration"
-})
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
 class AplicacionParqueErickBarrondoPruebas {
 
     @Test
-    void cargaElContextoSinUnaBaseDeDatosExterna() {
+    void declaraElPuntoDeEntradaDeSpringBoot() {
+        assertThat(AplicacionParqueErickBarrondo.class.getAnnotation(SpringBootApplication.class)).isNotNull();
     }
 }

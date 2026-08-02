@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { Aplicacion } from "./aplicacion/Aplicacion";
 import { crearEnrutadorAplicacion } from "./aplicacion/rutas";
 import "./estilos/global.css";
+import "./estilos/portal.css";
 
 const elementoRaiz = document.getElementById("root");
 

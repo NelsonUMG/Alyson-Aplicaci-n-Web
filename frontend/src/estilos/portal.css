@@ -1,0 +1,1036 @@
+:root {
+  --portal-verde-950: #092f26;
+  --portal-verde-900: #0b4536;
+  --portal-verde-800: #0d5a45;
+  --portal-verde-700: #117154;
+  --portal-verde-100: #e7f1ec;
+  --portal-dorado: #d9a62e;
+  --portal-tinta: #18231f;
+  --portal-gris: #66716c;
+  --portal-linea: #dce3df;
+  --portal-fondo: #f7f8f5;
+}
+
+.portal-sitio {
+  display: grid;
+  min-height: 100vh;
+  grid-template-rows: auto 1fr auto;
+  background: #fff;
+  color: var(--portal-tinta);
+}
+
+.portal-contenedor {
+  width: min(78rem, calc(100% - 3rem));
+  margin-inline: auto;
+}
+
+.portal-contenido-principal {
+  min-width: 0;
+}
+
+.portal-cabecera {
+  position: relative;
+  z-index: 20;
+  box-shadow: 0 1px 0 rgb(9 47 38 / 10%);
+}
+
+.portal-barra-superior {
+  min-height: 2.15rem;
+  background: var(--portal-verde-950);
+  color: rgb(255 255 255 / 72%);
+  font-size: 0.76rem;
+  letter-spacing: 0.025em;
+}
+
+.portal-barra-contenido {
+  display: flex;
+  min-height: 2.15rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.portal-navegacion-contenedor {
+  display: flex;
+  min-height: 6.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+}
+
+.portal-enlace-marca {
+  flex: 0 0 auto;
+  color: inherit;
+  text-decoration: none;
+}
+
+.portal-marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.portal-emblema {
+  display: grid;
+  width: 3.65rem;
+  height: 4.15rem;
+  place-items: center;
+  border: 3px solid var(--portal-verde-800);
+  border-radius: 0.55rem 0.55rem 1.5rem 1.5rem;
+  color: var(--portal-verde-800);
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.portal-nombre {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.portal-nombre strong {
+  max-width: 13rem;
+  color: var(--portal-verde-900);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.07rem;
+  line-height: 1.08;
+}
+
+.portal-nombre small {
+  color: var(--portal-gris);
+  font-size: 0.67rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.portal-navegacion {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(0.8rem, 1.7vw, 1.55rem);
+}
+
+.portal-navegacion > a {
+  position: relative;
+  padding-block: 0.75rem;
+  color: #48544f;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.035em;
+  text-decoration: none;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.portal-navegacion > a:not(.portal-enlace-cuenta)::after {
+  position: absolute;
+  right: 50%;
+  bottom: 0.25rem;
+  left: 50%;
+  height: 2px;
+  background: var(--portal-dorado);
+  content: "";
+  transition: right 160ms ease, left 160ms ease;
+}
+
+.portal-navegacion > a:hover,
+.portal-navegacion > .portal-enlace-activo {
+  color: var(--portal-verde-800);
+}
+
+.portal-navegacion > a:hover::after,
+.portal-navegacion > .portal-enlace-activo::after {
+  right: 0;
+  left: 0;
+}
+
+.portal-navegacion .portal-enlace-cuenta {
+  padding: 0.68rem 0.9rem;
+  border: 1px solid var(--portal-verde-700);
+  border-radius: 0.2rem;
+  color: var(--portal-verde-800);
+}
+
+.portal-navegacion .portal-enlace-cuenta:hover {
+  background: var(--portal-verde-800);
+  color: #fff;
+}
+
+.portal-boton-menu {
+  display: none;
+  min-height: 2.8rem;
+  align-items: center;
+  gap: 0.65rem;
+  border: 1px solid var(--portal-linea);
+  border-radius: 0.25rem;
+  background: #fff;
+  color: var(--portal-verde-900);
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.portal-boton-menu > span {
+  display: grid;
+  width: 1rem;
+  gap: 0.2rem;
+}
+
+.portal-boton-menu i {
+  display: block;
+  height: 2px;
+  background: currentcolor;
+}
+
+.inicio-portada {
+  position: relative;
+  display: grid;
+  min-height: clamp(35rem, calc(100vh - 8.65rem), 49rem);
+  align-items: center;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgb(6 32 25 / 90%) 0%, rgb(6 32 25 / 70%) 37%, rgb(6 32 25 / 20%) 68%, transparent 100%),
+    linear-gradient(0deg, rgb(6 32 25 / 32%), transparent 55%),
+    url("/imagenes/portada-parque-provisional.webp") center / cover no-repeat;
+  color: #fff;
+}
+
+.inicio-portada::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 0.35rem;
+  background: var(--portal-dorado);
+  content: "";
+}
+
+.inicio-portada-contenido {
+  position: relative;
+  z-index: 1;
+  padding-block: 5rem;
+}
+
+.portal-sobrelinea {
+  margin: 0 0 1rem;
+  color: var(--portal-dorado);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.inicio-portada h1 {
+  max-width: 10ch;
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3.6rem, 7.5vw, 7rem);
+  font-weight: 500;
+  line-height: 0.91;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+
+.inicio-portada-contenido > p:not(.portal-sobrelinea) {
+  max-width: 42rem;
+  margin: 1.55rem 0 0;
+  color: rgb(255 255 255 / 86%);
+  font-size: clamp(1.05rem, 1.7vw, 1.32rem);
+  line-height: 1.55;
+}
+
+.inicio-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.85rem;
+  margin-top: 2.1rem;
+}
+
+.portal-boton {
+  display: inline-flex;
+  min-height: 3rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.2rem;
+  border: 1px solid transparent;
+  border-radius: 0.2rem;
+  font-size: 0.83rem;
+  font-weight: 850;
+  letter-spacing: 0.035em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.portal-boton-principal {
+  background: var(--portal-dorado);
+  color: #16231e;
+}
+
+.portal-boton-secundario {
+  border-color: rgb(255 255 255 / 62%);
+  background: rgb(9 47 38 / 40%);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+
+.portal-boton-verde {
+  margin-top: 1rem;
+  background: var(--portal-verde-800);
+  color: #fff;
+}
+
+.inicio-imagen-provisional {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 2;
+  padding: 0.3rem 0.5rem;
+  border-radius: 0.15rem;
+  background: rgb(6 32 25 / 70%);
+  color: rgb(255 255 255 / 72%);
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.inicio-franja {
+  background: var(--portal-verde-950);
+  color: #fff;
+}
+
+.inicio-franja-enlaces {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.inicio-franja-enlaces a {
+  display: grid;
+  gap: 0.3rem;
+  min-height: 7.3rem;
+  align-content: center;
+  padding: 1.25rem 2rem;
+  border-right: 1px solid rgb(255 255 255 / 14%);
+  color: #fff;
+  text-decoration: none;
+}
+
+.inicio-franja-enlaces a:first-child {
+  border-left: 1px solid rgb(255 255 255 / 14%);
+}
+
+.inicio-franja-enlaces a:hover {
+  background: var(--portal-verde-900);
+}
+
+.inicio-franja-enlaces strong {
+  color: var(--portal-dorado);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.inicio-franja-enlaces span {
+  color: rgb(255 255 255 / 67%);
+  font-size: 0.83rem;
+}
+
+.portal-seccion {
+  padding-block: clamp(4.5rem, 8vw, 7rem);
+}
+
+.portal-cabecera-seccion {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2.2rem;
+}
+
+.portal-cabecera-seccion h2,
+.inicio-aliados h2,
+.nosotros-introduccion h2,
+.eventos-contenido h2,
+.mapa-informacion h2 {
+  margin: 0;
+  color: var(--portal-tinta);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+}
+
+.portal-enlace-ver {
+  color: var(--portal-verde-800);
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.inicio-publicaciones {
+  background: var(--portal-fondo);
+}
+
+.inicio-rejilla-publicaciones {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+
+.inicio-publicacion {
+  display: grid;
+  min-height: 19rem;
+  grid-template-columns: minmax(11rem, 0.8fr) 1.2fr;
+  overflow: hidden;
+  border: 1px solid var(--portal-linea);
+  background: #fff;
+  box-shadow: 0 0.75rem 2.5rem rgb(20 45 35 / 6%);
+}
+
+.inicio-publicacion-imagen {
+  display: grid;
+  min-height: 15rem;
+  place-items: center;
+  background:
+    linear-gradient(135deg, rgb(9 47 38 / 92%), rgb(17 113 84 / 60%)),
+    url("/imagenes/portada-parque-provisional.webp") center / cover no-repeat;
+  color: rgb(255 255 255 / 72%);
+}
+
+.inicio-publicacion-imagen-2 {
+  background-position: 72% center;
+  filter: saturate(0.78);
+}
+
+.inicio-publicacion-imagen span {
+  display: grid;
+  width: 4.8rem;
+  height: 5.3rem;
+  place-items: center;
+  border: 2px solid currentcolor;
+  border-radius: 0.6rem 0.6rem 1.8rem 1.8rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.inicio-publicacion-texto {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1.8rem;
+}
+
+.inicio-publicacion-texto > span {
+  color: var(--portal-verde-700);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.inicio-publicacion h3 {
+  margin: 0.65rem 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.35rem;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.inicio-publicacion p {
+  margin: 0.9rem 0 0;
+  color: var(--portal-gris);
+  font-size: 0.88rem;
+  line-height: 1.65;
+}
+
+.portal-aviso-contenido {
+  margin: 1.25rem 0 0;
+  color: var(--portal-gris);
+  font-size: 0.75rem;
+  text-align: right;
+}
+
+.inicio-aliados {
+  padding-block: 4.5rem;
+  background: #fff;
+  text-align: center;
+}
+
+.inicio-aliados h2 {
+  margin-bottom: 2rem;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+}
+
+.inicio-aliados-lista {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border-block: 1px solid var(--portal-linea);
+}
+
+.inicio-aliados-lista span {
+  display: grid;
+  min-height: 7.5rem;
+  place-items: center;
+  border-right: 1px solid var(--portal-linea);
+  color: #98a09c;
+  font-size: 0.77rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.inicio-aliados-lista span:last-child {
+  border-right: 0;
+}
+
+.inicio-aliados p {
+  margin: 1rem 0 0;
+  color: var(--portal-gris);
+  font-size: 0.78rem;
+}
+
+.portal-pie {
+  background: #071f1a;
+  color: rgb(255 255 255 / 72%);
+}
+
+.portal-pie-columnas {
+  display: grid;
+  grid-template-columns: 1.4fr 0.7fr 0.9fr;
+  gap: 4rem;
+  padding-block: 4rem;
+}
+
+.portal-pie .portal-emblema {
+  border-color: var(--portal-dorado);
+  color: var(--portal-dorado);
+}
+
+.portal-pie .portal-nombre strong {
+  color: #fff;
+}
+
+.portal-pie .portal-nombre small {
+  color: rgb(255 255 255 / 48%);
+}
+
+.portal-pie-identidad > p {
+  max-width: 29rem;
+  margin: 1.25rem 0 0;
+  line-height: 1.65;
+}
+
+.portal-pie h2 {
+  margin: 0 0 1rem;
+  color: #fff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.15rem;
+  font-weight: 500;
+}
+
+.portal-pie-columnas > div:not(:first-child) {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+  font-size: 0.85rem;
+}
+
+.portal-pie a {
+  color: rgb(255 255 255 / 70%);
+  text-decoration-color: rgb(217 166 46 / 50%);
+  text-underline-offset: 0.25rem;
+}
+
+.portal-pie p {
+  margin: 0;
+}
+
+.portal-firma {
+  display: flex;
+  width: min(78rem, calc(100% - 3rem));
+  margin-inline: auto;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 1rem;
+  border-top: 1px solid rgb(255 255 255 / 13%);
+  color: rgb(255 255 255 / 45%);
+  font-size: 0.72rem;
+}
+
+.pagina-publica-cabecera {
+  position: relative;
+  display: grid;
+  min-height: 19rem;
+  align-items: center;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgb(8 45 35 / 95%), rgb(8 45 35 / 66%)),
+    url("/imagenes/portada-parque-provisional.webp") center 48% / cover no-repeat;
+  color: #fff;
+}
+
+.pagina-publica-cabecera::after {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: min(32vw, 27rem);
+  height: 0.35rem;
+  background: var(--portal-dorado);
+  content: "";
+}
+
+.pagina-publica-cabecera h1 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(3rem, 6vw, 5rem);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.045em;
+}
+
+.pagina-publica-cabecera .portal-sobrelinea {
+  margin-bottom: 0.8rem;
+}
+
+.pagina-publica-cabecera .portal-contenedor > p:last-child:not(.portal-sobrelinea) {
+  max-width: 45rem;
+  margin: 1rem 0 0;
+  color: rgb(255 255 255 / 76%);
+  font-size: 1.05rem;
+  line-height: 1.55;
+}
+
+.nosotros-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(3rem, 7vw, 7rem);
+  align-items: start;
+}
+
+.nosotros-introduccion > p:last-child {
+  margin: 1.5rem 0 0;
+  color: var(--portal-gris);
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+.nosotros-propositos {
+  border-top: 1px solid var(--portal-linea);
+}
+
+.nosotros-propositos article {
+  display: grid;
+  grid-template-columns: 3.5rem 1fr;
+  gap: 0 1rem;
+  padding-block: 1.65rem;
+  border-bottom: 1px solid var(--portal-linea);
+}
+
+.nosotros-propositos article > span {
+  grid-row: 1 / 3;
+  color: var(--portal-dorado);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.5rem;
+}
+
+.nosotros-propositos h3 {
+  margin: 0;
+  color: var(--portal-verde-900);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.65rem;
+  font-weight: 500;
+}
+
+.nosotros-propositos p {
+  margin: 0.45rem 0 0;
+  color: var(--portal-gris);
+}
+
+.pagina-rejilla-tarjetas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.4rem;
+}
+
+.pagina-tarjeta {
+  position: relative;
+  min-height: 20rem;
+  padding: 2rem;
+  overflow: hidden;
+  border: 1px solid var(--portal-linea);
+  background: #fff;
+  box-shadow: 0 1rem 3rem rgb(14 61 47 / 7%);
+}
+
+.pagina-tarjeta::before {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 0.3rem;
+  background: var(--portal-verde-700);
+  content: "";
+}
+
+.pagina-tarjeta-numero {
+  color: var(--portal-dorado);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.5rem;
+}
+
+.pagina-tarjeta h2 {
+  margin: 2rem 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.7rem;
+  font-weight: 500;
+}
+
+.pagina-tarjeta p {
+  margin: 1rem 0 0;
+  color: var(--portal-gris);
+  line-height: 1.65;
+}
+
+.pagina-estado-dato {
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 0.45rem 0.7rem;
+  background: var(--portal-verde-100);
+  color: var(--portal-verde-800);
+  font-size: 0.72rem;
+  font-weight: 850;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.pagina-vacio {
+  display: grid;
+  min-height: 24rem;
+  place-items: center;
+  align-content: center;
+  border: 1px dashed #bdc9c3;
+  background: var(--portal-fondo);
+  text-align: center;
+}
+
+.pagina-vacio > span {
+  display: grid;
+  width: 4.8rem;
+  height: 5.3rem;
+  place-items: center;
+  border: 2px solid var(--portal-verde-700);
+  border-radius: 0.6rem 0.6rem 1.8rem 1.8rem;
+  color: var(--portal-verde-700);
+  font-weight: 900;
+}
+
+.pagina-vacio h2 {
+  margin: 1.5rem 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.8rem, 4vw, 2.7rem);
+  font-weight: 500;
+}
+
+.pagina-vacio p {
+  max-width: 37rem;
+  margin: 0.75rem 1.5rem 0;
+  color: var(--portal-gris);
+  line-height: 1.65;
+}
+
+.eventos-contenido {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.65fr) 1.35fr;
+  gap: clamp(3rem, 7vw, 7rem);
+  align-items: center;
+}
+
+.eventos-fecha {
+  display: grid;
+  min-height: 20rem;
+  place-items: center;
+  align-content: center;
+  gap: 1rem;
+  background: var(--portal-verde-900);
+  color: #fff;
+}
+
+.eventos-fecha span {
+  color: var(--portal-dorado);
+  font-size: 0.8rem;
+  font-weight: 900;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.eventos-fecha strong {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 5rem;
+  font-weight: 500;
+}
+
+.eventos-contenido > div:last-child > p:not(.portal-sobrelinea) {
+  max-width: 42rem;
+  color: var(--portal-gris);
+  line-height: 1.7;
+}
+
+.mapa-contenido {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.55fr);
+  min-height: 30rem;
+  border: 1px solid var(--portal-linea);
+}
+
+.mapa-lienzo {
+  position: relative;
+  min-height: 30rem;
+  overflow: hidden;
+  background:
+    linear-gradient(35deg, transparent 47%, rgb(255 255 255 / 52%) 48% 52%, transparent 53%),
+    linear-gradient(145deg, transparent 42%, rgb(255 255 255 / 60%) 43% 48%, transparent 49%),
+    #dce9df;
+}
+
+.mapa-ruta {
+  position: absolute;
+  display: block;
+  border: 0.75rem solid rgb(13 90 69 / 50%);
+  border-right-color: transparent;
+  border-radius: 50%;
+}
+
+.mapa-ruta-uno {
+  inset: 18% 30% 22% 13%;
+  rotate: -8deg;
+}
+
+.mapa-ruta-dos {
+  inset: 32% 10% 8% 46%;
+  rotate: 21deg;
+}
+
+.mapa-punto {
+  position: absolute;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 0.25rem solid #fff;
+  border-radius: 50%;
+  background: var(--portal-dorado);
+  box-shadow: 0 0.2rem 0.8rem rgb(9 47 38 / 22%);
+}
+
+.mapa-punto-uno { top: 27%; left: 24%; }
+.mapa-punto-dos { top: 58%; left: 55%; }
+.mapa-punto-tres { top: 35%; right: 15%; }
+
+.mapa-informacion {
+  padding: clamp(2rem, 4vw, 3.5rem);
+  background: #fff;
+}
+
+.mapa-informacion h2 {
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+}
+
+.mapa-informacion > p:not(.portal-sobrelinea),
+.mapa-informacion li {
+  color: var(--portal-gris);
+  line-height: 1.65;
+}
+
+.mapa-informacion ul {
+  margin: 1.4rem 0 0;
+  padding-left: 1.2rem;
+}
+
+@media (max-width: 69rem) {
+  .portal-navegacion-contenedor {
+    position: relative;
+  }
+
+  .portal-boton-menu {
+    display: inline-flex;
+  }
+
+  .portal-navegacion {
+    position: absolute;
+    top: calc(100% - 0.5rem);
+    right: 0;
+    left: 0;
+    display: none;
+    align-items: stretch;
+    padding: 0.8rem 1.2rem 1.25rem;
+    border-top: 1px solid var(--portal-linea);
+    background: #fff;
+    box-shadow: 0 1.2rem 2.2rem rgb(9 47 38 / 16%);
+  }
+
+  .portal-navegacion-abierta {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .portal-navegacion > a {
+    padding: 0.85rem;
+  }
+
+  .portal-navegacion > a::after {
+    display: none;
+  }
+
+  .portal-navegacion .portal-enlace-cuenta {
+    text-align: center;
+  }
+
+  .inicio-publicacion {
+    grid-template-columns: 1fr;
+  }
+
+  .inicio-publicacion-imagen {
+    min-height: 12rem;
+  }
+}
+
+@media (max-width: 50rem) {
+  .portal-contenedor {
+    width: min(100% - 2rem, 78rem);
+  }
+
+  .portal-barra-contenido span:last-child,
+  .portal-nombre small {
+    display: none;
+  }
+
+  .portal-navegacion-contenedor {
+    min-height: 5.5rem;
+  }
+
+  .portal-emblema {
+    width: 3rem;
+    height: 3.45rem;
+  }
+
+  .portal-nombre strong {
+    max-width: 10rem;
+    font-size: 0.95rem;
+  }
+
+  .inicio-portada {
+    min-height: 38rem;
+    background:
+      linear-gradient(90deg, rgb(6 32 25 / 87%), rgb(6 32 25 / 48%)),
+      linear-gradient(0deg, rgb(6 32 25 / 38%), transparent),
+      url("/imagenes/portada-parque-provisional.webp") 62% center / cover no-repeat;
+  }
+
+  .inicio-portada h1 {
+    max-width: 9ch;
+    font-size: clamp(3.15rem, 15vw, 5.2rem);
+  }
+
+  .inicio-franja-enlaces,
+  .inicio-rejilla-publicaciones,
+  .inicio-aliados-lista,
+  .portal-pie-columnas,
+  .nosotros-panel,
+  .pagina-rejilla-tarjetas,
+  .eventos-contenido,
+  .mapa-contenido {
+    grid-template-columns: 1fr;
+  }
+
+  .inicio-franja-enlaces a,
+  .inicio-franja-enlaces a:first-child {
+    min-height: 5.7rem;
+    padding-inline: 1rem;
+    border-right: 0;
+    border-bottom: 1px solid rgb(255 255 255 / 14%);
+    border-left: 0;
+  }
+
+  .portal-cabecera-seccion {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .inicio-publicacion {
+    min-height: 0;
+  }
+
+  .inicio-aliados-lista span {
+    min-height: 5.5rem;
+    border-right: 0;
+    border-bottom: 1px solid var(--portal-linea);
+  }
+
+  .inicio-aliados-lista span:last-child {
+    border-bottom: 0;
+  }
+
+  .portal-pie-columnas {
+    gap: 2.5rem;
+  }
+
+  .portal-firma {
+    width: calc(100% - 2rem);
+    flex-direction: column;
+  }
+
+  .pagina-publica-cabecera {
+    min-height: 16rem;
+  }
+
+  .pagina-tarjeta {
+    min-height: 16rem;
+  }
+
+  .eventos-fecha {
+    min-height: 13rem;
+  }
+
+  .mapa-lienzo {
+    min-height: 21rem;
+  }
+}
+
+@media (max-width: 34rem) {
+  .portal-barra-contenido {
+    justify-content: center;
+  }
+
+  .portal-nombre {
+    display: none;
+  }
+
+  .portal-navegacion-abierta {
+    grid-template-columns: 1fr;
+  }
+
+  .inicio-acciones {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .portal-boton {
+    width: 100%;
+  }
+
+  .inicio-portada-contenido {
+    padding-block: 4rem;
+  }
+
+  .inicio-publicacion-texto {
+    padding: 1.4rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .portal-navegacion > a::after {
+    transition: none;
+  }
+}

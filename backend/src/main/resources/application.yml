@@ -54,3 +54,19 @@ springdoc:
     path: /api/v1/openapi
   swagger-ui:
     path: /api/v1/swagger-ui
+
+seguridad:
+  intentos:
+    clave-huellas: ${SEGURIDADCLAVEHUELLAS}
+    maximos: ${SEGURIDADMAXIMOINTENTOS:5}
+    ventana-minutos: ${SEGURIDADVENTANAMINUTOS:15}
+  contrasena:
+    longitud-minima: ${SEGURIDADLONGITUDMINIMACONTRASENA:12}
+
+inicializacion:
+  administrador:
+    habilitado: ${ADMININICIALHABILITADO:false}
+    correo: ${ADMININICIALCORREO:}
+    nombre: ${ADMININICIALNOMBRE:}
+    apellido: ${ADMININICIALAPELLIDO:}
+    contrasena: ${ADMININICIALCONTRASENA:}

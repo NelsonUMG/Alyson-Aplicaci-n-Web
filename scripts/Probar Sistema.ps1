@@ -13,7 +13,8 @@ $migracionesEsperadas = @(
     'Migracion3 Crear Publicaciones.sql',
     'Migracion4 Crear Eventos E Inscripciones.sql',
     'Migracion5 Crear Areas Y Mapa.sql',
-    'Migracion6 Crear Bicicletas Y Solicitudes.sql'
+    'Migracion6 Crear Bicicletas Y Solicitudes.sql',
+    'Migracion7 Agregar Seguridad A Usuarios.sql'
 )
 
 foreach ($migracion in $migracionesEsperadas) {
@@ -46,4 +47,4 @@ finally {
     Pop-Location
 }
 
-Write-Host 'Verificación de Fase 2 completada.'
+Write-Host 'Verificación completa del sistema finalizada.'

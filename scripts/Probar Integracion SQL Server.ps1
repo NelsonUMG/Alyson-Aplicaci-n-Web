@@ -8,17 +8,51 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+
+function NuevaCadenaAleatoriaHexadecimal {
+    param([int]$CantidadBytes)
+
+    $bytes = New-Object byte[] $CantidadBytes
+    $generador = [Security.Cryptography.RandomNumberGenerator]::Create()
+    try {
+        $generador.GetBytes($bytes)
+        return [BitConverter]::ToString($bytes).Replace('-', '')
+    }
+    finally {
+        $generador.Dispose()
+    }
+}
+
 $raizRepositorio = Split-Path -Parent $PSScriptRoot
 $sufijo = [Guid]::NewGuid().ToString('N').Substring(0, 8)
 $nombreBase = "PruebaFlyway$sufijo"
 $nombreUsuario = "pruebaflyway$sufijo"
-$contrasena = 'PruebaSegura2026Aa9'
+$contrasena = (NuevaCadenaAleatoriaHexadecimal -CantidadBytes 24) + 'Aa9!'
 $puerto = Get-Random -Minimum 20000 -Maximum 30000
 $archivoSalida = [System.IO.Path]::GetTempFileName()
 $archivoErrores = [System.IO.Path]::GetTempFileName()
 $procesoServidor = $null
+$objetosTemporalesCreados = $false
 $cadenaPrincipal = "Server=$InstanciaServidor;Database=master;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;"
 $conexionPrincipal = [System.Data.SqlClient.SqlConnection]::new($cadenaPrincipal)
+$nombresVariables = @(
+    'BDSERVIDOR',
+    'BDPUERTO',
+    'BDNOMBRE',
+    'BDUSUARIO',
+    'BDCONTRASENA',
+    'BDUSUARIOMIGRACION',
+    'BDCONTRASENAMIGRACION',
+    'BDCIFRAR',
+    'BDCONFIARCERTIFICADOSERVIDOR',
+    'PUERTOSERVIDOR',
+    'SEGURIDADCLAVEHUELLAS'
+)
+$valoresAnteriores = @{}
+
+foreach ($nombreVariable in $nombresVariables) {
+    $valoresAnteriores[$nombreVariable] = [Environment]::GetEnvironmentVariable($nombreVariable, 'Process')
+}
 
 try {
     $clienteTcp = [System.Net.Sockets.TcpClient]::new()
@@ -47,6 +81,7 @@ CREATE DATABASE [$nombreBase];
 CREATE LOGIN [$nombreUsuario] WITH PASSWORD = N'$contrasena', CHECK_POLICY = OFF;
 "@
     [void]$comando.ExecuteNonQuery()
+    $objetosTemporalesCreados = $true
 
     $cadenaBase = "Server=$InstanciaServidor;Database=$nombreBase;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;"
     $conexionBase = [System.Data.SqlClient.SqlConnection]::new($cadenaBase)
@@ -76,6 +111,7 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
     $env:BDCIFRAR = 'true'
     $env:BDCONFIARCERTIFICADOSERVIDOR = 'true'
     $env:PUERTOSERVIDOR = [string]$puerto
+    $env:SEGURIDADCLAVEHUELLAS = NuevaCadenaAleatoriaHexadecimal -CantidadBytes 32
 
     $rutaJar = Join-Path $raizRepositorio 'backend\target\servidor-0.0.1-SNAPSHOT.jar'
     if (-not (Test-Path -LiteralPath $rutaJar -PathType Leaf)) {
@@ -145,12 +181,13 @@ finally {
         $procesoServidor.WaitForExit()
     }
 
-    if ($conexionPrincipal.State -ne [System.Data.ConnectionState]::Open) {
-        $conexionPrincipal.Open()
-    }
+    if ($objetosTemporalesCreados) {
+        if ($conexionPrincipal.State -ne [System.Data.ConnectionState]::Open) {
+            $conexionPrincipal.Open()
+        }
 
-    $limpiar = $conexionPrincipal.CreateCommand()
-    $limpiar.CommandText = @"
+        $limpiar = $conexionPrincipal.CreateCommand()
+        $limpiar.CommandText = @"
 IF DB_ID(N'$nombreBase') IS NOT NULL
 BEGIN
     ALTER DATABASE [$nombreBase] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
@@ -159,9 +196,21 @@ END;
 IF SUSER_ID(N'$nombreUsuario') IS NOT NULL
     DROP LOGIN [$nombreUsuario];
 "@
-    [void]$limpiar.ExecuteNonQuery()
-    $conexionPrincipal.Close()
+        [void]$limpiar.ExecuteNonQuery()
+        Write-Host "Objetos temporales eliminados: $nombreBase"
+    }
+
+    if ($conexionPrincipal.State -ne [System.Data.ConnectionState]::Closed) {
+        $conexionPrincipal.Close()
+    }
     $conexionPrincipal.Dispose()
+
+    foreach ($nombreVariable in $nombresVariables) {
+        [Environment]::SetEnvironmentVariable(
+            $nombreVariable,
+            $valoresAnteriores[$nombreVariable],
+            'Process')
+    }
 
     foreach ($archivoTemporal in @($archivoSalida, $archivoErrores)) {
         $rutaTemporal = [System.IO.Path]::GetFullPath($archivoTemporal)
@@ -171,6 +220,4 @@ IF SUSER_ID(N'$nombreUsuario') IS NOT NULL
             Remove-Item -LiteralPath $rutaTemporal -Force
         }
     }
-
-    Write-Host "Prueba temporal eliminada: $nombreBase"
 }
