@@ -57,4 +57,36 @@ public class EventoAuditoria {
         this.idCorrelacion = idCorrelacion;
         this.ocurridoEn = Instant.now();
     }
+
+    public Long obtenerIdEventoAuditoria() {
+        return idEventoAuditoria;
+    }
+
+    public Long obtenerIdUsuarioActor() {
+        return idUsuarioActor;
+    }
+
+    public String obtenerCodigoAccion() {
+        return codigoAccion;
+    }
+
+    public String obtenerTipoRecurso() {
+        return tipoRecurso;
+    }
+
+    public String obtenerIdRecurso() {
+        return idRecurso;
+    }
+
+    public String obtenerResultado() {
+        return resultado;
+    }
+
+    public String obtenerIdCorrelacion() {
+        return idCorrelacion;
+    }
+
+    public Instant obtenerOcurridoEn() {
+        return ocurridoEn;
+    }
 }

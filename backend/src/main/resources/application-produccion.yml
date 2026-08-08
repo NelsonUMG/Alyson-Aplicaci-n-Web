@@ -1,5 +1,10 @@
 server:
   forward-headers-strategy: framework
+  error:
+    include-binding-errors: never
+    include-exception: false
+    include-message: never
+    include-stacktrace: never
   servlet:
     session:
       cookie:

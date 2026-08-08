@@ -88,7 +88,7 @@ public class Usuario {
         this.terminosAceptadosEn = terminosAceptadosEn;
         this.creadoEn = ahora;
         this.actualizadoEn = ahora;
-        this.version = 0L;
+        this.version = null;
     }
 
     public Long obtenerIdUsuario() {

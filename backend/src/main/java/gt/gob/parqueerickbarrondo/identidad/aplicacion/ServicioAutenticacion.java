@@ -1,7 +1,7 @@
 package gt.gob.parqueerickbarrondo.identidad.aplicacion;
 
 import java.time.Instant;
-import java.util.UUID;
+import gt.gob.parqueerickbarrondo.compartido.observabilidad.IdentificadorCorrelacion;
 
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.RespuestaPerfil;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudCambioContrasena;
@@ -63,7 +63,7 @@ public class ServicioAutenticacion {
             HttpServletRequest peticion,
             HttpServletResponse respuesta) {
         var correo = normalizadorCorreo.normalizar(solicitud.correo());
-        var idCorrelacion = UUID.randomUUID().toString();
+        var idCorrelacion = IdentificadorCorrelacion.actual();
         var huellas = protectorIntentos.crearHuellas(
                 correo,
                 peticion.getRemoteAddr(),
@@ -132,7 +132,7 @@ public class ServicioAutenticacion {
                     "USUARIO",
                     usuarioSesion.obtenerIdUsuario().toString(),
                     "EXITOSO",
-                    UUID.randomUUID().toString());
+                    null);
         });
         invalidarOtrasSesiones(usuarioSesion, sesionActual.getId());
     }

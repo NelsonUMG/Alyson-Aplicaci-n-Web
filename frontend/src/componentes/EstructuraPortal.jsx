@@ -14,7 +14,7 @@ const enlacesNavegacion = [
 function MarcaPortal() {
   return (
     <span className="portal-marca">
-      <span className="portal-emblema" aria-hidden="true">PEB</span>
+      <img className="portal-emblema" src="/imagenes/escudo-guatemala.png" alt="" aria-hidden="true" />
       <span className="portal-nombre">
         <strong>Parque Erick Barrondo</strong>
         <small>Derechos Reservados</small>

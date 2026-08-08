@@ -71,16 +71,11 @@
 }
 
 .portal-emblema {
-  display: grid;
   width: 3.65rem;
-  height: 4.15rem;
-  place-items: center;
-  border: 3px solid var(--portal-verde-800);
-  border-radius: 0.55rem 0.55rem 1.5rem 1.5rem;
-  color: var(--portal-verde-800);
-  font-size: 0.8rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
+  height: 3.65rem;
+  flex: 0 0 auto;
+  border-radius: 0.55rem;
+  object-fit: cover;
 }
 
 .portal-nombre {
@@ -302,7 +297,7 @@
 
 .inicio-franja-enlaces {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
 }
 
 .inicio-franja-enlaces a {
@@ -338,6 +333,83 @@
 
 .portal-seccion {
   padding-block: clamp(4.5rem, 8vw, 7rem);
+}
+
+.bicicletas-resumen {
+  display: grid;
+  gap: 2rem;
+}
+
+.bicicletas-totales,
+.bicicletas-estados {
+  display: grid;
+  gap: 1rem;
+}
+
+.bicicletas-totales {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.bicicletas-totales article {
+  display: grid;
+  min-height: 13rem;
+  align-content: center;
+  justify-items: center;
+  border: 1px solid var(--portal-linea);
+  background: var(--portal-verde-900);
+  color: #fff;
+}
+
+.bicicletas-totales span,
+.bicicletas-estados span {
+  font-size: 0.75rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bicicletas-totales strong {
+  color: var(--portal-dorado);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(4rem, 8vw, 6rem);
+  font-weight: 500;
+}
+
+.bicicletas-estados {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.bicicletas-estados article {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1.5rem;
+  border: 1px solid var(--portal-linea);
+  background: #fff;
+}
+
+.bicicletas-estados strong {
+  color: var(--portal-verde-800);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2.4rem;
+  font-weight: 500;
+}
+
+.bicicletas-estados span,
+.bicicletas-actualizacion,
+.bicicletas-aclaracion {
+  color: var(--portal-gris);
+}
+
+.bicicletas-actualizacion,
+.bicicletas-aclaracion {
+  margin: 0;
+  line-height: 1.6;
+}
+
+.bicicletas-aclaracion {
+  padding: 1rem 1.2rem;
+  border-left: 0.3rem solid var(--portal-dorado);
+  background: var(--portal-fondo);
 }
 
 .portal-cabecera-seccion {
@@ -404,15 +476,11 @@
   filter: saturate(0.78);
 }
 
-.inicio-publicacion-imagen span {
-  display: grid;
+.inicio-publicacion-logotipo {
   width: 4.8rem;
-  height: 5.3rem;
-  place-items: center;
-  border: 2px solid currentcolor;
-  border-radius: 0.6rem 0.6rem 1.8rem 1.8rem;
-  font-weight: 900;
-  letter-spacing: 0.08em;
+  height: 4.8rem;
+  border-radius: 0.6rem;
+  object-fit: cover;
 }
 
 .inicio-publicacion-texto {
@@ -436,6 +504,19 @@
   font-size: 1.35rem;
   font-weight: 600;
   line-height: 1.2;
+}
+
+.inicio-publicacion-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.inicio-publicacion h3 a,
+.portal-elemento-publico h2 a {
+  color: inherit;
+  text-decoration-color: rgb(13 90 69 / 35%);
+  text-underline-offset: 0.18em;
 }
 
 .inicio-publicacion p {
@@ -501,11 +582,6 @@
   grid-template-columns: 1.4fr 0.7fr 0.9fr;
   gap: 4rem;
   padding-block: 4rem;
-}
-
-.portal-pie .portal-emblema {
-  border-color: var(--portal-dorado);
-  color: var(--portal-dorado);
 }
 
 .portal-pie .portal-nombre strong {
@@ -717,15 +793,11 @@
   text-align: center;
 }
 
-.pagina-vacio > span {
-  display: grid;
+.pagina-vacio-logotipo {
   width: 4.8rem;
-  height: 5.3rem;
-  place-items: center;
-  border: 2px solid var(--portal-verde-700);
-  border-radius: 0.6rem 0.6rem 1.8rem 1.8rem;
-  color: var(--portal-verde-700);
-  font-weight: 900;
+  height: 4.8rem;
+  border-radius: 0.6rem;
+  object-fit: cover;
 }
 
 .pagina-vacio h2 {
@@ -740,6 +812,327 @@
   margin: 0.75rem 1.5rem 0;
   color: var(--portal-gris);
   line-height: 1.65;
+}
+
+.portal-filtros {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1fr) minmax(12rem, 0.6fr) auto;
+  gap: 1rem;
+  align-items: end;
+  margin-bottom: 2rem;
+  padding: 1.4rem;
+  border: 1px solid var(--portal-linea);
+  background: var(--portal-fondo);
+}
+
+.portal-filtros label {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--portal-verde-900);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.portal-filtros input,
+.portal-filtros select {
+  min-height: 3rem;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid #aebdb6;
+  border-radius: 0.2rem;
+  background: #fff;
+  color: var(--portal-tinta);
+  font: inherit;
+}
+
+.portal-filtros .portal-boton {
+  margin-top: 0;
+  border: 0;
+  cursor: pointer;
+}
+
+.portal-listado-publico {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.portal-elemento-publico {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid var(--portal-linea);
+  background: #fff;
+  box-shadow: 0 1rem 3rem rgb(14 61 47 / 6%);
+}
+
+.portal-imagen-listado {
+  width: min(100%, 34rem);
+  max-height: 20rem;
+  margin-bottom: 1.5rem;
+  object-fit: cover;
+}
+
+.portal-elemento-publico h2 {
+  margin: 0;
+  color: var(--portal-tinta);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.65rem, 3vw, 2.35rem);
+  font-weight: 500;
+  line-height: 1.12;
+}
+
+.portal-elemento-publico > p:not(.portal-sobrelinea),
+.portal-elemento-publico > div > p:not(.portal-sobrelinea) {
+  color: var(--portal-gris);
+  line-height: 1.7;
+}
+
+.portal-evento-publico {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(15rem, 0.6fr);
+  gap: 1.5rem 3rem;
+}
+
+.portal-evento-publico > .portal-enlace-ver {
+  grid-column: 1 / -1;
+}
+
+.portal-evento-publico dl,
+.portal-datos-detalle {
+  margin: 0;
+}
+
+.portal-evento-publico dl > div,
+.portal-datos-detalle > div {
+  padding-block: 0.75rem;
+  border-bottom: 1px solid var(--portal-linea);
+}
+
+.portal-evento-publico dt,
+.portal-datos-detalle dt {
+  color: var(--portal-verde-700);
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.portal-evento-publico dd,
+.portal-datos-detalle dd {
+  margin: 0.3rem 0 0;
+  color: var(--portal-tinta);
+}
+
+.portal-paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.portal-paginacion button {
+  min-height: 2.7rem;
+  padding-inline: 1rem;
+  border: 1px solid var(--portal-verde-700);
+  border-radius: 0.2rem;
+  background: #fff;
+  color: var(--portal-verde-800);
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.portal-paginacion button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.portal-seccion-noticias-herramientas {
+  padding-bottom: 2.25rem;
+  background: #fff;
+}
+
+.portal-filtros-noticias {
+  grid-template-columns: minmax(13rem, 1.4fr) minmax(11rem, 0.9fr) repeat(2, minmax(9rem, 0.65fr)) auto;
+  align-items: end;
+  margin-bottom: 0;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  border-radius: 0.6rem;
+  background: var(--portal-fondo);
+  box-shadow: 0 1rem 2.4rem rgb(14 61 47 / 7%);
+}
+
+.portal-control-con-icono {
+  position: relative;
+  display: block;
+}
+
+.portal-control-con-icono svg {
+  position: absolute;
+  top: 50%;
+  left: 0.8rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  transform: translateY(-50%);
+  color: var(--portal-verde-700);
+  pointer-events: none;
+}
+
+.portal-filtros-noticias .portal-control-con-icono input {
+  padding-left: 2.55rem;
+}
+
+.portal-seccion-noticias-listado {
+  background: var(--portal-fondo);
+}
+
+.portal-cabecera-listado-noticias {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.portal-cabecera-listado-noticias .portal-sobrelinea {
+  margin-bottom: 0.55rem;
+}
+
+.portal-cabecera-listado-noticias h2 {
+  margin: 0;
+  color: var(--portal-tinta);
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+}
+
+.portal-listado-noticias {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.4rem;
+}
+
+.tarjeta-noticia {
+  display: flex;
+  min-height: 100%;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  border-radius: 0.55rem;
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.tarjeta-noticia:hover {
+  transform: translateY(-0.3rem);
+  box-shadow: 0 1.4rem 2.8rem rgb(14 61 47 / 12%);
+}
+
+.tarjeta-noticia-imagen {
+  display: grid;
+  min-height: 13rem;
+  place-items: center;
+  overflow: hidden;
+  background: var(--portal-verde-900);
+  color: rgb(255 255 255 / 85%);
+}
+
+.tarjeta-noticia-imagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tarjeta-noticia-imagen svg {
+  width: 4rem;
+  height: 4rem;
+}
+
+.tarjeta-noticia-contenido {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 1.45rem;
+}
+
+.tarjeta-noticia-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.tarjeta-noticia-meta .portal-sobrelinea {
+  margin: 0;
+}
+
+.tarjeta-noticia-meta time {
+  color: var(--portal-gris);
+  font-size: 0.72rem;
+  text-align: right;
+}
+
+.tarjeta-noticia h2 {
+  margin-top: 1rem;
+  font-size: clamp(1.45rem, 2vw, 1.85rem);
+}
+
+.tarjeta-noticia > .tarjeta-noticia-contenido > p {
+  margin-bottom: 1.4rem;
+}
+
+.tarjeta-noticia .portal-enlace-ver {
+  margin-top: auto;
+}
+
+.portal-mensaje-error {
+  padding: 1rem 1.2rem;
+  border-left: 0.3rem solid #a52f2f;
+  background: #fff2f2;
+  color: #722121;
+}
+
+.portal-estado-carga {
+  min-height: 10rem;
+  margin: 0;
+  padding: 3rem;
+  border: 1px dashed #bdc9c3;
+  background: var(--portal-fondo);
+  color: var(--portal-gris);
+  text-align: center;
+}
+
+.portal-detalle-publico {
+  max-width: 56rem;
+}
+
+.portal-contenido-publicacion {
+  margin: 0 0 2rem;
+  color: var(--portal-tinta);
+  font-size: 1.03rem;
+  line-height: 1.85;
+  white-space: pre-wrap;
+}
+
+.portal-imagen-detalle {
+  width: 100%;
+  height: auto;
+  max-height: 34rem;
+  margin-bottom: 2rem;
+  object-fit: cover;
+}
+
+.portal-datos-detalle {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.portal-requisitos {
+  margin-bottom: 2rem;
+}
+
+.portal-requisitos h2 {
+  color: var(--portal-tinta);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.portal-requisitos li {
+  margin-block: 0.6rem;
+  color: var(--portal-gris);
 }
 
 .eventos-contenido {
@@ -848,6 +1241,305 @@
   padding-left: 1.2rem;
 }
 
+.mapa-grafo {
+  display: block;
+  width: 100%;
+  height: 30rem;
+}
+
+.mapa-google {
+  width: 100%;
+  min-height: 30rem;
+}
+
+.mapa-marcador {
+  display: grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  place-items: center;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: var(--color-marcador, var(--portal-dorado));
+  box-shadow: 0 0.45rem 1.2rem rgb(9 47 38 / 35%);
+  color: #fff;
+  cursor: pointer;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.mapa-marcador-activo {
+  box-shadow:
+    0 0 0 0.35rem rgb(224 155 49 / 34%),
+    0 0.45rem 1.2rem rgb(9 47 38 / 35%);
+}
+
+.mapa-disponibilidad {
+  display: grid;
+  gap: 0.65rem;
+  margin-top: 1.4rem;
+}
+
+.mapa-disponibilidad button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: center;
+  padding: 0.8rem;
+  border: 1px solid var(--portal-linea);
+  border-radius: 0.25rem;
+  background: #fff;
+  color: var(--portal-tinta);
+  cursor: pointer;
+  text-align: left;
+}
+
+.mapa-disponibilidad button:hover,
+.mapa-disponibilidad .mapa-disponibilidad-activa {
+  border-color: var(--portal-verde-700);
+  background: var(--portal-verde-100);
+}
+
+.mapa-disponibilidad span:first-child {
+  display: grid;
+  min-width: 0;
+  gap: 0.2rem;
+}
+
+.mapa-disponibilidad strong {
+  overflow: hidden;
+  color: var(--portal-verde-900);
+  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mapa-disponibilidad small {
+  color: var(--portal-gris);
+  line-height: 1.35;
+}
+
+.mapa-estado-disponibilidad {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--portal-tinta);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.mapa-estado-disponibilidad::before {
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 50%;
+  background: var(--color-estado, var(--portal-dorado));
+  content: "";
+}
+
+.mapa-detalle-disponibilidad {
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--portal-linea);
+}
+
+.mapa-detalle-disponibilidad strong {
+  color: var(--portal-tinta);
+}
+
+.mapa-detalle-disponibilidad span {
+  color: var(--portal-verde-800);
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.mapa-detalle-disponibilidad p {
+  margin: 0;
+  color: var(--portal-gris);
+  line-height: 1.45;
+}
+
+.mapa-planificador {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 0.9fr);
+  gap: 2rem;
+  margin-top: 2rem;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid var(--portal-linea);
+  background: #fff;
+}
+
+.mapa-planificador h2 {
+  margin: 0;
+  color: var(--portal-tinta);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+  font-weight: 500;
+}
+
+.mapa-planificador p {
+  color: var(--portal-gris);
+  line-height: 1.65;
+}
+
+.mapa-acciones-ubicacion,
+.mapa-formulario-ruta {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.mapa-acciones-ubicacion {
+  flex-wrap: wrap;
+}
+
+.mapa-acciones-ubicacion button,
+.mapa-formulario-ruta button {
+  min-height: 2.9rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--portal-verde);
+  border-radius: 0.35rem;
+  background: var(--portal-verde);
+  color: #fff;
+  font-weight: 750;
+}
+
+.mapa-acciones-ubicacion .boton-secundario {
+  background: #fff;
+  color: var(--portal-verde);
+}
+
+.mapa-formulario-ruta {
+  display: grid;
+  align-content: start;
+}
+
+.mapa-formulario-ruta label {
+  color: var(--portal-tinta);
+  font-size: 0.86rem;
+  font-weight: 750;
+}
+
+.mapa-formulario-ruta select {
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.65rem;
+  border: 1px solid var(--portal-linea);
+  background: #fff;
+  color: var(--portal-tinta);
+}
+
+.mapa-formulario-ruta .campo-verificacion {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-block: 0.5rem;
+}
+
+.mapa-resultado-ruta {
+  grid-column: 1 / -1;
+  padding: 1.25rem;
+  border-left: 0.3rem solid var(--portal-dorado);
+  background: #f7f5ef;
+}
+
+.mapa-resultado-ruta h3 {
+  margin-top: 0;
+}
+
+.mapa-resultado-ruta ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.75rem;
+  margin-bottom: 0;
+}
+
+.pagina-tarjeta-imagen {
+  width: 100%;
+  height: 11rem;
+  margin-bottom: 1rem;
+  border-radius: 0.4rem;
+  object-fit: cover;
+}
+
+.portal-imagen-evento,
+.portal-imagen-evento-listado {
+  width: 100%;
+  border-radius: 0.45rem;
+  object-fit: cover;
+}
+
+.portal-imagen-evento {
+  max-height: 30rem;
+  margin-bottom: 1.5rem;
+}
+
+.portal-imagen-evento-listado {
+  height: 11rem;
+  grid-column: 1 / -1;
+}
+
+.portal-inscripcion-evento {
+  margin-top: 2rem;
+  padding: clamp(1.2rem, 3vw, 2rem);
+  border: 1px solid var(--portal-linea);
+  border-radius: 0.55rem;
+  background: var(--portal-verde-100);
+}
+
+.portal-inscripcion-evento h2 {
+  margin-top: 0;
+}
+
+.portal-formulario-inscripcion,
+.portal-confirmacion-inscripcion form {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.portal-formulario-inscripcion label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  line-height: 1.5;
+}
+
+.portal-formulario-inscripcion input {
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-top: 0.15rem;
+}
+
+.portal-formulario-inscripcion button,
+.portal-confirmacion-inscripcion button {
+  width: fit-content;
+  padding: 0.75rem 1rem;
+  border: 0;
+  border-radius: 0.35rem;
+  background: var(--portal-verde-800);
+  color: #fff;
+  font: inherit;
+  font-weight: 800;
+}
+
+.portal-confirmacion-inscripcion input {
+  min-height: 2.7rem;
+  padding: 0.6rem;
+  border: 1px solid var(--portal-linea);
+  border-radius: 0.35rem;
+  font: inherit;
+}
+
+.portal-mensaje-exito {
+  padding: 0.8rem 1rem;
+  border-left: 0.25rem solid var(--portal-verde-800);
+  background: #fff;
+}
+
 @media (max-width: 69rem) {
   .portal-navegacion-contenedor {
     position: relative;
@@ -912,7 +1604,7 @@
 
   .portal-emblema {
     width: 3rem;
-    height: 3.45rem;
+    height: 3rem;
   }
 
   .portal-nombre strong {
@@ -940,7 +1632,17 @@
   .nosotros-panel,
   .pagina-rejilla-tarjetas,
   .eventos-contenido,
-  .mapa-contenido {
+  .mapa-contenido,
+  .mapa-planificador {
+    grid-template-columns: 1fr;
+  }
+
+  .portal-filtros,
+  .portal-filtros-noticias,
+  .portal-evento-publico,
+  .portal-datos-detalle,
+  .bicicletas-totales,
+  .bicicletas-estados {
     grid-template-columns: 1fr;
   }
 
@@ -993,12 +1695,21 @@
     min-height: 13rem;
   }
 
-  .mapa-lienzo {
+  .mapa-lienzo,
+  .mapa-google {
     min-height: 21rem;
+  }
+
+  .portal-listado-noticias {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 34rem) {
+  .portal-listado-noticias {
+    grid-template-columns: 1fr;
+  }
+
   .portal-barra-contenido {
     justify-content: center;
   }

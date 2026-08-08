@@ -8,6 +8,51 @@ export function PaginaPerfil() {
   const navegacion = useNavigate();
   const [datos, setDatos] = useState({ contrasenaActual: "", contrasenaNueva: "" });
   const [estado, setEstado] = useState({ enviando: false, error: "", mensaje: "" });
+  const rolesVisibles = usuario.roles.filter((rol) => rol !== "USUARIOREGISTRADO");
+  const modulosAdministracion = [
+    {
+      permiso: "ROLGESTIONAR",
+      destino: "/administracion/usuarios",
+      etiqueta: "Usuarios y roles",
+      icono: "usuarios",
+    },
+    {
+      permiso: "PUBLICACIONLEER",
+      destino: "/administracion/publicaciones",
+      etiqueta: "Noticias",
+      icono: "publicaciones",
+    },
+    {
+      permiso: "EVENTOLEER",
+      destino: "/administracion/eventos",
+      etiqueta: "Eventos y cursos",
+      icono: "eventos",
+    },
+    {
+      permiso: "AREALEER",
+      destino: "/administracion/areas",
+      etiqueta: "Áreas, instalaciones y mapa",
+      icono: "areas",
+    },
+    {
+      permiso: "BICICLETALEER",
+      destino: "/administracion/bicicletas",
+      etiqueta: "Inventario de bicicletas",
+      icono: "bicicletas",
+    },
+    {
+      permiso: "INSTITUCIONALGESTIONAR",
+      destino: "/administracion/institucional",
+      etiqueta: "Contenido institucional",
+      icono: "institucional",
+    },
+    {
+      permiso: "REPORTELEER",
+      destino: "/administracion/auditoria",
+      etiqueta: "Auditoría del sistema",
+      icono: "auditoria",
+    },
+  ].filter((modulo) => usuario.permisos.includes(modulo.permiso));
 
   async function salir() {
     await cerrar();
@@ -40,12 +85,25 @@ export function PaginaPerfil() {
       <section className="panel-cuenta" aria-labelledby="titulo-roles">
         <h2 id="titulo-roles">Roles asignados</h2>
         <ul className="lista-etiquetas">
-          {usuario.roles.map((rol) => <li key={rol}>{rol}</li>)}
+          {rolesVisibles.map((rol) => <li key={rol}>{formatearNombreRol(rol)}</li>)}
         </ul>
-        {usuario.permisos.includes("ROLGESTIONAR") && (
-          <Link className="enlace-principal" to="/administracion/usuarios">Administrar usuarios y roles</Link>
-        )}
+        <nav className="acciones-perfil" aria-label="Accesos personales">
+          <Link className="enlace-principal" to="/mis-inscripciones">Mis inscripciones</Link>
+        </nav>
       </section>
+      {modulosAdministracion.length > 0 && (
+        <section className="panel-cuenta panel-modulos" aria-labelledby="titulo-modulos">
+          <h2 id="titulo-modulos">Visualización de módulos</h2>
+          <nav className="modulos-administracion" aria-label="Accesos de administración">
+            {modulosAdministracion.map((modulo) => (
+              <Link key={modulo.permiso} className="tarjeta-modulo" to={modulo.destino}>
+                <span className="icono-modulo" aria-hidden="true"><IconoModulo tipo={modulo.icono} /></span>
+                <span>{modulo.etiqueta}</span>
+              </Link>
+            ))}
+          </nav>
+        </section>
+      )}
       <section className="panel-cuenta" aria-labelledby="titulo-contrasena">
         <h2 id="titulo-contrasena">Cambiar contraseña</h2>
         {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
@@ -60,4 +118,39 @@ export function PaginaPerfil() {
       </section>
     </main>
   );
+}
+
+function IconoModulo({ tipo }) {
+  const propiedades = { viewBox: "0 0 64 64", fill: "none", stroke: "currentColor", strokeWidth: "4", strokeLinecap: "round", strokeLinejoin: "round" };
+
+  if (tipo === "usuarios") {
+    return <svg {...propiedades}><circle cx="23" cy="23" r="8" /><circle cx="44" cy="25" r="7" /><path d="M8 52c1-10 8-16 18-16s17 6 18 16M38 38c9 0 15 5 17 14" /></svg>;
+  }
+  if (tipo === "publicaciones") {
+    return <svg {...propiedades}><rect x="10" y="12" width="44" height="40" rx="4" /><path d="M21 22h23M21 32h23M21 42h14M15 22h1M15 32h1M15 42h1" /></svg>;
+  }
+  if (tipo === "eventos") {
+    return <svg {...propiedades}><rect x="10" y="14" width="44" height="40" rx="5" /><path d="M20 9v10M44 9v10M10 26h44M21 36h1M32 36h1M43 36h1M21 45h1M32 45h1" /></svg>;
+  }
+  if (tipo === "areas") {
+    return <svg {...propiedades}><path d="m10 16 15-6 14 6 15-6v38l-15 6-14-6-15 6Z" /><path d="M25 10v38M39 16v38" /><path d="M32 23c-4 0-7 3-7 7 0 6 7 13 7 13s7-7 7-13c0-4-3-7-7-7Z" /></svg>;
+  }
+  if (tipo === "bicicletas") {
+    return <svg {...propiedades}><circle cx="17" cy="46" r="8" /><circle cx="48" cy="46" r="8" /><path d="m17 46 11-22h10l10 22M23 34h14M30 17h10M29 24l-6-7M37 24l5-8" /></svg>;
+  }
+  if (tipo === "institucional") {
+    return <svg {...propiedades}><path d="M18 9h23l10 10v36H18Z" /><path d="M41 9v11h10M25 31h18M25 40h18M25 49h11" /><path d="M12 15v40h31" /></svg>;
+  }
+  return <svg {...propiedades}><path d="M18 9h23l10 10v36H18Z" /><path d="M41 9v11h10M25 31h18M25 40h18M25 49h11" /><circle cx="31" cy="25" r="5" /></svg>;
+}
+
+function formatearNombreRol(codigo) {
+  const nombres = {
+    ADMINISTRADOR: "Administrador",
+    OPERADOREVENTOS: "Operador de eventos",
+    OPERADORBICICLETAS: "Operador de bicicletas",
+    OPERADORMANTENIMIENTO: "Operador de mantenimiento",
+    CONSULTAREPORTES: "Consulta de reportes",
+  };
+  return nombres[codigo] || codigo;
 }

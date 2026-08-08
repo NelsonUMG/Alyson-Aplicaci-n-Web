@@ -27,8 +27,16 @@ public class Permiso {
     protected Permiso() {
     }
 
+    public Long obtenerIdPermiso() {
+        return idPermiso;
+    }
+
     public String obtenerCodigo() {
         return codigo;
+    }
+
+    public String obtenerDescripcion() {
+        return descripcion;
     }
 
     @Override

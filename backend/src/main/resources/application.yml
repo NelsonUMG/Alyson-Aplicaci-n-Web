@@ -26,11 +26,26 @@ spring:
     open-in-view: false
     hibernate:
       ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     properties:
       hibernate.jdbc.time_zone: UTC
+      hibernate.type.preferred_instant_jdbc_type: TIMESTAMP
   mvc:
     problemdetails:
       enabled: true
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 6MB
+
+almacenamiento:
+  publicaciones:
+    ruta: ${ALMACENAMIENTORUTAPUBLICACIONES:../datos/publicaciones}
+  eventos:
+    ruta: ${ALMACENAMIENTORUTAEVENTOS:../datos/eventos}
+  areas:
+    ruta: ${ALMACENAMIENTORUTAAREAS:../datos/areas}
 
 server:
   port: ${PUERTOSERVIDOR:8080}
@@ -44,7 +59,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: never

@@ -207,6 +207,11 @@ a {
   text-underline-offset: 0.25rem;
 }
 
+.pagina-administracion > .enlace-regreso {
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
 .tarjeta-formulario {
   width: min(32rem, 100%);
   padding: clamp(1.5rem, 5vw, 3rem);
@@ -367,9 +372,199 @@ button:disabled {
   font-weight: 750;
 }
 
+.acciones-perfil {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
+  gap: 0.85rem;
+  margin-top: 2rem;
+}
+
+.acciones-perfil .enlace-principal {
+  width: 100%;
+  min-height: 3.15rem;
+  margin-top: 0;
+  padding-inline: 1rem;
+  text-align: center;
+}
+
+.panel-modulos {
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+}
+
+.modulos-administracion {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.tarjeta-modulo {
+  display: grid;
+  min-height: 12.5rem;
+  place-items: center;
+  align-content: center;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 1px solid transparent;
+  border-radius: 0.8rem;
+  background: #f1f3f1;
+  color: #10231c;
+  font-weight: 800;
+  line-height: 1.3;
+  text-align: center;
+  text-decoration: none;
+  transition: transform 180ms ease, background-color 180ms ease, box-shadow 180ms ease;
+}
+
+.tarjeta-modulo:hover {
+  transform: translateY(-0.25rem);
+  background: #dcece4;
+  box-shadow: 0 1rem 2rem rgb(7 61 49 / 12%);
+}
+
+.tarjeta-modulo:focus-visible {
+  background: #dcece4;
+}
+
+.icono-modulo {
+  display: grid;
+  width: 5.6rem;
+  height: 5.6rem;
+  place-items: center;
+  border-radius: 0.7rem;
+  background: #fff;
+  color: #315849;
+}
+
+.icono-modulo svg {
+  width: 4rem;
+  height: 4rem;
+}
+
 .busqueda-usuarios {
   max-width: 42rem;
   margin: 2rem 0;
+}
+
+.acciones-gestion-usuarios {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 2rem;
+}
+
+.boton-gestion-activo {
+  border: 1px solid #153c2e !important;
+  background: #153c2e !important;
+  color: #fff !important;
+}
+
+.panel-formulario-administracion {
+  max-width: 68rem;
+}
+
+.nota-formulario-administracion,
+.selector-administracion > p {
+  margin: 0.35rem 0 1.25rem;
+  color: #52635b;
+  line-height: 1.55;
+}
+
+.formulario-administracion-usuarios {
+  display: grid;
+  gap: 1rem;
+}
+
+.formulario-administracion-usuarios label,
+.formulario-administracion-usuarios legend {
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.formulario-administracion-usuarios > label {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.formulario-administracion-usuarios input {
+  width: 100%;
+  min-height: 2.9rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid #9cad9f;
+  border-radius: 0.4rem;
+  background: #fff;
+  color: #10231c;
+}
+
+.campos-formulario-administracion {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.campos-formulario-administracion > div {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.selector-administracion {
+  min-width: 0;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid #d4dcd6;
+  border-radius: 0.5rem;
+}
+
+.selector-administracion legend {
+  padding: 0 0.4rem;
+}
+
+.lista-seleccion-administracion {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.7rem;
+}
+
+.grupos-permisos-administracion {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.grupo-permisos-administracion h3 {
+  margin: 0 0 0.65rem;
+  color: #315849;
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.lista-seleccion-administracion label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  min-width: 0;
+  padding: 0.8rem;
+  border: 1px solid #d4dcd6;
+  border-radius: 0.45rem;
+}
+
+.lista-seleccion-administracion input {
+  width: 1.15rem;
+  min-width: 1.15rem;
+  min-height: 1.15rem;
+  margin-top: 0.1rem;
+  padding: 0;
+}
+
+.lista-seleccion-administracion span {
+  min-width: 0;
+}
+
+.lista-seleccion-administracion small {
+  display: block;
+  margin-top: 0.25rem;
+  color: #5a6b64;
+  line-height: 1.45;
 }
 
 .busqueda-usuarios div {
@@ -383,6 +578,541 @@ button:disabled {
   border: 1px solid #c7d0ca;
   border-radius: 0.65rem;
   background: #fff;
+}
+
+.pagina-administracion-publicaciones {
+  width: min(82rem, 100%);
+}
+
+.cabecera-panel-administracion {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.cabecera-panel-administracion p {
+  margin-bottom: 0;
+  color: #52635b;
+}
+
+.rejilla-categorias-administracion {
+  display: grid;
+  grid-template-columns: minmax(14rem, 0.7fr) minmax(18rem, 1.3fr);
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.lista-categorias-administracion {
+  display: grid;
+  align-content: start;
+  gap: 0.5rem;
+}
+
+.lista-categorias-administracion > button {
+  display: grid;
+  gap: 0.25rem;
+  justify-items: start;
+  border: 1px solid #c7d0ca;
+  background: #fff;
+  color: #173e31;
+  text-align: left;
+}
+
+.lista-categorias-administracion > button.seleccionado {
+  border-color: #0d5a45;
+  background: #edf7f2;
+}
+
+.lista-categorias-administracion span,
+.panel-imagenes-publicacion small {
+  color: #607069;
+  font-size: 0.78rem;
+}
+
+.formulario-administracion {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.formulario-administracion label,
+.filtros-administracion label,
+.formulario-imagen label {
+  color: #263e35;
+  font-size: 0.84rem;
+  font-weight: 750;
+}
+
+.formulario-administracion input,
+.formulario-administracion select,
+.formulario-administracion textarea,
+.filtros-administracion input,
+.filtros-administracion select,
+.formulario-imagen input {
+  width: 100%;
+  min-height: 2.8rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #aebbb4;
+  border-radius: 0.35rem;
+  background: #fff;
+  color: #17251f;
+  font: inherit;
+}
+
+.formulario-administracion textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.formulario-administracion textarea.contenido-extenso {
+  min-height: 18rem;
+}
+
+.control-casilla {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-block: 0.5rem;
+}
+
+.control-casilla input {
+  width: 1.2rem;
+  min-height: 1.2rem;
+}
+
+.filtros-administracion {
+  display: grid;
+  grid-template-columns: 1.4fr repeat(3, minmax(8rem, 0.7fr)) auto;
+  gap: 0.8rem;
+  align-items: end;
+  margin-block: 1.5rem;
+}
+
+.filtros-administracion label,
+.formulario-imagen label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.acciones-publicacion {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.acciones-publicacion .enlace-principal {
+  margin-top: 0;
+}
+
+.pagina-administracion .boton-peligro {
+  border-color: #9b3a32;
+  background: #fff1ef;
+  color: #7b241b;
+}
+
+.panel-imagenes-publicacion {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #c7d0ca;
+}
+
+.formulario-imagen {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr auto;
+  gap: 0.8rem;
+  align-items: end;
+}
+
+.panel-imagenes-publicacion ul {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.panel-imagenes-publicacion li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.75rem;
+  border: 1px solid #d5ddd8;
+}
+
+.panel-imagenes-publicacion li span {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.previsualizacion-publicacion h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 500;
+}
+
+.resumen-previsualizacion {
+  color: #52635b;
+  font-size: 1.1rem;
+  line-height: 1.65;
+}
+
+.contenido-previsualizacion {
+  line-height: 1.8;
+  white-space: pre-wrap;
+}
+
+.pagina-administracion-eventos {
+  width: min(88rem, 100%);
+}
+
+.pagina-administracion-areas {
+  width: min(92rem, 100%);
+}
+
+.pagina-administracion-bicicletas {
+  width: min(78rem, 100%);
+}
+
+.pagina-auditoria {
+  width: min(96rem, 100%);
+}
+
+.filtros-auditoria {
+  grid-template-columns: repeat(4, minmax(10rem, 1fr));
+}
+
+.tabla-auditoria td {
+  vertical-align: top;
+}
+
+.tabla-auditoria td small {
+  display: block;
+  margin-top: 0.25rem;
+  color: #607069;
+}
+
+.tabla-auditoria code {
+  font-size: 0.75rem;
+  overflow-wrap: anywhere;
+}
+
+.filtros-bicicletas {
+  grid-template-columns: minmax(14rem, 1fr) minmax(12rem, 0.7fr) auto;
+}
+
+.formulario-bicicleta {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1.5rem;
+}
+
+.formulario-bicicleta .campo-ancho-completo {
+  grid-column: 1 / -1;
+}
+
+.formulario-cambio-estado {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 1px solid #d5ddd8;
+  border-radius: 0.55rem;
+  background: #f7faf8;
+}
+
+.formulario-cambio-estado h3,
+.formulario-cambio-estado p {
+  margin: 0 0 0.5rem;
+}
+
+.mensaje-advertencia {
+  padding: 0.8rem 1rem;
+  border: 1px solid #d2a549;
+  border-radius: 0.4rem;
+  background: #fff8e6;
+  color: #684b0f;
+}
+
+.formulario-area {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1.5rem;
+}
+
+.formulario-administracion label {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+}
+
+.formulario-administracion .campo-verificacion {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 2.8rem;
+}
+
+.formulario-administracion .campo-verificacion input {
+  width: 1.2rem;
+  min-height: 1.2rem;
+}
+
+.formulario-area .campo-ancho-completo {
+  grid-column: 1 / -1;
+}
+
+.vista-previa-imagen {
+  display: block;
+  width: min(100%, 34rem);
+  max-height: 20rem;
+  margin-bottom: 1rem;
+  border-radius: 0.5rem;
+  object-fit: cover;
+}
+
+.historial-area {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #d5ddd8;
+}
+
+.reservas-area {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #d5ddd8;
+}
+
+.reservas-area .cabecera-panel-administracion h3,
+.reservas-area .cabecera-panel-administracion p {
+  margin: 0;
+}
+
+.reservas-area .cabecera-panel-administracion p {
+  margin-top: 0.25rem;
+}
+
+.rejilla-reservas-area {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.85fr) minmax(18rem, 1.15fr);
+  gap: 1rem;
+}
+
+.formulario-reserva-area {
+  align-content: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 1rem;
+  border: 1px solid #d5ddd8;
+  border-radius: 0.55rem;
+  background: #f7faf8;
+}
+
+.formulario-reserva-area .campo-ancho-completo,
+.formulario-reserva-area .acciones-publicacion {
+  grid-column: 1 / -1;
+}
+
+.historial-area ol {
+  display: grid;
+  gap: 0.7rem;
+  padding-left: 1.5rem;
+}
+
+.historial-area li span {
+  display: block;
+  margin-top: 0.2rem;
+  color: #52635b;
+}
+
+.rejilla-mapa-administracion {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.formulario-mapa {
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #d5ddd8;
+  border-radius: 0.55rem;
+  background: #f7faf8;
+}
+
+.lista-elementos-administracion {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.lista-elementos-administracion > button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  border: 1px solid #c7d0ca;
+  background: #fff;
+  color: #173e31;
+  text-align: left;
+}
+
+.lista-elementos-administracion > button.seleccionado {
+  border-color: #0d5a45;
+  background: #edf7f2;
+}
+
+.lista-elementos-administracion > button span {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.lista-elementos-administracion > button span:last-child {
+  justify-items: end;
+}
+
+.lista-elementos-administracion small {
+  color: #607069;
+}
+
+.acciones-paginacion,
+.acciones-editoriales {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.acciones-editoriales {
+  justify-content: flex-start;
+  padding-top: 1.25rem;
+  border-top: 1px solid #d5ddd8;
+}
+
+.formulario-evento {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 1.5rem;
+}
+
+.formulario-evento label {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+}
+
+.formulario-evento .campo-ancho {
+  grid-column: 1 / -1;
+}
+
+.requisitos-administracion {
+  display: grid;
+  gap: 0.75rem;
+  margin-block: 0.5rem;
+  padding: 1rem;
+  border: 1px solid #d5ddd8;
+  border-radius: 0.55rem;
+  background: #f7faf8;
+}
+
+.requisitos-administracion h3,
+.gestion-imagen-evento h3 {
+  margin: 0;
+}
+
+.fila-requisito {
+  display: grid;
+  grid-template-columns: minmax(12rem, 1fr) auto auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.fila-requisito label {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.fila-requisito label input {
+  width: 1.15rem;
+  min-height: 1.15rem;
+}
+
+.gestion-imagen-evento {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #d5ddd8;
+}
+
+.gestion-imagen-evento img {
+  width: min(100%, 36rem);
+  max-height: 20rem;
+  border-radius: 0.55rem;
+  object-fit: cover;
+}
+
+.gestion-imagen-evento form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.tabla-administracion {
+  overflow-x: auto;
+  border: 1px solid #d5ddd8;
+  border-radius: 0.55rem;
+}
+
+.lista-mis-inscripciones {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.lista-mis-inscripciones article {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid #d5ddd8;
+  border-radius: 0.55rem;
+}
+
+.lista-mis-inscripciones h2,
+.lista-mis-inscripciones p {
+  margin: 0.25rem 0;
+}
+
+@media (max-width: 55rem) {
+  .rejilla-categorias-administracion,
+  .filtros-administracion,
+  .formulario-imagen,
+  .formulario-evento,
+  .formulario-area,
+  .formulario-bicicleta,
+  .formulario-reserva-area,
+  .rejilla-mapa-administracion,
+  .rejilla-reservas-area,
+  .fila-requisito {
+    grid-template-columns: 1fr;
+  }
+
+  .cabecera-panel-administracion {
+    flex-direction: column;
+  }
+
+  .lista-elementos-administracion > button {
+    grid-template-columns: 1fr;
+  }
+
+  .lista-elementos-administracion > button span:last-child {
+    justify-items: start;
+  }
+
+  .lista-mis-inscripciones article {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 }
 
 table {
@@ -470,7 +1200,9 @@ th {
   }
 
   .campos-en-linea,
-  .lista-roles {
+  .lista-roles,
+  .campos-formulario-administracion,
+  .lista-seleccion-administracion {
     grid-template-columns: 1fr;
   }
 }

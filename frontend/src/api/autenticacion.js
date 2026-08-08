@@ -1,7 +1,9 @@
-import { solicitarApi } from "./clienteHttp";
+import { recordarTokenCsrf, solicitarApi } from "./clienteHttp";
 
-export function prepararCsrf() {
-  return solicitarApi("/autenticacion/csrf");
+export async function prepararCsrf() {
+  const respuesta = await solicitarApi("/autenticacion/csrf");
+  recordarTokenCsrf(respuesta.token);
+  return respuesta;
 }
 
 export async function registrarCuenta(datos) {

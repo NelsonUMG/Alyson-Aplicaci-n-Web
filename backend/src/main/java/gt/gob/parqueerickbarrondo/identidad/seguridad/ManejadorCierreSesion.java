@@ -1,8 +1,8 @@
 package gt.gob.parqueerickbarrondo.identidad.seguridad;
 
 import java.io.IOException;
-import java.util.UUID;
 
+import gt.gob.parqueerickbarrondo.compartido.observabilidad.IdentificadorCorrelacion;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioAuditoria;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -31,7 +31,7 @@ public class ManejadorCierreSesion implements LogoutSuccessHandler {
                     "SESION",
                     null,
                     "EXITOSO",
-                    UUID.randomUUID().toString());
+                    IdentificadorCorrelacion.actual());
         }
         respuesta.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }

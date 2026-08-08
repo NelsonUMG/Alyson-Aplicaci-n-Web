@@ -2,24 +2,47 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   actualizarRolesUsuario,
+  crearEmpleado,
+  crearRol,
+  listarPermisos,
   listarRoles,
   listarUsuarios,
 } from "../api/administracionUsuarios";
+
+const datosEmpleadoIniciales = {
+  nombre: "",
+  apellido: "",
+  correo: "",
+  contrasenaInicial: "",
+  confirmarContrasena: "",
+  codigosRoles: [],
+};
+
+const datosRolIniciales = {
+  nombre: "",
+  descripcion: "",
+  codigosPermisos: [],
+};
 
 export function PaginaAdministracionUsuarios() {
   const [busqueda, setBusqueda] = useState("");
   const [pagina, setPagina] = useState({ contenido: [], pagina: 0, totalPaginas: 0 });
   const [roles, setRoles] = useState([]);
+  const [permisos, setPermisos] = useState([]);
   const [seleccion, setSeleccion] = useState(null);
+  const [panelActivo, setPanelActivo] = useState("");
+  const [datosEmpleado, setDatosEmpleado] = useState(datosEmpleadoIniciales);
+  const [datosRol, setDatosRol] = useState(datosRolIniciales);
   const [estado, setEstado] = useState({ cargando: true, guardando: false, error: "", mensaje: "" });
 
   useEffect(() => {
     let vigente = true;
-    Promise.all([listarUsuarios(), listarRoles()])
-      .then(([usuarios, catalogoRoles]) => {
+    Promise.all([listarUsuarios(), listarRoles(), listarPermisos()])
+      .then(([usuarios, catalogoRoles, catalogoPermisos]) => {
         if (!vigente) return;
         setPagina(usuarios);
         setRoles(catalogoRoles);
+        setPermisos(catalogoPermisos);
         setEstado({ cargando: false, guardando: false, error: "", mensaje: "" });
       })
       .catch((error) => {
@@ -30,11 +53,16 @@ export function PaginaAdministracionUsuarios() {
     };
   }, []);
 
+  async function recargarUsuarios(texto = busqueda, numeroPagina = pagina.pagina) {
+    const usuarios = await listarUsuarios(texto, numeroPagina);
+    setPagina(usuarios);
+  }
+
   async function buscar(evento) {
     evento.preventDefault();
     setEstado((actual) => ({ ...actual, cargando: true, error: "", mensaje: "" }));
     try {
-      setPagina(await listarUsuarios(busqueda));
+      await recargarUsuarios(busqueda, 0);
       setSeleccion(null);
       setEstado({ cargando: false, guardando: false, error: "", mensaje: "" });
     } catch (error) {
@@ -45,7 +73,7 @@ export function PaginaAdministracionUsuarios() {
   async function cambiarPagina(numeroPagina) {
     setEstado((actual) => ({ ...actual, cargando: true, error: "", mensaje: "" }));
     try {
-      setPagina(await listarUsuarios(busqueda, numeroPagina));
+      await recargarUsuarios(busqueda, numeroPagina);
       setSeleccion(null);
       setEstado({ cargando: false, guardando: false, error: "", mensaje: "" });
     } catch (error) {
@@ -55,6 +83,7 @@ export function PaginaAdministracionUsuarios() {
 
   function editar(usuario) {
     setSeleccion({ ...usuario, rolesSeleccionados: [...usuario.roles] });
+    setPanelActivo("");
     setEstado((actual) => ({ ...actual, error: "", mensaje: "" }));
   }
 
@@ -65,6 +94,26 @@ export function PaginaAdministracionUsuarios() {
       else codigos.add(codigo);
       return { ...actual, rolesSeleccionados: [...codigos] };
     });
+  }
+
+  function alternarRolEmpleado(codigo) {
+    setDatosEmpleado((actual) => ({
+      ...actual,
+      codigosRoles: alternarCodigo(actual.codigosRoles, codigo),
+    }));
+  }
+
+  function alternarPermiso(codigo) {
+    setDatosRol((actual) => ({
+      ...actual,
+      codigosPermisos: alternarCodigo(actual.codigosPermisos, codigo),
+    }));
+  }
+
+  function mostrarPanel(nombrePanel) {
+    setPanelActivo((actual) => (actual === nombrePanel ? "" : nombrePanel));
+    setSeleccion(null);
+    setEstado((actual) => ({ ...actual, error: "", mensaje: "" }));
   }
 
   async function guardarRoles() {
@@ -88,11 +137,153 @@ export function PaginaAdministracionUsuarios() {
     }
   }
 
+  async function guardarEmpleado(evento) {
+    evento.preventDefault();
+    if (datosEmpleado.contrasenaInicial !== datosEmpleado.confirmarContrasena) {
+      setEstado((actual) => ({ ...actual, error: "Las contraseñas no coinciden.", mensaje: "" }));
+      return;
+    }
+    setEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
+    try {
+      await crearEmpleado({
+        nombre: datosEmpleado.nombre,
+        apellido: datosEmpleado.apellido,
+        correo: datosEmpleado.correo,
+        contrasenaInicial: datosEmpleado.contrasenaInicial,
+        codigosRoles: datosEmpleado.codigosRoles,
+      });
+      await recargarUsuarios(busqueda, 0);
+      setDatosEmpleado(datosEmpleadoIniciales);
+      setPanelActivo("");
+      setEstado({ cargando: false, guardando: false, error: "", mensaje: "Empleado registrado." });
+    } catch (error) {
+      setEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
+    }
+  }
+
+  async function guardarRol(evento) {
+    evento.preventDefault();
+    setEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
+    try {
+      const rolCreado = await crearRol(datosRol);
+      setRoles((actual) => [...actual, rolCreado].sort((primero, segundo) => (
+        primero.nombre.localeCompare(segundo.nombre, "es")
+      )));
+      setDatosRol(datosRolIniciales);
+      setPanelActivo("empleado");
+      setEstado({ cargando: false, guardando: false, error: "", mensaje: "Rol creado. Ya puedes asignarlo a un empleado." });
+    } catch (error) {
+      setEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
+    }
+  }
+
+  const rolesParaEmpleado = roles.filter((rol) => rol.codigo !== "USUARIOREGISTRADO");
+  const gruposPermisos = agruparPermisos(permisos);
+
   return (
     <main className="pagina-administracion">
       <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
-      <p className="etiqueta-fase">Administración autorizada</p>
+      <p className="etiqueta-fase">Administración</p>
       <h1>Usuarios y roles</h1>
+      <div className="acciones-gestion-usuarios" aria-label="Administración de empleados y roles">
+        <button
+          className={panelActivo === "empleado" ? "boton-gestion-activo" : "boton-secundario"}
+          type="button"
+          aria-expanded={panelActivo === "empleado"}
+          onClick={() => mostrarPanel("empleado")}
+        >
+          Registrar empleado
+        </button>
+        <button
+          className={panelActivo === "rol" ? "boton-gestion-activo" : "boton-secundario"}
+          type="button"
+          aria-expanded={panelActivo === "rol"}
+          onClick={() => mostrarPanel("rol")}
+        >
+          Crear rol para empleados
+        </button>
+      </div>
+      {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
+      {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
+      {panelActivo === "empleado" && (
+        <section className="panel-edicion panel-formulario-administracion" aria-labelledby="titulo-empleado">
+          <h2 id="titulo-empleado">Registrar empleado</h2>
+          <p className="nota-formulario-administracion">Los clientes conservan el registro de cuenta habitual y el rol USUARIOREGISTRADO.</p>
+          <form className="formulario-administracion-usuarios" onSubmit={guardarEmpleado}>
+            <div className="campos-formulario-administracion">
+              <div>
+                <label htmlFor="nombreEmpleado">Nombre</label>
+                <input id="nombreEmpleado" required maxLength="80" value={datosEmpleado.nombre} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, nombre: evento.target.value }))} />
+              </div>
+              <div>
+                <label htmlFor="apellidoEmpleado">Apellido</label>
+                <input id="apellidoEmpleado" required maxLength="80" value={datosEmpleado.apellido} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, apellido: evento.target.value }))} />
+              </div>
+            </div>
+            <label htmlFor="correoEmpleado">Correo electrónico</label>
+            <input id="correoEmpleado" type="email" autoComplete="email" required maxLength="254" value={datosEmpleado.correo} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, correo: evento.target.value }))} />
+            <div className="campos-formulario-administracion">
+              <div>
+                <label htmlFor="contrasenaEmpleado">Contraseña inicial</label>
+                <input id="contrasenaEmpleado" type="password" autoComplete="new-password" required minLength="12" maxLength="128" value={datosEmpleado.contrasenaInicial} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, contrasenaInicial: evento.target.value }))} />
+              </div>
+              <div>
+                <label htmlFor="confirmarContrasenaEmpleado">Confirmar contraseña</label>
+                <input id="confirmarContrasenaEmpleado" type="password" autoComplete="new-password" required minLength="12" maxLength="128" value={datosEmpleado.confirmarContrasena} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, confirmarContrasena: evento.target.value }))} />
+              </div>
+            </div>
+            <fieldset className="selector-administracion">
+              <legend>Roles del empleado</legend>
+              <p>El rol USUARIOREGISTRADO se asigna automáticamente.</p>
+              <div className="lista-seleccion-administracion">
+                {rolesParaEmpleado.map((rol) => (
+                  <label key={rol.codigo}>
+                    <input type="checkbox" checked={datosEmpleado.codigosRoles.includes(rol.codigo)} onChange={() => alternarRolEmpleado(rol.codigo)} />
+                    <span><strong>{rol.nombre}</strong><small>{rol.descripcion}</small></span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <button type="submit" disabled={estado.guardando}>{estado.guardando ? "Guardando…" : "Registrar empleado"}</button>
+          </form>
+        </section>
+      )}
+      {panelActivo === "rol" && (
+        <section className="panel-edicion panel-formulario-administracion" aria-labelledby="titulo-rol">
+          <h2 id="titulo-rol">Crear rol para empleados</h2>
+          <form className="formulario-administracion-usuarios" onSubmit={guardarRol}>
+            <div className="campos-formulario-administracion">
+              <div>
+                <label htmlFor="nombreRol">Nombre del rol</label>
+                <input id="nombreRol" required maxLength="100" value={datosRol.nombre} onChange={(evento) => setDatosRol((actual) => ({ ...actual, nombre: evento.target.value }))} />
+              </div>
+              <div>
+                <label htmlFor="descripcionRol">Descripción</label>
+                <input id="descripcionRol" maxLength="300" value={datosRol.descripcion} onChange={(evento) => setDatosRol((actual) => ({ ...actual, descripcion: evento.target.value }))} />
+              </div>
+            </div>
+            <fieldset className="selector-administracion">
+              <legend>Permisos del rol</legend>
+              <div className="grupos-permisos-administracion">
+                {gruposPermisos.map((grupo) => (
+                  <section key={grupo.nombre} className="grupo-permisos-administracion" aria-labelledby={`grupo-${grupo.codigo}`}>
+                    <h3 id={`grupo-${grupo.codigo}`}>{grupo.nombre}</h3>
+                    <div className="lista-seleccion-administracion">
+                      {grupo.permisos.map((permiso) => (
+                        <label key={permiso.codigo}>
+                          <input type="checkbox" checked={datosRol.codigosPermisos.includes(permiso.codigo)} onChange={() => alternarPermiso(permiso.codigo)} />
+                          <span><strong>{formatearCodigoPermiso(permiso.codigo)}</strong><small>{permiso.descripcion}</small></span>
+                        </label>
+                      ))}
+                    </div>
+                  </section>
+                ))}
+              </div>
+            </fieldset>
+            <button type="submit" disabled={estado.guardando}>{estado.guardando ? "Guardando…" : "Crear rol"}</button>
+          </form>
+        </section>
+      )}
       <form className="busqueda-usuarios" onSubmit={buscar}>
         <label htmlFor="busqueda">Buscar por nombre o correo</label>
         <div>
@@ -100,8 +291,6 @@ export function PaginaAdministracionUsuarios() {
           <button type="submit">Buscar</button>
         </div>
       </form>
-      {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
-      {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
       {estado.cargando ? (
         <p role="status">Cargando usuarios…</p>
       ) : (
@@ -166,4 +355,45 @@ export function PaginaAdministracionUsuarios() {
       )}
     </main>
   );
+}
+
+function alternarCodigo(codigos, codigo) {
+  const seleccion = new Set(codigos);
+  if (seleccion.has(codigo)) seleccion.delete(codigo);
+  else seleccion.add(codigo);
+  return [...seleccion];
+}
+
+function formatearCodigoPermiso(codigo) {
+  return codigo
+    .replace(/(AREA|AUDITORIA|BICICLETA|EVENTO|INSTITUCIONAL|MANTENIMIENTO|PUBLICACION|REPORTE|USUARIO|ROL)(?=[A-Z])/g, "$1 ")
+    .replace(/(ACTUALIZAR|GESTIONAR)(?=[A-Z])/g, "$1 ");
+}
+
+function agruparPermisos(permisos) {
+  const modulos = [
+    { codigo: "AREA", nombre: "Áreas e instalaciones" },
+    { codigo: "BICICLETA", nombre: "Bicicletas" },
+    { codigo: "EVENTO", nombre: "Eventos e inscripciones" },
+    { codigo: "INSTITUCIONAL", nombre: "Contenido institucional" },
+    { codigo: "MANTENIMIENTO", nombre: "Mantenimiento" },
+    { codigo: "PUBLICACION", nombre: "Publicaciones" },
+    { codigo: "USUARIO", nombre: "Usuarios y roles" },
+    { codigo: "ROL", nombre: "Usuarios y roles" },
+    { codigo: "REPORTE", nombre: "Reportes y auditoría" },
+    { codigo: "AUDITORIA", nombre: "Reportes y auditoría" },
+  ];
+  const grupos = new Map();
+
+  permisos.forEach((permiso) => {
+    const modulo = modulos.find((candidato) => permiso.codigo.startsWith(candidato.codigo)) || {
+      codigo: "OTROS",
+      nombre: "Otros permisos",
+    };
+    const grupo = grupos.get(modulo.nombre) || { ...modulo, permisos: [] };
+    grupo.permisos.push(permiso);
+    grupos.set(modulo.nombre, grupo);
+  });
+
+  return [...grupos.values()];
 }

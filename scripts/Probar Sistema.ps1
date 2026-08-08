@@ -1,5 +1,8 @@
 [CmdletBinding()]
-param()
+param(
+    [Parameter()]
+    [switch]$OmitirIntegracionSql
+)
 
 $ErrorActionPreference = 'Stop'
 $raizRepositorio = Split-Path -Parent $PSScriptRoot
@@ -15,6 +18,10 @@ $migracionesEsperadas = @(
     'Migracion5 Crear Areas Y Mapa.sql',
     'Migracion6 Crear Bicicletas Y Solicitudes.sql',
     'Migracion7 Agregar Seguridad A Usuarios.sql'
+    'Migracion8 Agregar Permiso Estado Bicicletas.sql'
+    'Migracion9 Proteger Y Optimizar Auditoria.sql'
+    'Migracion10 Crear Reservas Areas.sql'
+    'Migracion11 Crear Contenido Institucional.sql'
 )
 
 foreach ($migracion in $migracionesEsperadas) {
@@ -22,6 +29,8 @@ foreach ($migracion in $migracionesEsperadas) {
         throw "Falta la migración requerida: $migracion"
     }
 }
+
+& (Join-Path $PSScriptRoot 'Revisar Secretos.ps1')
 
 Push-Location $rutaInterfaz
 try {
@@ -33,6 +42,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas de la interfaz.' }
     npm run compilar
     if ($LASTEXITCODE -ne 0) { throw 'Falló la compilación de la interfaz.' }
+    npm audit --audit-level=critical
+    if ($LASTEXITCODE -ne 0) { throw 'La auditoría de dependencias encontró una vulnerabilidad crítica.' }
 }
 finally {
     Pop-Location
@@ -45,6 +56,11 @@ try {
 }
 finally {
     Pop-Location
+}
+
+
+if (-not $OmitirIntegracionSql) {
+    & (Join-Path $PSScriptRoot 'Probar Integracion SQL Server.ps1')
 }
 
 Write-Host 'Verificación completa del sistema finalizada.'

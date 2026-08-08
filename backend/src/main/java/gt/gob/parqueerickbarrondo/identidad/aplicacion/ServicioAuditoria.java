@@ -1,7 +1,6 @@
 package gt.gob.parqueerickbarrondo.identidad.aplicacion;
 
-import java.util.UUID;
-
+import gt.gob.parqueerickbarrondo.compartido.observabilidad.IdentificadorCorrelacion;
 import gt.gob.parqueerickbarrondo.identidad.dominio.EventoAuditoria;
 import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioEventoAuditoria;
 import org.springframework.stereotype.Service;
@@ -25,7 +24,7 @@ public class ServicioAuditoria {
             String resultado,
             String idCorrelacion) {
         var correlacion = idCorrelacion == null || idCorrelacion.isBlank()
-                ? UUID.randomUUID().toString()
+                ? IdentificadorCorrelacion.actual()
                 : idCorrelacion;
         repositorioEventoAuditoria.save(new EventoAuditoria(
                 idUsuarioActor,

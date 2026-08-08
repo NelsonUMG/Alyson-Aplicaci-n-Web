@@ -1,7 +1,7 @@
 package gt.gob.parqueerickbarrondo.identidad.aplicacion;
 
-import java.util.UUID;
 
+import gt.gob.parqueerickbarrondo.compartido.observabilidad.IdentificadorCorrelacion;
 import gt.gob.parqueerickbarrondo.identidad.dominio.Usuario;
 import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioRol;
 import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioUsuario;
@@ -74,14 +74,14 @@ public class InicializadorAdministrador implements ApplicationRunner {
                 .orElseThrow(() -> new IllegalStateException("No existe el rol ADMINISTRADOR."));
         usuario.agregarRol(rolUsuario);
         usuario.agregarRol(rolAdministrador);
-        repositorioUsuario.saveAndFlush(usuario);
+        usuario = repositorioUsuario.saveAndFlush(usuario);
         servicioAuditoria.registrar(
                 usuario.obtenerIdUsuario(),
                 "ADMINISTRADORINICIALCREADO",
                 "USUARIO",
                 usuario.obtenerIdUsuario().toString(),
                 "EXITOSO",
-                UUID.randomUUID().toString());
+                IdentificadorCorrelacion.actual());
         REGISTRO.info("Se creó el administrador inicial. Deshabilita y elimina sus variables de inicialización.");
     }
 

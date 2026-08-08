@@ -6,16 +6,22 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
+import java.text.Normalizer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import gt.gob.parqueerickbarrondo.compartido.observabilidad.IdentificadorCorrelacion;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.RespuestaPagina;
+import gt.gob.parqueerickbarrondo.identidad.api.modelo.RespuestaPermiso;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.RespuestaRol;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.RespuestaUsuarioAdministrado;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudActualizacionRoles;
+import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudEmpleadoAdministrado;
+import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudRolAdministrado;
+import gt.gob.parqueerickbarrondo.identidad.dominio.Permiso;
 import gt.gob.parqueerickbarrondo.identidad.dominio.Rol;
 import gt.gob.parqueerickbarrondo.identidad.dominio.Usuario;
+import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioPermiso;
 import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioRol;
 import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioUsuario;
 import gt.gob.parqueerickbarrondo.identidad.seguridad.UsuarioSesion;
@@ -23,6 +29,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.session.SessionRegistry;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -33,17 +40,29 @@ public class ServicioAdministracionUsuarios {
 
     private final RepositorioUsuario repositorioUsuario;
     private final RepositorioRol repositorioRol;
+    private final RepositorioPermiso repositorioPermiso;
     private final SessionRegistry registroSesiones;
+    private final PasswordEncoder codificadorContrasena;
+    private final NormalizadorCorreo normalizadorCorreo;
+    private final PoliticaContrasena politicaContrasena;
     private final ServicioAuditoria servicioAuditoria;
 
     public ServicioAdministracionUsuarios(
             RepositorioUsuario repositorioUsuario,
             RepositorioRol repositorioRol,
+            RepositorioPermiso repositorioPermiso,
             SessionRegistry registroSesiones,
+            PasswordEncoder codificadorContrasena,
+            NormalizadorCorreo normalizadorCorreo,
+            PoliticaContrasena politicaContrasena,
             ServicioAuditoria servicioAuditoria) {
         this.repositorioUsuario = repositorioUsuario;
         this.repositorioRol = repositorioRol;
+        this.repositorioPermiso = repositorioPermiso;
         this.registroSesiones = registroSesiones;
+        this.codificadorContrasena = codificadorContrasena;
+        this.normalizadorCorreo = normalizadorCorreo;
+        this.politicaContrasena = politicaContrasena;
         this.servicioAuditoria = servicioAuditoria;
     }
 
@@ -84,6 +103,84 @@ public class ServicioAdministracionUsuarios {
     }
 
     @PreAuthorize("hasAuthority('ROLGESTIONAR')")
+    @Transactional(readOnly = true)
+    public List<RespuestaPermiso> listarPermisos() {
+        return repositorioPermiso.findAllByOrderByCodigoAsc().stream()
+                .map(permiso -> new RespuestaPermiso(permiso.obtenerCodigo(), permiso.obtenerDescripcion()))
+                .toList();
+    }
+
+    @PreAuthorize("hasAuthority('ROLGESTIONAR')")
+    @Transactional
+    public RespuestaRol crearRol(SolicitudRolAdministrado solicitud, UsuarioSesion actor) {
+        var codigo = construirCodigoRol(solicitud.nombre());
+        if (repositorioRol.findByCodigo(codigo).isPresent()) {
+            throw new ConflictoDatosException("Ya existe un rol con ese nombre.");
+        }
+        var codigosPermisos = normalizarCodigos(solicitud.codigosPermisos());
+        var permisos = repositorioPermiso.findAllByCodigoIn(codigosPermisos);
+        if (permisos.size() != codigosPermisos.size()) {
+            throw new SolicitudInvalidaException("Uno o más permisos no existen.");
+        }
+        validarPermisosDelegables(permisos, actor);
+
+        var rol = new Rol(
+                codigo,
+                solicitud.nombre().strip(),
+                solicitud.descripcion() == null ? "" : solicitud.descripcion().strip(),
+                new LinkedHashSet<>(permisos));
+        rol = repositorioRol.saveAndFlush(rol);
+        servicioAuditoria.registrar(
+                actor.obtenerIdUsuario(),
+                "ROLCREADO",
+                "ROL",
+                rol.obtenerIdRol() == null ? null : rol.obtenerIdRol().toString(),
+                "EXITOSO",
+                IdentificadorCorrelacion.actual());
+        return convertirRol(rol);
+    }
+
+    @PreAuthorize("hasAuthority('USUARIOGESTIONAR') and hasAuthority('ROLGESTIONAR')")
+    @Transactional
+    public RespuestaUsuarioAdministrado crearEmpleado(
+            SolicitudEmpleadoAdministrado solicitud,
+            UsuarioSesion actor) {
+        politicaContrasena.validar(solicitud.contrasenaInicial());
+        var correo = normalizadorCorreo.normalizar(solicitud.correo());
+        if (repositorioUsuario.existsByCorreoNormalizado(correo)) {
+            throw new ConflictoDatosException("Ya existe una cuenta con ese correo electrónico.");
+        }
+
+        var codigosRoles = normalizarCodigos(solicitud.codigosRoles());
+        codigosRoles.add("USUARIOREGISTRADO");
+        var roles = repositorioRol.findAllByCodigoInAndActivoTrue(codigosRoles);
+        if (roles.size() != codigosRoles.size()) {
+            throw new SolicitudInvalidaException("Uno o más roles no existen o están deshabilitados.");
+        }
+        var rolesAdicionales = roles.stream()
+                .filter(rol -> !"USUARIOREGISTRADO".equals(rol.obtenerCodigo()))
+                .toList();
+        validarEscalacion(List.of(), rolesAdicionales, actor);
+
+        var usuario = new Usuario(
+                correo,
+                solicitud.nombre().strip(),
+                solicitud.apellido().strip(),
+                codificadorContrasena.encode(solicitud.contrasenaInicial()),
+                java.time.Instant.now());
+        usuario.reemplazarRoles(new LinkedHashSet<>(roles));
+        usuario = repositorioUsuario.saveAndFlush(usuario);
+        servicioAuditoria.registrar(
+                actor.obtenerIdUsuario(),
+                "EMPLEADOCREADO",
+                "USUARIO",
+                usuario.obtenerIdUsuario() == null ? null : usuario.obtenerIdUsuario().toString(),
+                "EXITOSO",
+                IdentificadorCorrelacion.actual());
+        return convertirUsuario(usuario);
+    }
+
+    @PreAuthorize("hasAuthority('ROLGESTIONAR')")
     @Transactional
     public RespuestaUsuarioAdministrado actualizarRoles(
             Long idUsuario,
@@ -117,7 +214,7 @@ public class ServicioAdministracionUsuarios {
                 "USUARIO",
                 idUsuario.toString(),
                 "EXITOSO",
-                UUID.randomUUID().toString());
+                IdentificadorCorrelacion.actual());
         return convertirUsuario(usuario);
     }
 
@@ -130,10 +227,14 @@ public class ServicioAdministracionUsuarios {
             if ("ADMINISTRADOR".equals(rol.obtenerCodigo()) && !actor.obtenerRoles().contains("ADMINISTRADOR")) {
                 throw new SolicitudInvalidaException("No puedes asignar un rol superior al propio.");
             }
-            var permisosRol = rol.obtenerPermisos().stream().map(permiso -> permiso.obtenerCodigo()).toList();
-            if (!actor.obtenerPermisos().containsAll(permisosRol)) {
-                throw new SolicitudInvalidaException("No puedes asignar permisos que no posees.");
-            }
+            validarPermisosDelegables(rol.obtenerPermisos(), actor);
+        }
+    }
+
+    private void validarPermisosDelegables(Collection<Permiso> permisos, UsuarioSesion actor) {
+        var codigosPermisos = permisos.stream().map(Permiso::obtenerCodigo).toList();
+        if (!actor.obtenerPermisos().containsAll(codigosPermisos)) {
+            throw new SolicitudInvalidaException("No puedes asignar permisos que no posees.");
         }
     }
 
@@ -155,6 +256,19 @@ public class ServicioAdministracionUsuarios {
                 .filter(codigo -> codigo != null && !codigo.isBlank())
                 .map(codigo -> codigo.strip().toUpperCase(Locale.ROOT))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    private String construirCodigoRol(String nombre) {
+        var normalizado = Normalizer.normalize(nombre, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}+", "")
+                .toUpperCase(Locale.ROOT)
+                .replaceAll("[^A-Z0-9]+", "_")
+                .replaceAll("^_+|_+$", "");
+        if (normalizado.isBlank()) {
+            throw new SolicitudInvalidaException("El nombre del rol debe incluir letras o números.");
+        }
+        var maximoNombre = 64 - "EMPLEADO_".length();
+        return "EMPLEADO_" + normalizado.substring(0, Math.min(normalizado.length(), maximoNombre));
     }
 
     private void invalidarSesionesDespuesDeConfirmar(UsuarioSesion principal) {

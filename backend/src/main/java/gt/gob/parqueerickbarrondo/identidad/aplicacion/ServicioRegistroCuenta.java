@@ -1,8 +1,8 @@
 package gt.gob.parqueerickbarrondo.identidad.aplicacion;
 
 import java.time.Instant;
-import java.util.UUID;
 
+import gt.gob.parqueerickbarrondo.compartido.observabilidad.IdentificadorCorrelacion;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudRegistroCuenta;
 import gt.gob.parqueerickbarrondo.identidad.dominio.Usuario;
 import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioRol;
@@ -55,7 +55,7 @@ public class ServicioRegistroCuenta {
                 Instant.now());
         usuario.agregarRol(rolUsuario);
 
-        repositorioUsuario.saveAndFlush(usuario);
+        usuario = repositorioUsuario.saveAndFlush(usuario);
 
         servicioAuditoria.registrar(
                 usuario.obtenerIdUsuario(),
@@ -63,6 +63,6 @@ public class ServicioRegistroCuenta {
                 "USUARIO",
                 usuario.obtenerIdUsuario().toString(),
                 "EXITOSO",
-                UUID.randomUUID().toString());
+                IdentificadorCorrelacion.actual());
     }
 }

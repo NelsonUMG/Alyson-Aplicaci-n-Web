@@ -1,5 +1,6 @@
 const urlBasePredeterminada = "/api/v1";
 const metodosNoSeguros = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+let tokenCsrfActual = "";
 
 export class ErrorApi extends Error {
   constructor(mensaje, { estado, problema } = {}) {
@@ -25,6 +26,10 @@ function leerCookie(nombre) {
   return cookie ? decodeURIComponent(cookie.slice(prefijo.length)) : undefined;
 }
 
+export function recordarTokenCsrf(token) {
+  tokenCsrfActual = token || "";
+}
+
 async function leerProblema(respuesta) {
   const tipoContenido = respuesta.headers.get("content-type") || "";
   if (!tipoContenido.includes("json")) {
@@ -43,12 +48,13 @@ export async function solicitarApi(ruta, opciones = {}) {
   const encabezados = new Headers(opciones.headers);
   encabezados.set("Accept", "application/json");
 
-  if (opciones.body && !encabezados.has("Content-Type")) {
+  const esFormulario = typeof window.FormData !== "undefined" && opciones.body instanceof window.FormData;
+  if (opciones.body && !esFormulario && !encabezados.has("Content-Type")) {
     encabezados.set("Content-Type", "application/json");
   }
 
   if (metodosNoSeguros.has(metodo)) {
-    const tokenCsrf = leerCookie("XSRF-TOKEN");
+    const tokenCsrf = tokenCsrfActual || leerCookie("XSRF-TOKEN");
     if (tokenCsrf) {
       encabezados.set("X-XSRF-TOKEN", tokenCsrf);
     }

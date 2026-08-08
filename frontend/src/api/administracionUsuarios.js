@@ -10,6 +10,26 @@ export function listarRoles() {
   return solicitarApi("/administracion/roles");
 }
 
+export function listarPermisos() {
+  return solicitarApi("/administracion/permisos");
+}
+
+export async function crearRol(datos) {
+  await prepararCsrf();
+  return solicitarApi("/administracion/roles", {
+    method: "POST",
+    body: JSON.stringify(datos),
+  });
+}
+
+export async function crearEmpleado(datos) {
+  await prepararCsrf();
+  return solicitarApi("/administracion/empleados", {
+    method: "POST",
+    body: JSON.stringify(datos),
+  });
+}
+
 export async function actualizarRolesUsuario(idUsuario, codigosRoles, versionUsuario) {
   await prepararCsrf();
   return solicitarApi(`/administracion/usuarios/${idUsuario}/roles`, {

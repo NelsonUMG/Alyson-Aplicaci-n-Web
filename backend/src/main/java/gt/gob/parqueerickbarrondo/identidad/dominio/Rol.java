@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 
 @Entity
 @Table(name = "Roles", schema = "dbo")
@@ -36,6 +37,10 @@ public class Rol {
     @Column(name = "Activo", nullable = false)
     private boolean activo;
 
+    @Version
+    @Column(name = "Version", nullable = false)
+    private Long version;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "RolesPermisos",
@@ -45,6 +50,15 @@ public class Rol {
     private Set<Permiso> permisos = new LinkedHashSet<>();
 
     protected Rol() {
+    }
+
+    public Rol(String codigo, String nombre, String descripcion, Set<Permiso> permisos) {
+        this.codigo = codigo;
+        this.nombre = nombre;
+        this.descripcion = descripcion;
+        this.activo = true;
+        this.permisos.addAll(permisos);
+        this.version = null;
     }
 
     public Long obtenerIdRol() {
@@ -65,6 +79,10 @@ public class Rol {
 
     public boolean estaActivo() {
         return activo;
+    }
+
+    public Long obtenerVersion() {
+        return version;
     }
 
     public Set<Permiso> obtenerPermisos() {
