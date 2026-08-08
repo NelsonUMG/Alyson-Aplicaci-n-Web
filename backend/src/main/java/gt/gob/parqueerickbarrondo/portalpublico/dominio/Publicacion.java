@@ -150,14 +150,14 @@ public class Publicacion {
         actualizadoEn = fechaPublicacion;
     }
 
-    public void despublicar() {
-        estado = "BORRADOR";
-        publicadoEn = null;
+    public void archivar() {
+        estado = "ARCHIVADA";
         actualizadoEn = Instant.now();
     }
 
-    public void archivar() {
-        estado = "ARCHIVADA";
+    public void desarchivar() {
+        estado = "BORRADOR";
+        publicadoEn = null;
         actualizadoEn = Instant.now();
     }
 }

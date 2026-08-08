@@ -1,7 +1,10 @@
 package gt.gob.parqueerickbarrondo.publicaciones.api;
 
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -85,5 +88,27 @@ class ControladorAdministracionPublicacionesPruebas {
         clienteApi.perform(get("/api/v1/administracion/categorias-publicaciones"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @WithMockUser(authorities = "PUBLICACIONELIMINAR")
+    void exigePermisoDeActualizacionParaDesarchivar() throws Exception {
+        clienteApi.perform(post("/api/v1/administracion/publicaciones/10/desarchivar")
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("{\"version\":4}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("ACCESODENEGADO"));
+    }
+
+    @Test
+    @WithMockUser(authorities = "PUBLICACIONACTUALIZAR")
+    void exigePermisoDeEliminacionParaEliminarUnaPublicacion() throws Exception {
+        clienteApi.perform(delete("/api/v1/administracion/publicaciones/12")
+                        .with(csrf())
+                        .contentType("application/json")
+                        .content("{\"version\":6}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("ACCESODENEGADO"));
     }
 }

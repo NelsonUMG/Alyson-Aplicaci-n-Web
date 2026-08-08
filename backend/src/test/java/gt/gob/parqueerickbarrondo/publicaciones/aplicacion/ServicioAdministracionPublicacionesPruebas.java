@@ -10,12 +10,14 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
+import java.util.List;
 
 import gt.gob.parqueerickbarrondo.compartido.idempotencia.ServicioIdempotencia;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ConflictoDatosException;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioAuditoria;
 import gt.gob.parqueerickbarrondo.identidad.seguridad.UsuarioSesion;
 import gt.gob.parqueerickbarrondo.portalpublico.dominio.CategoriaPublicacion;
+import gt.gob.parqueerickbarrondo.portalpublico.dominio.ImagenPublicacion;
 import gt.gob.parqueerickbarrondo.portalpublico.dominio.Publicacion;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioCategoriaPublicacion;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioImagenPublicacion;
@@ -113,5 +115,58 @@ class ServicioAdministracionPublicacionesPruebas {
                 eq(7L), eq("PUBLICACIONPUBLICADA"), eq("PUBLICACION"), eq("10"), eq("EXITOSO"), anyString());
         assertThat(respuesta.idPublicacion()).isEqualTo(10L);
         assertThat(respuesta.version()).isEqualTo(2L);
+    }
+
+    @Test
+    void desarchivaComoBorradorYRegistraAuditoria() {
+        var categoria = org.mockito.Mockito.mock(CategoriaPublicacion.class);
+        when(categoria.obtenerIdCategoriaPublicacion()).thenReturn(2L);
+        when(categoria.obtenerCodigo()).thenReturn("NOTICIAS");
+        when(categoria.obtenerNombre()).thenReturn("Noticias");
+        var publicacion = org.mockito.Mockito.mock(Publicacion.class);
+        when(publicacion.obtenerVersion()).thenReturn(4L, 5L);
+        when(publicacion.obtenerEstado()).thenReturn("ARCHIVADA", "BORRADOR");
+        when(publicacion.obtenerCategoria()).thenReturn(categoria);
+        when(publicacion.obtenerIdPublicacion()).thenReturn(10L);
+        when(repositorioPublicacion.buscarAdministradaPorId(10L)).thenReturn(Optional.of(publicacion));
+        var actor = org.mockito.Mockito.mock(UsuarioSesion.class);
+        when(actor.obtenerIdUsuario()).thenReturn(7L);
+
+        var respuesta = servicioAdministracion.desarchivar(10L, 4L, actor);
+
+        verify(publicacion).desarchivar();
+        verify(servicioAuditoria).registrar(
+                eq(7L), eq("PUBLICACIONDESARCHIVADA"), eq("PUBLICACION"), eq("10"), eq("EXITOSO"), anyString());
+        assertThat(respuesta.estado()).isEqualTo("BORRADOR");
+        assertThat(respuesta.version()).isEqualTo(5L);
+    }
+
+    @Test
+    void eliminaLaPublicacionSusImagenesYRegistraAuditoria() {
+        var publicacion = org.mockito.Mockito.mock(Publicacion.class);
+        when(publicacion.obtenerVersion()).thenReturn(6L);
+        when(repositorioPublicacion.buscarAdministradaPorId(12L)).thenReturn(Optional.of(publicacion));
+        var imagen = org.mockito.Mockito.mock(ImagenPublicacion.class);
+        when(imagen.obtenerClaveAlmacenamiento()).thenReturn("publicaciones/imagen.jpg");
+        when(repositorioImagen.findAllByPublicacion_IdPublicacionOrderByOrdenVisualizacionAscIdImagenPublicacionAsc(12L))
+                .thenReturn(List.of(imagen));
+        var actor = org.mockito.Mockito.mock(UsuarioSesion.class);
+        when(actor.obtenerIdUsuario()).thenReturn(7L);
+        org.springframework.transaction.support.TransactionSynchronizationManager.initSynchronization();
+
+        try {
+            servicioAdministracion.eliminarPublicacion(12L, 6L, actor);
+            var sincronizaciones = org.springframework.transaction.support.TransactionSynchronizationManager
+                    .getSynchronizations();
+            sincronizaciones.forEach(org.springframework.transaction.support.TransactionSynchronization::afterCommit);
+
+            verify(repositorioImagen).deleteAllInBatch(List.of(imagen));
+            verify(repositorioPublicacion).delete(publicacion);
+            verify(servicioAlmacenamiento).eliminar("publicaciones/imagen.jpg");
+            verify(servicioAuditoria).registrar(
+                    eq(7L), eq("PUBLICACIONELIMINADA"), eq("PUBLICACION"), eq("12"), eq("EXITOSO"), anyString());
+        } finally {
+            org.springframework.transaction.support.TransactionSynchronizationManager.clearSynchronization();
+        }
     }
 }

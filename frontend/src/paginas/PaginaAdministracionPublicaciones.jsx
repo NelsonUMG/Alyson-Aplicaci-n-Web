@@ -7,12 +7,12 @@ import {
   archivarPublicacion,
   crearCategoria,
   crearPublicacion,
-  despublicarPublicacion,
+  desarchivarPublicacion,
   eliminarImagenPublicacion,
+  eliminarPublicacion,
   listarCategoriasAdministradas,
   listarImagenesPublicacion,
   listarPublicacionesAdministradas,
-  previsualizarPublicacion,
   publicarPublicacion,
 } from "../api/administracionPublicaciones";
 import { usarSesion } from "../autenticacion/ContextoSesion";
@@ -44,10 +44,10 @@ export function PaginaAdministracionPublicaciones() {
   const { usuario } = usarSesion();
   const [categorias, establecerCategorias] = useState([]);
   const [categoriaEdicion, establecerCategoriaEdicion] = useState(categoriaInicial);
+  const [mostrarFormularioCategoria, establecerMostrarFormularioCategoria] = useState(false);
   const [pagina, establecerPagina] = useState(paginaInicial);
   const [filtros, establecerFiltros] = useState({ busqueda: "", estado: "", idCategoria: "", orden: "ACTUALIZACION" });
   const [publicacionEdicion, establecerPublicacionEdicion] = useState(null);
-  const [previsualizacion, establecerPrevisualizacion] = useState(null);
   const [imagenes, establecerImagenes] = useState([]);
   const [claveCreacion, establecerClaveCreacion] = useState(() => window.crypto.randomUUID());
   const [estado, establecerEstado] = useState({ cargando: true, guardando: false, error: "", mensaje: "" });
@@ -101,18 +101,40 @@ export function PaginaAdministracionPublicaciones() {
 
   function nuevaCategoria() {
     establecerCategoriaEdicion(categoriaInicial);
+    establecerMostrarFormularioCategoria(true);
+  }
+
+  function editarCategoria(categoria) {
+    establecerCategoriaEdicion(categoria);
+    establecerMostrarFormularioCategoria(true);
+  }
+
+  function cancelarCategoria() {
+    establecerCategoriaEdicion(categoriaInicial);
+    establecerMostrarFormularioCategoria(false);
+  }
+
+  function alternarFormularioCategoria() {
+    if (mostrarFormularioCategoria) {
+      cancelarCategoria();
+    } else {
+      nuevaCategoria();
+    }
   }
 
   async function guardarCategoria(evento) {
     evento.preventDefault();
     establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
     try {
-      const guardada = categoriaEdicion.idCategoriaPublicacion
-        ? await actualizarCategoria(categoriaEdicion.idCategoriaPublicacion, categoriaEdicion)
-        : await crearCategoria(categoriaEdicion);
+      if (categoriaEdicion.idCategoriaPublicacion) {
+        await actualizarCategoria(categoriaEdicion.idCategoriaPublicacion, categoriaEdicion);
+      } else {
+        await crearCategoria(categoriaEdicion);
+      }
       const catalogo = await listarCategoriasAdministradas();
       establecerCategorias(catalogo);
-      establecerCategoriaEdicion(guardada);
+      establecerCategoriaEdicion(categoriaInicial);
+      establecerMostrarFormularioCategoria(false);
       establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Categoría guardada." });
     } catch (error) {
       establecerEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
@@ -125,9 +147,21 @@ export function PaginaAdministracionPublicaciones() {
       ...publicacionInicial,
       idCategoriaPublicacion: primeraCategoria?.idCategoriaPublicacion || "",
     });
-    establecerPrevisualizacion(null);
     establecerImagenes([]);
     establecerClaveCreacion(window.crypto.randomUUID());
+  }
+
+  function cancelarPublicacion() {
+    establecerPublicacionEdicion(null);
+    establecerImagenes([]);
+  }
+
+  function alternarFormularioPublicacion() {
+    if (publicacionEdicion) {
+      cancelarPublicacion();
+    } else {
+      nuevaPublicacion();
+    }
   }
 
   async function editarPublicacion(publicacion) {
@@ -135,7 +169,6 @@ export function PaginaAdministracionPublicaciones() {
       ...publicacion,
       fechaEditorial: publicacion.fechaEditorial || "",
     });
-    establecerPrevisualizacion(null);
     try {
       establecerImagenes(await listarImagenesPublicacion(publicacion.idPublicacion));
     } catch (error) {
@@ -176,11 +209,18 @@ export function PaginaAdministracionPublicaciones() {
     }
   }
 
-  async function mostrarPrevisualizacion() {
+  async function eliminarPublicacionSeleccionada() {
+    const confirmada = window.confirm("¿Eliminar esta publicación definitivamente? Esta acción no se puede deshacer.");
+    if (!confirmada) return;
+
+    establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
     try {
-      establecerPrevisualizacion(await previsualizarPublicacion(publicacionEdicion.idPublicacion));
+      await eliminarPublicacion(publicacionEdicion.idPublicacion, publicacionEdicion.version);
+      cancelarPublicacion();
+      await recargarPublicaciones(pagina.pagina);
+      establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Publicación eliminada." });
     } catch (error) {
-      establecerEstado((actual) => ({ ...actual, error: error.message, mensaje: "" }));
+      establecerEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
     }
   }
 
@@ -226,18 +266,17 @@ export function PaginaAdministracionPublicaciones() {
         <div className="cabecera-panel-administracion">
           <div>
             <h2 id="titulo-categorias">Categorías</h2>
-            <p>Ordena y habilita las categorías disponibles para las publicaciones.</p>
           </div>
-          {puedeCrear && <button type="button" onClick={nuevaCategoria}>Nueva categoría</button>}
+          {puedeCrear && <button type="button" onClick={alternarFormularioCategoria}>{mostrarFormularioCategoria ? "Ocultar" : "Nueva categoría"}</button>}
         </div>
-        <div className="rejilla-categorias-administracion">
+        <div className={`rejilla-categorias-administracion${mostrarFormularioCategoria ? "" : " solo-listado"}`}>
           <div className="lista-categorias-administracion">
             {categorias.map((categoria) => (
               <button
                 type="button"
                 className={categoriaEdicion.idCategoriaPublicacion === categoria.idCategoriaPublicacion ? "seleccionado" : ""}
                 key={categoria.idCategoriaPublicacion}
-                onClick={() => establecerCategoriaEdicion(categoria)}
+                onClick={() => editarCategoria(categoria)}
               >
                 <strong>{categoria.nombre}</strong>
                 <span>{categoria.codigo} · {categoria.activa ? "Activa" : "Inactiva"}</span>
@@ -245,7 +284,7 @@ export function PaginaAdministracionPublicaciones() {
             ))}
             {categorias.length === 0 && <p>No hay categorías registradas.</p>}
           </div>
-          {(puedeCrear || puedeActualizar) && (
+          {mostrarFormularioCategoria && (puedeCrear || puedeActualizar) && (
             <form className="formulario-administracion" onSubmit={guardarCategoria}>
               <label htmlFor="codigoCategoria">Código</label>
               <input id="codigoCategoria" required maxLength="64" value={categoriaEdicion.codigo} onChange={(evento) => establecerCategoriaEdicion({ ...categoriaEdicion, codigo: evento.target.value })} />
@@ -259,10 +298,68 @@ export function PaginaAdministracionPublicaciones() {
                 <input type="checkbox" checked={categoriaEdicion.activa} onChange={(evento) => establecerCategoriaEdicion({ ...categoriaEdicion, activa: evento.target.checked })} />
                 Categoría activa
               </label>
-              <button type="submit" disabled={estado.guardando || (categoriaEdicion.idCategoriaPublicacion ? !puedeActualizar : !puedeCrear)}>Guardar categoría</button>
+              <div className="acciones-publicacion">
+                <button type="submit" disabled={estado.guardando || (categoriaEdicion.idCategoriaPublicacion ? !puedeActualizar : !puedeCrear)}>Guardar categoría</button>
+                <button className="boton-secundario" type="button" disabled={estado.guardando} onClick={cancelarCategoria}>Cancelar</button>
+              </div>
             </form>
           )}
         </div>
+      </section>
+
+      <section className="panel-edicion" aria-labelledby="titulo-edicion-publicacion">
+        <div className="cabecera-panel-administracion">
+          <div>
+            <h2 id="titulo-edicion-publicacion">{publicacionEdicion?.idPublicacion ? "Editar publicación" : "Nueva publicación"}</h2>
+          </div>
+          {puedeCrear && <button type="button" onClick={alternarFormularioPublicacion}>{publicacionEdicion ? "Ocultar" : "Nueva publicación"}</button>}
+        </div>
+
+        {publicacionEdicion && (
+          <>
+            <form className="formulario-administracion formulario-publicacion" onSubmit={guardarPublicacion}>
+              <label htmlFor="categoriaPublicacion">Categoría</label>
+              <select id="categoriaPublicacion" required value={publicacionEdicion.idCategoriaPublicacion} onChange={(evento) => establecerPublicacionEdicion({ ...publicacionEdicion, idCategoriaPublicacion: Number(evento.target.value) })}>{categorias.filter((categoria) => categoria.activa || categoria.idCategoriaPublicacion === publicacionEdicion.idCategoriaPublicacion).map((categoria) => <option key={categoria.idCategoriaPublicacion} value={categoria.idCategoriaPublicacion}>{categoria.nombre}</option>)}</select>
+              <label htmlFor="tituloPublicacion">Título</label>
+              <input id="tituloPublicacion" required maxLength="180" value={publicacionEdicion.titulo} onChange={(evento) => establecerPublicacionEdicion({ ...publicacionEdicion, titulo: evento.target.value })} />
+              <label htmlFor="resumenPublicacion">Resumen</label>
+              <textarea id="resumenPublicacion" required maxLength="500" value={publicacionEdicion.resumen} onChange={(evento) => establecerPublicacionEdicion({ ...publicacionEdicion, resumen: evento.target.value })} />
+              <label htmlFor="contenidoPublicacion">Contenido</label>
+              <textarea id="contenidoPublicacion" className="contenido-extenso" required maxLength="200000" value={publicacionEdicion.contenido} onChange={(evento) => establecerPublicacionEdicion({ ...publicacionEdicion, contenido: evento.target.value })} />
+              <label htmlFor="fechaEditorial">Fecha editorial</label>
+              <input id="fechaEditorial" type="date" value={publicacionEdicion.fechaEditorial} onChange={(evento) => establecerPublicacionEdicion({ ...publicacionEdicion, fechaEditorial: evento.target.value })} />
+              <div className="acciones-publicacion">
+                {publicacionEdicion.estado !== "ARCHIVADA" && ((publicacionEdicion.idPublicacion && puedeActualizar) || (!publicacionEdicion.idPublicacion && puedeCrear)) && <button type="submit" disabled={estado.guardando}>Guardar</button>}
+                {publicacionEdicion.idPublicacion && publicacionEdicion.estado !== "PUBLICADA" && publicacionEdicion.estado !== "ARCHIVADA" && puedeActualizar && <button type="button" onClick={() => ejecutarCambioEstado(publicarPublicacion)}>Publicar</button>}
+                {publicacionEdicion.idPublicacion && publicacionEdicion.estado === "ARCHIVADA" && puedeActualizar && <button type="button" onClick={() => ejecutarCambioEstado(desarchivarPublicacion)}>Desarchivar</button>}
+                {publicacionEdicion.estado === "PUBLICADA" && <Link className="enlace-principal" to={`/noticias/${publicacionEdicion.identificadorUrl}`}>Ver en el portal</Link>}
+                <button className="boton-secundario" type="button" disabled={estado.guardando} onClick={cancelarPublicacion}>Cancelar</button>
+                {publicacionEdicion.idPublicacion && puedeArchivar && (
+                  <div className="acciones-publicacion-peligrosas">
+                    {publicacionEdicion.estado !== "ARCHIVADA" && <button className="boton-peligro" type="button" onClick={() => ejecutarCambioEstado(archivarPublicacion)}>Archivar</button>}
+                    <button className="boton-peligro" type="button" onClick={eliminarPublicacionSeleccionada}>Eliminar publicación</button>
+                  </div>
+                )}
+              </div>
+            </form>
+
+            {publicacionEdicion.idPublicacion && publicacionEdicion.estado !== "ARCHIVADA" && puedeActualizar && (
+              <div className="panel-imagenes-publicacion">
+                <h3>Imágenes</h3>
+                <form className="formulario-imagen" onSubmit={subirImagen}>
+                  <label>Archivo PNG o JPEG<input name="archivo" type="file" accept="image/png,image/jpeg" required /></label>
+                  <label>Texto alternativo<input name="textoAlternativo" maxLength="255" required /></label>
+                  <button type="submit" disabled={estado.guardando || imagenes.length >= 5}>Agregar imagen</button>
+                </form>
+                <ul>
+                  {imagenes.map((imagen) => (
+                    <li key={imagen.idImagenPublicacion}><span><strong>{imagen.nombreArchivoOriginal}</strong><small>{imagen.textoAlternativo} · {imagen.anchoPixeles} × {imagen.altoPixeles}</small></span>{puedeArchivar && <button type="button" onClick={() => eliminarImagen(imagen.idImagenPublicacion)}>Eliminar</button>}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </>
+        )}
       </section>
 
       <section className="panel-edicion" aria-labelledby="titulo-listado-publicaciones">
@@ -271,7 +368,6 @@ export function PaginaAdministracionPublicaciones() {
             <h2 id="titulo-listado-publicaciones">Listado de publicaciones</h2>
             <p>{pagina.totalElementos} publicaciones registradas.</p>
           </div>
-          {puedeCrear && <button type="button" disabled={!categorias.some((categoria) => categoria.activa)} onClick={nuevaPublicacion}>Nueva publicación</button>}
         </div>
         <form className="filtros-administracion" onSubmit={aplicarFiltros}>
           <label>Buscar<input value={filtros.busqueda} maxLength="100" onChange={(evento) => establecerFiltros({ ...filtros, busqueda: evento.target.value })} /></label>
@@ -305,57 +401,6 @@ export function PaginaAdministracionPublicaciones() {
         )}
       </section>
 
-      {publicacionEdicion && (
-        <section className="panel-edicion" aria-labelledby="titulo-edicion-publicacion">
-          <h2 id="titulo-edicion-publicacion">{publicacionEdicion.idPublicacion ? "Editar publicación" : "Nueva publicación"}</h2>
-          <form className="formulario-administracion formulario-publicacion" onSubmit={guardarPublicacion}>
-            <label htmlFor="categoriaPublicacion">Categoría</label>
-            <select id="categoriaPublicacion" required value={publicacionEdicion.idCategoriaPublicacion} onChange={(evento) => establecerPublicacionEdicion({ ...publicacionEdicion, idCategoriaPublicacion: Number(evento.target.value) })}>{categorias.filter((categoria) => categoria.activa || categoria.idCategoriaPublicacion === publicacionEdicion.idCategoriaPublicacion).map((categoria) => <option key={categoria.idCategoriaPublicacion} value={categoria.idCategoriaPublicacion}>{categoria.nombre}</option>)}</select>
-            <label htmlFor="tituloPublicacion">Título</label>
-            <input id="tituloPublicacion" required maxLength="180" value={publicacionEdicion.titulo} onChange={(evento) => establecerPublicacionEdicion({ ...publicacionEdicion, titulo: evento.target.value })} />
-            <label htmlFor="resumenPublicacion">Resumen</label>
-            <textarea id="resumenPublicacion" required maxLength="500" value={publicacionEdicion.resumen} onChange={(evento) => establecerPublicacionEdicion({ ...publicacionEdicion, resumen: evento.target.value })} />
-            <label htmlFor="contenidoPublicacion">Contenido</label>
-            <textarea id="contenidoPublicacion" className="contenido-extenso" required maxLength="200000" value={publicacionEdicion.contenido} onChange={(evento) => establecerPublicacionEdicion({ ...publicacionEdicion, contenido: evento.target.value })} />
-            <label htmlFor="fechaEditorial">Fecha editorial</label>
-            <input id="fechaEditorial" type="date" value={publicacionEdicion.fechaEditorial} onChange={(evento) => establecerPublicacionEdicion({ ...publicacionEdicion, fechaEditorial: evento.target.value })} />
-            <div className="acciones-publicacion">
-              {publicacionEdicion.estado !== "ARCHIVADA" && ((publicacionEdicion.idPublicacion && puedeActualizar) || (!publicacionEdicion.idPublicacion && puedeCrear)) && <button type="submit" disabled={estado.guardando}>Guardar</button>}
-              {publicacionEdicion.idPublicacion && <button type="button" onClick={mostrarPrevisualizacion}>Previsualizar</button>}
-              {publicacionEdicion.idPublicacion && publicacionEdicion.estado !== "PUBLICADA" && publicacionEdicion.estado !== "ARCHIVADA" && puedeActualizar && <button type="button" onClick={() => ejecutarCambioEstado(publicarPublicacion)}>Publicar</button>}
-              {publicacionEdicion.idPublicacion && publicacionEdicion.estado === "PUBLICADA" && puedeActualizar && <button type="button" onClick={() => ejecutarCambioEstado(despublicarPublicacion)}>Despublicar</button>}
-              {publicacionEdicion.idPublicacion && publicacionEdicion.estado !== "ARCHIVADA" && puedeArchivar && <button className="boton-peligro" type="button" onClick={() => ejecutarCambioEstado(archivarPublicacion)}>Archivar</button>}
-              {publicacionEdicion.estado === "PUBLICADA" && <Link className="enlace-principal" to={`/noticias/${publicacionEdicion.identificadorUrl}`}>Ver en el portal</Link>}
-            </div>
-          </form>
-
-          {publicacionEdicion.idPublicacion && publicacionEdicion.estado !== "ARCHIVADA" && puedeActualizar && (
-            <div className="panel-imagenes-publicacion">
-              <h3>Imágenes</h3>
-              <form className="formulario-imagen" onSubmit={subirImagen}>
-                <label>Archivo PNG o JPEG<input name="archivo" type="file" accept="image/png,image/jpeg" required /></label>
-                <label>Texto alternativo<input name="textoAlternativo" maxLength="255" required /></label>
-                <button type="submit" disabled={estado.guardando || imagenes.length >= 5}>Agregar imagen</button>
-              </form>
-              <ul>
-                {imagenes.map((imagen) => (
-                  <li key={imagen.idImagenPublicacion}><span><strong>{imagen.nombreArchivoOriginal}</strong><small>{imagen.textoAlternativo} · {imagen.anchoPixeles} × {imagen.altoPixeles}</small></span>{puedeArchivar && <button type="button" onClick={() => eliminarImagen(imagen.idImagenPublicacion)}>Eliminar</button>}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
-      )}
-
-      {previsualizacion && (
-        <section className="panel-edicion previsualizacion-publicacion" aria-labelledby="titulo-previsualizacion">
-          <p className="etiqueta-fase">{previsualizacion.nombreCategoria}</p>
-          <h2 id="titulo-previsualizacion">{previsualizacion.titulo}</h2>
-          <p className="resumen-previsualizacion">{previsualizacion.resumen}</p>
-          <p className="contenido-previsualizacion">{previsualizacion.contenido}</p>
-          <button type="button" onClick={() => establecerPrevisualizacion(null)}>Cerrar previsualización</button>
-        </section>
-      )}
     </main>
   );
 }

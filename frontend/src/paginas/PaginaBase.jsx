@@ -17,6 +17,9 @@ const publicacionesProvisionales = [
 
 export function PaginaBase() {
   const [publicaciones, establecerPublicaciones] = useState(publicacionesProvisionales);
+  const [indicePublicacion, establecerIndicePublicacion] = useState(0);
+  const [segundosRestantes, establecerSegundosRestantes] = useState(10);
+  const claveCarrusel = publicaciones.map((publicacion) => publicacion.identificadorUrl || publicacion.titulo).join("|");
 
   useEffect(() => {
     let paginaVigente = true;
@@ -28,6 +31,7 @@ export function PaginaBase() {
             tipo: publicacion.nombreCategoria,
             descripcion: publicacion.resumen,
           })));
+          establecerIndicePublicacion(0);
         }
       })
       .catch(() => undefined);
@@ -35,6 +39,28 @@ export function PaginaBase() {
       paginaVigente = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (publicaciones.length <= 1) return undefined;
+
+    const temporizador = window.setTimeout(() => {
+      if (segundosRestantes <= 1) {
+        establecerIndicePublicacion((indiceActual) => (indiceActual + 1) % publicaciones.length);
+        establecerSegundosRestantes(10);
+      } else {
+        establecerSegundosRestantes(segundosRestantes - 1);
+      }
+    }, 1000);
+
+    return () => window.clearTimeout(temporizador);
+  }, [claveCarrusel, indicePublicacion, publicaciones.length, segundosRestantes]);
+
+  const publicacionActual = publicaciones[indicePublicacion] || publicaciones[0];
+
+  function seleccionarPublicacion(indice) {
+    establecerIndicePublicacion(indice);
+    establecerSegundosRestantes(10);
+  }
 
   return (
     <>
@@ -67,28 +93,48 @@ export function PaginaBase() {
               <p className="portal-sobrelinea">Información reciente</p>
               <h2 id="titulo-publicaciones">Últimas publicaciones</h2>
             </div>
-            <Link className="portal-enlace-ver" to="/noticias">Ver todas las noticias <span aria-hidden="true">→</span></Link>
           </div>
           <div className="inicio-rejilla-publicaciones">
-            {publicaciones.map((publicacion, indice) => (
-              <article className="inicio-publicacion" key={publicacion.identificadorUrl || publicacion.tipo}>
-                <div className={`inicio-publicacion-imagen inicio-publicacion-imagen-${indice + 1}`} aria-hidden="true">
-                  {publicacion.imagenPrincipal
-                    ? <img src={publicacion.imagenPrincipal.url} alt="" loading="lazy" />
+            <article className="inicio-publicacion" key={publicacionActual.identificadorUrl || publicacionActual.tipo}>
+              <div className={`inicio-publicacion-imagen inicio-publicacion-imagen-${indicePublicacion + 1}`} aria-hidden="true">
+                {publicacionActual.imagenPrincipal
+                    ? <img src={publicacionActual.imagenPrincipal.url} alt="" loading="lazy" />
                     : <img className="inicio-publicacion-logotipo" src="/imagenes/escudo-guatemala.png" alt="" aria-hidden="true" />}
-                </div>
-                <div className="inicio-publicacion-texto">
-                  <span>{publicacion.tipo}</span>
-                  <h3>
-                    {publicacion.identificadorUrl
-                      ? <Link to={`/noticias/${publicacion.identificadorUrl}`}>{publicacion.titulo}</Link>
-                      : publicacion.titulo}
-                  </h3>
-                  <p>{publicacion.descripcion}</p>
-                </div>
-              </article>
-            ))}
+              </div>
+              <div className="inicio-publicacion-texto">
+                <span>{publicacionActual.tipo}</span>
+                <h3>
+                  {publicacionActual.identificadorUrl
+                    ? <Link to={`/noticias/${publicacionActual.identificadorUrl}`}>{publicacionActual.titulo}</Link>
+                    : publicacionActual.titulo}
+                </h3>
+                <p>{publicacionActual.descripcion}</p>
+                {publicacionActual.identificadorUrl && (
+                  <Link
+                    className="portal-boton portal-boton-principal inicio-publicacion-enlace"
+                    to={`/noticias/${publicacionActual.identificadorUrl}`}
+                  >Leer más</Link>
+                )}
+              </div>
+            </article>
           </div>
+          {publicaciones.length > 1 && (
+            <div className="inicio-carrusel-controles">
+              <p>Siguiente noticia en {segundosRestantes} segundos.</p>
+              <div aria-label="Seleccionar noticia" role="group">
+                {publicaciones.map((publicacion, indice) => (
+                  <button
+                    type="button"
+                    className={indice === indicePublicacion ? "activo" : ""}
+                    aria-label={`Mostrar noticia ${indice + 1}: ${publicacion.titulo}`}
+                    aria-pressed={indice === indicePublicacion}
+                    key={publicacion.identificadorUrl || publicacion.tipo}
+                    onClick={() => seleccionarPublicacion(indice)}
+                  />
+                ))}
+              </div>
+            </div>
+          )}
           <p className="portal-aviso-contenido">Contenido  de actividades.</p>
         </div>
       </section>

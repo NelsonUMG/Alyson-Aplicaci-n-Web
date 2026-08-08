@@ -603,6 +603,10 @@ button:disabled {
   margin-top: 1.5rem;
 }
 
+.rejilla-categorias-administracion.solo-listado {
+  grid-template-columns: 1fr;
+}
+
 .lista-categorias-administracion {
   display: grid;
   align-content: start;
@@ -706,6 +710,12 @@ button:disabled {
   margin-top: 0;
 }
 
+.acciones-publicacion-peligrosas {
+  display: flex;
+  gap: 0.65rem;
+  margin-left: auto;
+}
+
 .pagina-administracion .boton-peligro {
   border-color: #9b3a32;
   background: #fff1ef;
@@ -744,23 +754,6 @@ button:disabled {
 .panel-imagenes-publicacion li span {
   display: grid;
   gap: 0.2rem;
-}
-
-.previsualizacion-publicacion h2 {
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(2rem, 5vw, 3.5rem);
-  font-weight: 500;
-}
-
-.resumen-previsualizacion {
-  color: #52635b;
-  font-size: 1.1rem;
-  line-height: 1.65;
-}
-
-.contenido-previsualizacion {
-  line-height: 1.8;
-  white-space: pre-wrap;
 }
 
 .pagina-administracion-eventos {

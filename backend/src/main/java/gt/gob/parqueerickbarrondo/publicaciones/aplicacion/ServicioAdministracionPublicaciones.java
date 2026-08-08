@@ -220,20 +220,6 @@ public class ServicioAdministracionPublicaciones {
         return convertirPublicacion(publicacion);
     }
 
-    @PreAuthorize("hasAuthority('PUBLICACIONACTUALIZAR')")
-    @Transactional
-    public RespuestaPublicacionAdministrada despublicar(Long idPublicacion, Long version, UsuarioSesion actor) {
-        var publicacion = buscarPublicacion(idPublicacion);
-        validarVersion(publicacion.obtenerVersion(), version, "La publicación");
-        if (!"PUBLICADA".equals(publicacion.obtenerEstado())) {
-            throw new SolicitudInvalidaException("Solo una publicación publicada puede despublicarse.");
-        }
-        publicacion.despublicar();
-        repositorioPublicacion.saveAndFlush(publicacion);
-        auditar(actor, "PUBLICACIONDESPUBLICADA", "PUBLICACION", idPublicacion);
-        return convertirPublicacion(publicacion);
-    }
-
     @PreAuthorize("hasAuthority('PUBLICACIONELIMINAR')")
     @Transactional
     public RespuestaPublicacionAdministrada archivar(Long idPublicacion, Long version, UsuarioSesion actor) {
@@ -245,6 +231,38 @@ public class ServicioAdministracionPublicaciones {
         publicacion.archivar();
         repositorioPublicacion.saveAndFlush(publicacion);
         auditar(actor, "PUBLICACIONARCHIVADA", "PUBLICACION", idPublicacion);
+        return convertirPublicacion(publicacion);
+    }
+
+    @PreAuthorize("hasAuthority('PUBLICACIONELIMINAR')")
+    @Transactional
+    public void eliminarPublicacion(Long idPublicacion, Long version, UsuarioSesion actor) {
+        var publicacion = buscarPublicacion(idPublicacion);
+        validarVersion(publicacion.obtenerVersion(), version, "La publicación");
+        var imagenes = repositorioImagen
+                .findAllByPublicacion_IdPublicacionOrderByOrdenVisualizacionAscIdImagenPublicacionAsc(idPublicacion);
+        var clavesAlmacenamiento = imagenes.stream()
+                .map(ImagenPublicacion::obtenerClaveAlmacenamiento)
+                .toList();
+        repositorioImagen.deleteAllInBatch(imagenes);
+        repositorioImagen.flush();
+        repositorioPublicacion.delete(publicacion);
+        repositorioPublicacion.flush();
+        auditar(actor, "PUBLICACIONELIMINADA", "PUBLICACION", idPublicacion);
+        eliminarArchivosDespuesDeConfirmar(clavesAlmacenamiento);
+    }
+
+    @PreAuthorize("hasAuthority('PUBLICACIONACTUALIZAR')")
+    @Transactional
+    public RespuestaPublicacionAdministrada desarchivar(Long idPublicacion, Long version, UsuarioSesion actor) {
+        var publicacion = buscarPublicacion(idPublicacion);
+        validarVersion(publicacion.obtenerVersion(), version, "La publicación");
+        if (!"ARCHIVADA".equals(publicacion.obtenerEstado())) {
+            throw new SolicitudInvalidaException("Solo una publicación archivada puede desarchivarse.");
+        }
+        publicacion.desarchivar();
+        repositorioPublicacion.saveAndFlush(publicacion);
+        auditar(actor, "PUBLICACIONDESARCHIVADA", "PUBLICACION", idPublicacion);
         return convertirPublicacion(publicacion);
     }
 
@@ -440,6 +458,18 @@ public class ServicioAdministracionPublicaciones {
                 if (estado != TransactionSynchronization.STATUS_COMMITTED) {
                     servicioAlmacenamiento.eliminar(claveAlmacenamiento);
                 }
+            }
+        });
+    }
+
+    private void eliminarArchivosDespuesDeConfirmar(List<String> clavesAlmacenamiento) {
+        if (clavesAlmacenamiento.isEmpty()) {
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                clavesAlmacenamiento.forEach(servicioAlmacenamiento::eliminar);
             }
         });
     }

@@ -22,7 +22,10 @@ describe("Perfil", () => {
   it("muestra los módulos administrativos autorizados con sus accesos", () => {
     render(<MemoryRouter><PaginaPerfil /></MemoryRouter>);
 
-    expect(screen.getByText("Administrador")).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Administrador" })).toBeTruthy();
+    expect(screen.queryByText("Roles asignados")).toBeNull();
+    expect(screen.queryByRole("link", { name: "Mis inscripciones" })).toBeNull();
+    expect(screen.queryByText("Cambiar contraseña")).toBeNull();
     expect(screen.queryByText("USUARIOREGISTRADO")).toBeNull();
     expect(screen.getByRole("heading", { name: "Visualización de módulos" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Usuarios y roles" })).toBeTruthy();

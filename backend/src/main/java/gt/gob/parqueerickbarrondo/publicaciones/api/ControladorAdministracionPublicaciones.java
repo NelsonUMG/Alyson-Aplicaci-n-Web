@@ -85,11 +85,6 @@ public class ControladorAdministracionPublicaciones {
         return servicioAdministracion.listarImagenes(idPublicacion);
     }
 
-    @GetMapping("/publicaciones/{idPublicacion}/previsualizacion")
-    public RespuestaPublicacionAdministrada previsualizarPublicacion(@PathVariable Long idPublicacion) {
-        return servicioAdministracion.consultarPublicacion(idPublicacion);
-    }
-
     @PostMapping("/publicaciones")
     @ResponseStatus(HttpStatus.CREATED)
     public RespuestaPublicacionAdministrada crearPublicacion(
@@ -115,20 +110,29 @@ public class ControladorAdministracionPublicaciones {
         return servicioAdministracion.publicar(idPublicacion, solicitud.version(), actor);
     }
 
-    @PostMapping("/publicaciones/{idPublicacion}/despublicar")
-    public RespuestaPublicacionAdministrada despublicar(
-            @PathVariable Long idPublicacion,
-            @Valid @RequestBody SolicitudVersionPublicacion solicitud,
-            @AuthenticationPrincipal UsuarioSesion actor) {
-        return servicioAdministracion.despublicar(idPublicacion, solicitud.version(), actor);
-    }
-
     @PostMapping("/publicaciones/{idPublicacion}/archivar")
     public RespuestaPublicacionAdministrada archivar(
             @PathVariable Long idPublicacion,
             @Valid @RequestBody SolicitudVersionPublicacion solicitud,
             @AuthenticationPrincipal UsuarioSesion actor) {
         return servicioAdministracion.archivar(idPublicacion, solicitud.version(), actor);
+    }
+
+    @PostMapping("/publicaciones/{idPublicacion}/desarchivar")
+    public RespuestaPublicacionAdministrada desarchivar(
+            @PathVariable Long idPublicacion,
+            @Valid @RequestBody SolicitudVersionPublicacion solicitud,
+            @AuthenticationPrincipal UsuarioSesion actor) {
+        return servicioAdministracion.desarchivar(idPublicacion, solicitud.version(), actor);
+    }
+
+    @DeleteMapping("/publicaciones/{idPublicacion}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminarPublicacion(
+            @PathVariable Long idPublicacion,
+            @Valid @RequestBody SolicitudVersionPublicacion solicitud,
+            @AuthenticationPrincipal UsuarioSesion actor) {
+        servicioAdministracion.eliminarPublicacion(idPublicacion, solicitud.version(), actor);
     }
 
     @PostMapping(

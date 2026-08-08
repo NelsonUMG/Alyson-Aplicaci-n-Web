@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -9,12 +9,12 @@ const apiAdministracion = vi.hoisted(() => ({
   archivarPublicacion: vi.fn(),
   crearCategoria: vi.fn(),
   crearPublicacion: vi.fn(),
-  despublicarPublicacion: vi.fn(),
+  desarchivarPublicacion: vi.fn(),
   eliminarImagenPublicacion: vi.fn(),
+  eliminarPublicacion: vi.fn(),
   listarCategoriasAdministradas: vi.fn(),
   listarImagenesPublicacion: vi.fn(),
   listarPublicacionesAdministradas: vi.fn(),
-  previsualizarPublicacion: vi.fn(),
   publicarPublicacion: vi.fn(),
 }));
 
@@ -43,16 +43,116 @@ describe("Administración de publicaciones", () => {
     apiAdministracion.listarPublicacionesAdministradas.mockReset().mockResolvedValue({
       contenido: [], pagina: 0, totalPaginas: 0, totalElementos: 0,
     });
+    apiAdministracion.listarImagenesPublicacion.mockReset().mockResolvedValue([]);
+    apiAdministracion.desarchivarPublicacion.mockReset();
+    apiAdministracion.eliminarPublicacion.mockReset();
   });
 
   it("carga categorías y permite abrir un borrador nuevo", async () => {
-    render(<MemoryRouter><PaginaAdministracionPublicaciones /></MemoryRouter>);
+    const vista = render(<MemoryRouter><PaginaAdministracionPublicaciones /></MemoryRouter>);
+    const paginaActual = within(vista.container);
 
-    expect(await screen.findByText("NOTICIAS · Activa")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: "Nueva publicación" }));
+    expect(await paginaActual.findByText("NOTICIAS · Activa")).toBeTruthy();
+    expect(vista.container.querySelector("#codigoCategoria")).toBeNull();
+    fireEvent.click(paginaActual.getByRole("button", { name: "Nueva categoría" }));
+    expect(vista.container.querySelector("#codigoCategoria")).toBeTruthy();
+    expect(paginaActual.getByRole("button", { name: "Ocultar" })).toBeTruthy();
+    fireEvent.click(paginaActual.getByRole("button", { name: "Cancelar" }));
+    expect(vista.container.querySelector("#codigoCategoria")).toBeNull();
+    const tituloPanelNuevo = paginaActual.getByRole("heading", { name: "Nueva publicación" });
+    const tituloListado = paginaActual.getByRole("heading", { name: "Listado de publicaciones" });
+    expect(tituloPanelNuevo.compareDocumentPosition(tituloListado) & 4).toBeTruthy();
+    expect(within(tituloListado.closest("section")).queryByRole("button", { name: "Nueva publicación" })).toBeNull();
+    expect(vista.container.querySelector("#tituloPublicacion")).toBeNull();
+    fireEvent.click(paginaActual.getByRole("button", { name: "Nueva publicación" }));
 
-    expect(screen.getByRole("heading", { name: "Nueva publicación" })).toBeTruthy();
-    expect(screen.getAllByLabelText("Categoría").at(-1).value).toBe("1");
-    expect(screen.getByRole("button", { name: "Guardar" })).toBeTruthy();
+    expect(vista.container.querySelector("#tituloPublicacion")).toBeTruthy();
+    expect(paginaActual.getByRole("button", { name: "Ocultar" })).toBeTruthy();
+    expect(vista.container.querySelector("#categoriaPublicacion").value).toBe("1");
+    expect(paginaActual.getByRole("button", { name: "Guardar" })).toBeTruthy();
+    fireEvent.click(paginaActual.getByRole("button", { name: "Cancelar" }));
+    expect(vista.container.querySelector("#tituloPublicacion")).toBeNull();
+  });
+
+  it("permite abrir una publicación nueva aunque todavía no existan categorías", async () => {
+    apiAdministracion.listarCategoriasAdministradas.mockResolvedValue([]);
+    const vista = render(<MemoryRouter><PaginaAdministracionPublicaciones /></MemoryRouter>);
+    const paginaActual = within(vista.container);
+
+    expect(await paginaActual.findByText("No hay categorías registradas.")).toBeTruthy();
+    const botonNuevo = paginaActual.getByRole("button", { name: "Nueva publicación" });
+    expect(botonNuevo.disabled).toBe(false);
+    fireEvent.click(botonNuevo);
+
+    expect(vista.container.querySelector("#tituloPublicacion")).toBeTruthy();
+    expect(paginaActual.getByRole("button", { name: "Ocultar" })).toBeTruthy();
+    expect(vista.container.querySelector("#categoriaPublicacion").value).toBe("");
+  });
+
+  it("permite desarchivar una publicación archivada", async () => {
+    const archivada = {
+      idPublicacion: 9,
+      idCategoriaPublicacion: 1,
+      nombreCategoria: "Noticias",
+      titulo: "Aviso archivado",
+      identificadorUrl: "aviso-archivado",
+      resumen: "Resumen",
+      contenido: "Contenido",
+      estado: "ARCHIVADA",
+      fechaEditorial: null,
+      version: 4,
+    };
+    apiAdministracion.listarPublicacionesAdministradas.mockResolvedValue({
+      contenido: [archivada], pagina: 0, totalPaginas: 1, totalElementos: 1,
+    });
+    apiAdministracion.desarchivarPublicacion.mockResolvedValue({
+      ...archivada, estado: "BORRADOR", version: 5,
+    });
+
+    const vista = render(<MemoryRouter><PaginaAdministracionPublicaciones /></MemoryRouter>);
+    const paginaActual = within(vista.container);
+    fireEvent.click(await paginaActual.findByRole("button", { name: "Consultar" }));
+    expect(paginaActual.queryByRole("button", { name: "Previsualizar" })).toBeNull();
+    fireEvent.click(paginaActual.getByRole("button", { name: "Desarchivar" }));
+
+    expect(apiAdministracion.desarchivarPublicacion).toHaveBeenCalledWith(9, 4);
+    expect(await paginaActual.findByRole("button", { name: "Publicar" })).toBeTruthy();
+  });
+
+  it("confirma y elimina una publicación con su versión vigente", async () => {
+    const publicada = {
+      idPublicacion: 12,
+      idCategoriaPublicacion: 1,
+      nombreCategoria: "Noticias",
+      titulo: "Noticia publicada",
+      identificadorUrl: "noticia-publicada",
+      resumen: "Resumen",
+      contenido: "Contenido",
+      estado: "PUBLICADA",
+      fechaEditorial: null,
+      version: 6,
+    };
+    apiAdministracion.listarPublicacionesAdministradas.mockResolvedValue({
+      contenido: [publicada], pagina: 0, totalPaginas: 1, totalElementos: 1,
+    });
+    apiAdministracion.eliminarPublicacion.mockResolvedValue(undefined);
+    const confirmar = vi.spyOn(window, "confirm").mockReturnValue(true);
+
+    try {
+      const vista = render(<MemoryRouter><PaginaAdministracionPublicaciones /></MemoryRouter>);
+      const paginaActual = within(vista.container);
+      fireEvent.click(await paginaActual.findByRole("button", { name: "Consultar" }));
+
+      expect(paginaActual.queryByRole("button", { name: "Despublicar" })).toBeNull();
+      const archivar = paginaActual.getByRole("button", { name: "Archivar" });
+      const eliminar = paginaActual.getByRole("button", { name: "Eliminar publicación" });
+      expect(archivar.parentElement).toBe(eliminar.parentElement);
+      fireEvent.click(eliminar);
+
+      expect(confirmar).toHaveBeenCalledOnce();
+      expect(apiAdministracion.eliminarPublicacion).toHaveBeenCalledWith(12, 6);
+    } finally {
+      confirmar.mockRestore();
+    }
   });
 });

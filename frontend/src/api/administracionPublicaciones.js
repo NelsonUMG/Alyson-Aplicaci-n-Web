@@ -44,10 +44,6 @@ export function consultarPublicacionAdministrada(idPublicacion) {
   return solicitarApi(`/administracion/publicaciones/${idPublicacion}`);
 }
 
-export function previsualizarPublicacion(idPublicacion) {
-  return solicitarApi(`/administracion/publicaciones/${idPublicacion}/previsualizacion`);
-}
-
 export async function crearPublicacion(datos, claveIdempotencia) {
   await prepararCsrf();
   return solicitarApi("/administracion/publicaciones", {
@@ -77,12 +73,20 @@ export function publicarPublicacion(idPublicacion, version) {
   return cambiarEstado(idPublicacion, "publicar", version);
 }
 
-export function despublicarPublicacion(idPublicacion, version) {
-  return cambiarEstado(idPublicacion, "despublicar", version);
-}
-
 export function archivarPublicacion(idPublicacion, version) {
   return cambiarEstado(idPublicacion, "archivar", version);
+}
+
+export function desarchivarPublicacion(idPublicacion, version) {
+  return cambiarEstado(idPublicacion, "desarchivar", version);
+}
+
+export async function eliminarPublicacion(idPublicacion, version) {
+  await prepararCsrf();
+  return solicitarApi(`/administracion/publicaciones/${idPublicacion}`, {
+    method: "DELETE",
+    body: JSON.stringify({ version }),
+  });
 }
 
 export function listarImagenesPublicacion(idPublicacion) {

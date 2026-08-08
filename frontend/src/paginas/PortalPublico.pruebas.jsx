@@ -1,5 +1,5 @@
 import { MemoryRouter } from "react-router-dom";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const apiPortal = vi.hoisted(() => ({
@@ -13,6 +13,7 @@ const apiPortal = vi.hoisted(() => ({
 vi.mock("../api/portalPublico", () => apiPortal);
 
 import { PaginaAreasServicios } from "./PaginaAreasServicios";
+import { PaginaBase } from "./PaginaBase";
 import { PaginaEventos } from "./PaginaEventos";
 import { PaginaNoticias } from "./PaginaNoticias";
 
@@ -65,6 +66,81 @@ describe("Portal público", () => {
     expect(await screen.findByRole("heading", { name: "Jornada recreativa" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Leer publicación" }).getAttribute("href"))
       .toBe("/noticias/jornada-recreativa");
+  });
+
+  it("limita a veinticinco palabras el resumen mostrado en cada tarjeta", async () => {
+    const resumenCompleto = Array.from({ length: 55 }, (_, indice) => `palabra${indice + 1}`).join(" ");
+    const resumenEsperado = `${Array.from({ length: 25 }, (_, indice) => `palabra${indice + 1}`).join(" ")}…`;
+    apiPortal.listarPublicaciones.mockResolvedValue({
+      contenido: [{
+        identificadorUrl: "noticia-extensa",
+        titulo: "Noticia extensa",
+        resumen: resumenCompleto,
+        nombreCategoria: "Noticias",
+      }],
+      pagina: 0,
+      tamano: 5,
+      totalElementos: 1,
+      totalPaginas: 1,
+    });
+
+    mostrar(<PaginaNoticias />);
+
+    expect(await screen.findByText(resumenEsperado)).toBeTruthy();
+    expect(screen.queryByText(resumenCompleto)).toBeNull();
+  });
+
+  it("recorre las noticias cada diez segundos y vuelve a comenzar", async () => {
+    vi.useFakeTimers();
+    apiPortal.listarPublicaciones.mockResolvedValue({
+      contenido: [
+        {
+          identificadorUrl: "primera-noticia",
+          titulo: "Primera noticia",
+          resumen: "Primer resumen",
+          nombreCategoria: "Noticias",
+        },
+        {
+          identificadorUrl: "segunda-noticia",
+          titulo: "Segunda noticia",
+          resumen: "Segundo resumen",
+          nombreCategoria: "Actividades",
+        },
+      ],
+      pagina: 0,
+      tamano: 5,
+      totalElementos: 2,
+      totalPaginas: 1,
+    });
+
+    try {
+      mostrar(<PaginaBase />);
+      await act(async () => Promise.resolve());
+
+      expect(screen.getByRole("heading", { name: "Primera noticia" })).toBeTruthy();
+      expect(screen.getByRole("link", { name: "Leer más" }).getAttribute("href"))
+        .toBe("/noticias/primera-noticia");
+      expect(screen.queryByRole("link", { name: /Ver todas las noticias/i })).toBeNull();
+      expect(screen.getByText("Siguiente noticia en 10 segundos.")).toBeTruthy();
+
+      for (let segundo = 0; segundo < 10; segundo += 1) {
+        act(() => vi.advanceTimersByTime(1000));
+      }
+
+      expect(screen.getByRole("heading", { name: "Segunda noticia" })).toBeTruthy();
+      expect(screen.getByRole("link", { name: "Leer más" }).getAttribute("href"))
+        .toBe("/noticias/segunda-noticia");
+      expect(screen.getByText("Siguiente noticia en 10 segundos.")).toBeTruthy();
+
+      for (let segundo = 0; segundo < 10; segundo += 1) {
+        act(() => vi.advanceTimersByTime(1000));
+      }
+
+      expect(screen.getByRole("heading", { name: "Primera noticia" })).toBeTruthy();
+      expect(screen.getByText("Siguiente noticia en 10 segundos.")).toBeTruthy();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("aplica filtros por fecha y tipo de actividad al buscar noticias", async () => {

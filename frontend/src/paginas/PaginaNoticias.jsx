@@ -142,7 +142,7 @@ export function PaginaNoticias() {
                       {formatearFechaPublicacion(publicacion) && <time dateTime={publicacion.fechaEditorial || publicacion.publicadoEn}>{formatearFechaPublicacion(publicacion)}</time>}
                     </div>
                     <h2><Link to={`/noticias/${publicacion.identificadorUrl}`}>{publicacion.titulo}</Link></h2>
-                    <p>{publicacion.resumen}</p>
+                    <p>{limitarResumen(publicacion.resumen)}</p>
                     <Link className="portal-enlace-ver" to={`/noticias/${publicacion.identificadorUrl}`}>Leer publicación</Link>
                   </div>
                 </article>
@@ -172,6 +172,12 @@ function formatearFechaPublicacion(publicacion) {
   if (!valor) return "";
   const fecha = new Date(valor);
   return Number.isNaN(fecha.getTime()) ? "" : formatoFecha.format(fecha);
+}
+
+function limitarResumen(resumen, limite = 25) {
+  const palabras = resumen?.trim().split(/\s+/).filter(Boolean) || [];
+  if (palabras.length <= limite) return resumen;
+  return `${palabras.slice(0, limite).join(" ")}…`;
 }
 
 function IconoNoticias() {
