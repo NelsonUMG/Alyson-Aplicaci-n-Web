@@ -22,6 +22,7 @@ $migracionesEsperadas = @(
     'Migracion9 Proteger Y Optimizar Auditoria.sql'
     'Migracion10 Crear Reservas Areas.sql'
     'Migracion11 Crear Contenido Institucional.sql'
+    'Migracion12 Agregar Perimetros Areas Mapa.sql'
 )
 
 foreach ($migracion in $migracionesEsperadas) {

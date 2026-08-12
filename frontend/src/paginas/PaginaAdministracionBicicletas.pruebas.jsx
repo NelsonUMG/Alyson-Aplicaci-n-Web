@@ -59,6 +59,7 @@ describe("Administración de bicicletas", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: "Nueva bicicleta" }));
 
+    expect(screen.getByRole("button", { name: "Ocultar Bicicleta" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Registrar bicicleta" })).toBeTruthy();
     expect(screen.getByLabelText("Estado inicial").textContent).not.toContain("PRESTADA");
     expect(screen.getByLabelText("Motivo del estado inicial")).toBeTruthy();

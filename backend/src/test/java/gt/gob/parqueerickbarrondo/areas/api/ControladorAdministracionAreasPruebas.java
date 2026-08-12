@@ -1,6 +1,8 @@
 package gt.gob.parqueerickbarrondo.areas.api;
 
 import static org.mockito.Mockito.when;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -26,6 +28,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -87,5 +90,16 @@ class ControladorAdministracionAreasPruebas {
         clienteApi.perform(get("/api/v1/administracion/categorias-areas"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$").isArray());
+    }
+
+    @Test
+    @WithMockUser(authorities = "AREAACTUALIZARESTADO")
+    void exigeElPermisoEspecificoParaEliminarUnArea() throws Exception {
+        clienteApi.perform(delete("/api/v1/administracion/areas/9")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"version\":0}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.codigo").value("ACCESODENEGADO"));
     }
 }

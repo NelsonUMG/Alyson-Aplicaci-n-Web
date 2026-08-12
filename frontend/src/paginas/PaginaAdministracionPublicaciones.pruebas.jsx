@@ -52,41 +52,55 @@ describe("Administración de publicaciones", () => {
     const vista = render(<MemoryRouter><PaginaAdministracionPublicaciones /></MemoryRouter>);
     const paginaActual = within(vista.container);
 
-    expect(await paginaActual.findByText("NOTICIAS · Activa")).toBeTruthy();
+    await paginaActual.findByRole("button", { name: "Nueva categoría" });
     expect(vista.container.querySelector("#codigoCategoria")).toBeNull();
     fireEvent.click(paginaActual.getByRole("button", { name: "Nueva categoría" }));
+    expect(paginaActual.getByText("NOTICIAS · Activa")).toBeTruthy();
     expect(vista.container.querySelector("#codigoCategoria")).toBeTruthy();
-    expect(paginaActual.getByRole("button", { name: "Ocultar" })).toBeTruthy();
+    expect(paginaActual.getByRole("button", { name: "Ocultar Categoría" })).toBeTruthy();
     fireEvent.click(paginaActual.getByRole("button", { name: "Cancelar" }));
     expect(vista.container.querySelector("#codigoCategoria")).toBeNull();
-    const tituloPanelNuevo = paginaActual.getByRole("heading", { name: "Nueva publicación" });
     const tituloListado = paginaActual.getByRole("heading", { name: "Listado de publicaciones" });
-    expect(tituloPanelNuevo.compareDocumentPosition(tituloListado) & 4).toBeTruthy();
     expect(within(tituloListado.closest("section")).queryByRole("button", { name: "Nueva publicación" })).toBeNull();
     expect(vista.container.querySelector("#tituloPublicacion")).toBeNull();
     fireEvent.click(paginaActual.getByRole("button", { name: "Nueva publicación" }));
 
+    const tituloPanelNuevo = paginaActual.getByRole("heading", { name: "Nueva publicación" });
+    expect(tituloPanelNuevo.compareDocumentPosition(tituloListado) & 4).toBeTruthy();
     expect(vista.container.querySelector("#tituloPublicacion")).toBeTruthy();
-    expect(paginaActual.getByRole("button", { name: "Ocultar" })).toBeTruthy();
+    expect(paginaActual.getByRole("button", { name: "Ocultar Publicación" })).toBeTruthy();
     expect(vista.container.querySelector("#categoriaPublicacion").value).toBe("1");
     expect(paginaActual.getByRole("button", { name: "Guardar" })).toBeTruthy();
     fireEvent.click(paginaActual.getByRole("button", { name: "Cancelar" }));
     expect(vista.container.querySelector("#tituloPublicacion")).toBeNull();
   });
 
-  it("permite abrir una publicación nueva aunque todavía no existan categorías", async () => {
+  it("impide abrir una publicación nueva cuando no existen categorías activas", async () => {
     apiAdministracion.listarCategoriasAdministradas.mockResolvedValue([]);
     const vista = render(<MemoryRouter><PaginaAdministracionPublicaciones /></MemoryRouter>);
     const paginaActual = within(vista.container);
 
-    expect(await paginaActual.findByText("No hay categorías registradas.")).toBeTruthy();
-    const botonNuevo = paginaActual.getByRole("button", { name: "Nueva publicación" });
-    expect(botonNuevo.disabled).toBe(false);
+    const botonNuevo = await paginaActual.findByRole("button", { name: "Nueva publicación" });
+    expect(botonNuevo.disabled).toBe(true);
+    expect(paginaActual.getByText(/Primero crea al menos una categoría activa/)).toBeTruthy();
     fireEvent.click(botonNuevo);
 
+    expect(vista.container.querySelector("#tituloPublicacion")).toBeNull();
+    expect(apiAdministracion.crearPublicacion).not.toHaveBeenCalled();
+  });
+
+  it("intercambia los paneles de categoría y publicación", async () => {
+    const vista = render(<MemoryRouter><PaginaAdministracionPublicaciones /></MemoryRouter>);
+    const paginaActual = within(vista.container);
+
+    fireEvent.click(await paginaActual.findByRole("button", { name: "Nueva categoría" }));
+    expect(vista.container.querySelector("#codigoCategoria")).toBeTruthy();
+    fireEvent.click(paginaActual.getByRole("button", { name: "Nueva publicación" }));
+    expect(vista.container.querySelector("#codigoCategoria")).toBeNull();
     expect(vista.container.querySelector("#tituloPublicacion")).toBeTruthy();
-    expect(paginaActual.getByRole("button", { name: "Ocultar" })).toBeTruthy();
-    expect(vista.container.querySelector("#categoriaPublicacion").value).toBe("");
+    fireEvent.click(paginaActual.getByRole("button", { name: "Nueva categoría" }));
+    expect(vista.container.querySelector("#tituloPublicacion")).toBeNull();
+    expect(vista.container.querySelector("#codigoCategoria")).toBeTruthy();
   });
 
   it("permite desarchivar una publicación archivada", async () => {

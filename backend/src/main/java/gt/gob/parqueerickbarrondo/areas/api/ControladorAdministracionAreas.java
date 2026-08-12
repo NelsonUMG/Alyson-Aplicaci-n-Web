@@ -12,6 +12,7 @@ import gt.gob.parqueerickbarrondo.areas.api.modelo.RespuestaReservaAreaAdministr
 import gt.gob.parqueerickbarrondo.areas.api.modelo.SolicitudArea;
 import gt.gob.parqueerickbarrondo.areas.api.modelo.SolicitudCategoriaArea;
 import gt.gob.parqueerickbarrondo.areas.api.modelo.SolicitudConexionMapa;
+import gt.gob.parqueerickbarrondo.areas.api.modelo.SolicitudEliminacionArea;
 import gt.gob.parqueerickbarrondo.areas.api.modelo.SolicitudNodoMapa;
 import gt.gob.parqueerickbarrondo.areas.api.modelo.SolicitudReservaArea;
 import gt.gob.parqueerickbarrondo.areas.aplicacion.ServicioAdministracionAreas;
@@ -99,6 +100,15 @@ public class ControladorAdministracionAreas {
             @Valid @RequestBody SolicitudArea solicitud,
             @AuthenticationPrincipal UsuarioSesion actor) {
         return servicioAdministracion.actualizarArea(idArea, solicitud, actor);
+    }
+
+    @DeleteMapping("/areas/{idArea}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminarArea(
+            @PathVariable Long idArea,
+            @Valid @RequestBody SolicitudEliminacionArea solicitud,
+            @AuthenticationPrincipal UsuarioSesion actor) {
+        servicioAdministracion.eliminarArea(idArea, solicitud.version(), actor);
     }
 
     @GetMapping("/areas/{idArea}/historial")

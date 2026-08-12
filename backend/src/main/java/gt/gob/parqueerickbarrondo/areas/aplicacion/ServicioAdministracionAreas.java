@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import gt.gob.parqueerickbarrondo.areas.api.modelo.RespuestaAreaAdministrada;
+import gt.gob.parqueerickbarrondo.areas.api.modelo.CoordenadaAreaMapa;
 import gt.gob.parqueerickbarrondo.areas.api.modelo.RespuestaCategoriaAreaAdministrada;
 import gt.gob.parqueerickbarrondo.areas.api.modelo.RespuestaConexionMapaAdministrada;
 import gt.gob.parqueerickbarrondo.areas.api.modelo.RespuestaHistorialEstadoArea;
@@ -24,6 +25,7 @@ import gt.gob.parqueerickbarrondo.areas.dominio.ConexionMapa;
 import gt.gob.parqueerickbarrondo.areas.dominio.HistorialEstadoArea;
 import gt.gob.parqueerickbarrondo.areas.dominio.NodoMapa;
 import gt.gob.parqueerickbarrondo.areas.dominio.ReservaArea;
+import gt.gob.parqueerickbarrondo.areas.dominio.VerticeAreaMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioCategoriaArea;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioConexionMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioHistorialEstadoArea;
@@ -208,6 +210,10 @@ public class ServicioAdministracionAreas {
                 normalizarJson(solicitud.horarioJson()),
                 normalizarOpcional(solicitud.observacionesInternas()),
                 responsable);
+        area.establecerPerimetro(
+                construirPerimetro(solicitud.perimetro()),
+                solicitud.perimetroConfirmado(),
+                responsable);
         area = repositorioArea.saveAndFlush(area);
         repositorioHistorial.save(new HistorialEstadoArea(
                 area,
@@ -242,6 +248,8 @@ public class ServicioAdministracionAreas {
                 solicitud.latitud(),
                 solicitud.longitud(),
                 solicitud.coordenadasConfirmadas(),
+                construirPerimetro(solicitud.perimetro()),
+                solicitud.perimetroConfirmado(),
                 normalizarJson(solicitud.horarioJson()),
                 normalizarOpcional(solicitud.observacionesInternas()),
                 responsable);
@@ -257,6 +265,25 @@ public class ServicioAdministracionAreas {
         repositorioArea.saveAndFlush(area);
         auditar(actor, "AREAACTUALIZADA", "AREA", idArea);
         return convertirArea(area);
+    }
+
+    @PreAuthorize("hasAuthority('AREAELIMINAR')")
+    @Transactional
+    public void eliminarArea(Long idArea, Long version, UsuarioSesion actor) {
+        var area = buscarArea(idArea);
+        validarVersion(area.obtenerVersion(), version, "El área");
+        if (repositorioNodo.existsByArea_IdArea(idArea)
+                || repositorioReserva.existsByArea_IdArea(idArea)
+                || repositorioArea.contarSolicitudesMantenimiento(idArea) > 0) {
+            throw new ConflictoDatosException(
+                    "No se puede eliminar el área porque tiene información operativa asociada.");
+        }
+        repositorioHistorial.eliminarTodosPorIdArea(idArea);
+        var claveImagen = area.obtenerClaveImagen();
+        repositorioArea.delete(area);
+        repositorioArea.flush();
+        auditar(actor, "AREAELIMINADA", "AREA", idArea);
+        eliminarArchivoAnteriorDespuesDeConfirmar(claveImagen);
     }
 
     @PreAuthorize("hasAuthority('AREALEER')")
@@ -708,6 +735,11 @@ public class ServicioAdministracionAreas {
                 area.obtenerLatitud(),
                 area.obtenerLongitud(),
                 area.tieneCoordenadasConfirmadas(),
+                area.obtenerPerimetro().stream()
+                        .map(vertice -> new CoordenadaAreaMapa(
+                                vertice.obtenerLatitud(), vertice.obtenerLongitud()))
+                        .toList(),
+                area.tienePerimetroConfirmado(),
                 area.obtenerHorarioJson(),
                 area.obtenerObservacionesInternas(),
                 tieneImagen,
@@ -717,6 +749,25 @@ public class ServicioAdministracionAreas {
                 area.obtenerCreadoEn(),
                 area.obtenerActualizadoEn(),
                 area.obtenerVersion());
+    }
+
+    private List<VerticeAreaMapa> construirPerimetro(List<CoordenadaAreaMapa> coordenadas) {
+        if (coordenadas == null || coordenadas.isEmpty()) {
+            return List.of();
+        }
+        var vertices = coordenadas.stream()
+                .map(coordenada -> new VerticeAreaMapa(coordenada.latitud(), coordenada.longitud()))
+                .toList();
+        var distintos = coordenadas.stream()
+                .map(coordenada -> coordenada.latitud().stripTrailingZeros().toPlainString()
+                        + ":" + coordenada.longitud().stripTrailingZeros().toPlainString())
+                .distinct()
+                .count();
+        if (distintos < 3) {
+            throw new SolicitudInvalidaException(
+                    "El perímetro debe incluir al menos tres vértices diferentes.");
+        }
+        return vertices;
     }
 
     private RespuestaNodoMapaAdministrado convertirNodo(NodoMapa nodo) {

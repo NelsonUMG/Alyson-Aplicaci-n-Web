@@ -111,6 +111,16 @@ export function PaginaAdministracionUsuarios() {
   }
 
   function mostrarPanel(nombrePanel) {
+    if (nombrePanel === "empleado" && rolesParaEmpleado.length === 0) {
+      setPanelActivo("");
+      setSeleccion(null);
+      setEstado((actual) => ({
+        ...actual,
+        error: "Primero debes crear al menos un rol asignable para registrar empleados.",
+        mensaje: "",
+      }));
+      return;
+    }
     setPanelActivo((actual) => (actual === nombrePanel ? "" : nombrePanel));
     setSeleccion(null);
     setEstado((actual) => ({ ...actual, error: "", mensaje: "" }));
@@ -139,6 +149,16 @@ export function PaginaAdministracionUsuarios() {
 
   async function guardarEmpleado(evento) {
     evento.preventDefault();
+    if (rolesParaEmpleado.length === 0 || datosEmpleado.codigosRoles.length === 0) {
+      setEstado((actual) => ({
+        ...actual,
+        error: rolesParaEmpleado.length === 0
+          ? "Primero debes crear al menos un rol asignable para registrar empleados."
+          : "Selecciona al menos un rol para el empleado.",
+        mensaje: "",
+      }));
+      return;
+    }
     if (datosEmpleado.contrasenaInicial !== datosEmpleado.confirmarContrasena) {
       setEstado((actual) => ({ ...actual, error: "Las contraseñas no coinciden.", mensaje: "" }));
       return;
@@ -178,6 +198,7 @@ export function PaginaAdministracionUsuarios() {
   }
 
   const rolesParaEmpleado = roles.filter((rol) => rol.codigo !== "USUARIOREGISTRADO");
+  const registroEmpleadoNoDisponible = estado.cargando || rolesParaEmpleado.length === 0;
   const gruposPermisos = agruparPermisos(permisos);
 
   return (
@@ -187,22 +208,29 @@ export function PaginaAdministracionUsuarios() {
       <h1>Usuarios y roles</h1>
       <div className="acciones-gestion-usuarios" aria-label="Administración de empleados y roles">
         <button
-          className={panelActivo === "empleado" ? "boton-gestion-activo" : "boton-secundario"}
-          type="button"
-          aria-expanded={panelActivo === "empleado"}
-          onClick={() => mostrarPanel("empleado")}
-        >
-          Registrar empleado
-        </button>
-        <button
           className={panelActivo === "rol" ? "boton-gestion-activo" : "boton-secundario"}
           type="button"
           aria-expanded={panelActivo === "rol"}
           onClick={() => mostrarPanel("rol")}
         >
-          Crear rol para empleados
+          {panelActivo === "rol" ? "Ocultar Roles" : "Crear Roles"}
+        </button>
+        <button
+          className={panelActivo === "empleado" ? "boton-gestion-activo" : "boton-secundario"}
+          type="button"
+          aria-expanded={panelActivo === "empleado"}
+          aria-describedby={rolesParaEmpleado.length === 0 ? "aviso-sin-roles-empleado" : undefined}
+          disabled={registroEmpleadoNoDisponible}
+          onClick={() => mostrarPanel("empleado")}
+        >
+          {panelActivo === "empleado" ? "Ocultar Empleado" : "Registrar empleado"}
         </button>
       </div>
+      {!estado.cargando && rolesParaEmpleado.length === 0 && (
+        <p id="aviso-sin-roles-empleado" className="nota-formulario-administracion" role="status">
+          Primero crea al menos un rol asignable con el botón Crear Roles para poder registrar empleados.
+        </p>
+      )}
       {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
       {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
       {panelActivo === "empleado" && (
@@ -244,7 +272,7 @@ export function PaginaAdministracionUsuarios() {
                 ))}
               </div>
             </fieldset>
-            <button type="submit" disabled={estado.guardando}>{estado.guardando ? "Guardando…" : "Registrar empleado"}</button>
+            <button type="submit" disabled={estado.guardando || datosEmpleado.codigosRoles.length === 0}>{estado.guardando ? "Guardando…" : "Registrar empleado"}</button>
           </form>
         </section>
       )}

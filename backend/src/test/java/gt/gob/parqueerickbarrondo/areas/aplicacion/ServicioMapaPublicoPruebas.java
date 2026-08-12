@@ -13,12 +13,14 @@ import java.util.Set;
 import gt.gob.parqueerickbarrondo.areas.dominio.ConexionMapa;
 import gt.gob.parqueerickbarrondo.areas.dominio.NodoMapa;
 import gt.gob.parqueerickbarrondo.areas.dominio.ReservaArea;
+import gt.gob.parqueerickbarrondo.areas.dominio.VerticeAreaMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioConexionMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioNodoMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioReservaArea;
 import gt.gob.parqueerickbarrondo.identidad.dominio.Usuario;
 import gt.gob.parqueerickbarrondo.portalpublico.dominio.Area;
 import gt.gob.parqueerickbarrondo.portalpublico.dominio.CategoriaArea;
+import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioArea;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -36,6 +38,8 @@ class ServicioMapaPublicoPruebas {
     private RepositorioConexionMapa repositorioConexion;
     @Mock
     private RepositorioReservaArea repositorioReserva;
+    @Mock
+    private RepositorioArea repositorioArea;
 
     @InjectMocks
     private ServicioMapaPublico servicioMapa;
@@ -103,6 +107,32 @@ class ServicioMapaPublicoPruebas {
         assertThat(nodoPublicado.disponibleAhora()).isFalse();
         assertThat(nodoPublicado.tituloReservaActiva()).isEqualTo("Entrenamiento");
         assertThat(nodoPublicado.cambiaEstadoEn()).isEqualTo(reserva.obtenerFinalizaEn());
+    }
+
+    @Test
+    void publicaPerimetroConfirmadoConElEstadoCalculadoPorReservas() {
+        var area = area(10L, "FUTBOL", "Cancha de fútbol", "DISPONIBLE");
+        area.establecerPerimetro(List.of(
+                new VerticeAreaMapa(new BigDecimal("14.63910000"), new BigDecimal("-90.54130000")),
+                new VerticeAreaMapa(new BigDecimal("14.63910000"), new BigDecimal("-90.54090000")),
+                new VerticeAreaMapa(new BigDecimal("14.63950000"), new BigDecimal("-90.54090000"))),
+                true,
+                area.obtenerActualizadoPor());
+        var ahora = Instant.now();
+        var reserva = reserva(22L, area, ahora.minusSeconds(60), ahora.plusSeconds(1800));
+        when(repositorioArea.buscarPublicas()).thenReturn(List.of(area));
+        when(repositorioReserva.buscarVigentesPorAreas(eq(Set.of(10L)), any(Instant.class)))
+                .thenReturn(List.of(reserva));
+
+        var mapa = servicioMapa.consultarMapa();
+
+        assertThat(mapa.areas()).singleElement().satisfies(areaPublica -> {
+            assertThat(areaPublica.nombreArea()).isEqualTo("Cancha de fútbol");
+            assertThat(areaPublica.estadoCalculadoArea()).isEqualTo("ENUSO");
+            assertThat(areaPublica.disponibleAhora()).isFalse();
+            assertThat(areaPublica.tituloReservaActiva()).isEqualTo("Entrenamiento");
+            assertThat(areaPublica.perimetro()).hasSize(3);
+        });
     }
 
     private NodoMapa nodo(Long id, String nombre, boolean accesible) {

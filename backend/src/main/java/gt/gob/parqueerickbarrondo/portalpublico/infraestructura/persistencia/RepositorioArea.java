@@ -20,8 +20,12 @@ public interface RepositorioArea extends JpaRepository<Area, Long> {
 
     boolean existsByNumeroVisibleMapaAndIdAreaNot(Integer numeroVisibleMapa, Long idArea);
 
+    @Query(value = "SELECT COUNT_BIG(*) FROM dbo.SolicitudesMantenimiento WHERE IdArea = :idArea", nativeQuery = true)
+    long contarSolicitudesMantenimiento(
+            @org.springframework.data.repository.query.Param("idArea") Long idArea);
+
     @Query("select a from Area a join a.categoria c where c.activa = true order by c.nombre, a.nombre")
-    @EntityGraph(attributePaths = "categoria")
+    @EntityGraph(attributePaths = {"categoria", "perimetro"})
     List<Area> buscarPublicas();
 
     @Query("""

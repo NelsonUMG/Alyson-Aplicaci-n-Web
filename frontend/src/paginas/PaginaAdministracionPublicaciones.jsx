@@ -100,11 +100,13 @@ export function PaginaAdministracionPublicaciones() {
   }
 
   function nuevaCategoria() {
+    cancelarPublicacion();
     establecerCategoriaEdicion(categoriaInicial);
     establecerMostrarFormularioCategoria(true);
   }
 
   function editarCategoria(categoria) {
+    cancelarPublicacion();
     establecerCategoriaEdicion(categoria);
     establecerMostrarFormularioCategoria(true);
   }
@@ -143,9 +145,18 @@ export function PaginaAdministracionPublicaciones() {
 
   function nuevaPublicacion() {
     const primeraCategoria = categorias.find((categoria) => categoria.activa);
+    if (!primeraCategoria) {
+      establecerEstado((actual) => ({
+        ...actual,
+        error: "Primero debes crear al menos una categoría activa para crear publicaciones.",
+        mensaje: "",
+      }));
+      return;
+    }
+    cancelarCategoria();
     establecerPublicacionEdicion({
       ...publicacionInicial,
-      idCategoriaPublicacion: primeraCategoria?.idCategoriaPublicacion || "",
+      idCategoriaPublicacion: primeraCategoria.idCategoriaPublicacion,
     });
     establecerImagenes([]);
     establecerClaveCreacion(window.crypto.randomUUID());
@@ -165,6 +176,7 @@ export function PaginaAdministracionPublicaciones() {
   }
 
   async function editarPublicacion(publicacion) {
+    cancelarCategoria();
     establecerPublicacionEdicion({
       ...publicacion,
       fechaEditorial: publicacion.fechaEditorial || "",
@@ -178,6 +190,14 @@ export function PaginaAdministracionPublicaciones() {
 
   async function guardarPublicacion(evento) {
     evento.preventDefault();
+    if (!publicacionEdicion.idPublicacion && !categorias.some((categoria) => categoria.activa)) {
+      establecerEstado((actual) => ({
+        ...actual,
+        error: "Primero debes crear al menos una categoría activa para crear publicaciones.",
+        mensaje: "",
+      }));
+      return;
+    }
     establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
     const datos = {
       ...publicacionEdicion,
@@ -252,6 +272,9 @@ export function PaginaAdministracionPublicaciones() {
     }
   }
 
+  const categoriasActivas = categorias.filter((categoria) => categoria.activa);
+  const nuevaPublicacionNoDisponible = estado.cargando || categoriasActivas.length === 0;
+
   return (
     <main className="pagina-administracion pagina-administracion-publicaciones">
       <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
@@ -262,12 +285,21 @@ export function PaginaAdministracionPublicaciones() {
       {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
       {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
 
-      <section className="panel-edicion" aria-labelledby="titulo-categorias">
+      <div className="acciones-superiores-administracion">
+        {puedeCrear && <button className={mostrarFormularioCategoria ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarFormularioCategoria} onClick={alternarFormularioCategoria}>{mostrarFormularioCategoria ? "Ocultar Categoría" : "Nueva categoría"}</button>}
+        {puedeCrear && <button className={publicacionEdicion ? "boton-gestion-activo" : ""} type="button" aria-expanded={Boolean(publicacionEdicion)} aria-describedby={categoriasActivas.length === 0 ? "aviso-sin-categorias-publicacion" : undefined} disabled={nuevaPublicacionNoDisponible} onClick={alternarFormularioPublicacion}>{publicacionEdicion ? "Ocultar Publicación" : "Nueva publicación"}</button>}
+      </div>
+      {!estado.cargando && categoriasActivas.length === 0 && (
+        <p id="aviso-sin-categorias-publicacion" className="nota-formulario-administracion" role="status">
+          Primero crea al menos una categoría activa para poder crear publicaciones.
+        </p>
+      )}
+
+      {mostrarFormularioCategoria && <section className="panel-edicion panel-categorias-publicaciones" aria-labelledby="titulo-categorias">
         <div className="cabecera-panel-administracion">
           <div>
             <h2 id="titulo-categorias">Categorías</h2>
           </div>
-          {puedeCrear && <button type="button" onClick={alternarFormularioCategoria}>{mostrarFormularioCategoria ? "Ocultar" : "Nueva categoría"}</button>}
         </div>
         <div className={`rejilla-categorias-administracion${mostrarFormularioCategoria ? "" : " solo-listado"}`}>
           <div className="lista-categorias-administracion">
@@ -285,7 +317,7 @@ export function PaginaAdministracionPublicaciones() {
             {categorias.length === 0 && <p>No hay categorías registradas.</p>}
           </div>
           {mostrarFormularioCategoria && (puedeCrear || puedeActualizar) && (
-            <form className="formulario-administracion" onSubmit={guardarCategoria}>
+            <form className="formulario-administracion formulario-categoria-publicacion" onSubmit={guardarCategoria}>
               <label htmlFor="codigoCategoria">Código</label>
               <input id="codigoCategoria" required maxLength="64" value={categoriaEdicion.codigo} onChange={(evento) => establecerCategoriaEdicion({ ...categoriaEdicion, codigo: evento.target.value })} />
               <label htmlFor="nombreCategoria">Nombre</label>
@@ -305,14 +337,13 @@ export function PaginaAdministracionPublicaciones() {
             </form>
           )}
         </div>
-      </section>
+      </section>}
 
-      <section className="panel-edicion" aria-labelledby="titulo-edicion-publicacion">
+      {publicacionEdicion && <section className="panel-edicion" aria-labelledby="titulo-edicion-publicacion">
         <div className="cabecera-panel-administracion">
           <div>
             <h2 id="titulo-edicion-publicacion">{publicacionEdicion?.idPublicacion ? "Editar publicación" : "Nueva publicación"}</h2>
           </div>
-          {puedeCrear && <button type="button" onClick={alternarFormularioPublicacion}>{publicacionEdicion ? "Ocultar" : "Nueva publicación"}</button>}
         </div>
 
         {publicacionEdicion && (
@@ -360,7 +391,7 @@ export function PaginaAdministracionPublicaciones() {
             )}
           </>
         )}
-      </section>
+      </section>}
 
       <section className="panel-edicion" aria-labelledby="titulo-listado-publicaciones">
         <div className="cabecera-panel-administracion">

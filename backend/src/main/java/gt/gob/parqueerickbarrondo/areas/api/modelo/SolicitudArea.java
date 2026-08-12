@@ -1,7 +1,9 @@
 package gt.gob.parqueerickbarrondo.areas.api.modelo;
 
 import java.math.BigDecimal;
+import java.util.List;
 
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -33,6 +35,10 @@ public record SolicitudArea(
         BigDecimal latitud,
         BigDecimal longitud,
         boolean coordenadasConfirmadas,
+        @Valid
+        @Size(max = 40, message = "El perímetro no puede superar 40 vértices.")
+        List<CoordenadaAreaMapa> perimetro,
+        boolean perimetroConfirmado,
         @Size(max = 10000, message = "El horario no puede superar 10000 caracteres.")
         String horarioJson,
         @Size(max = 20000, message = "Las observaciones internas no pueden superar 20000 caracteres.")
@@ -49,5 +55,15 @@ public record SolicitudArea(
     @AssertTrue(message = "Las coordenadas confirmadas deben incluir latitud y longitud.")
     public boolean confirmacionCoherente() {
         return !coordenadasConfirmadas || (latitud != null && longitud != null);
+    }
+
+    @AssertTrue(message = "El perímetro debe estar vacío o incluir al menos tres vértices.")
+    public boolean perimetroCoherente() {
+        return perimetro == null || perimetro.isEmpty() || perimetro.size() >= 3;
+    }
+
+    @AssertTrue(message = "Un perímetro confirmado debe incluir al menos tres vértices.")
+    public boolean confirmacionPerimetroCoherente() {
+        return !perimetroConfirmado || (perimetro != null && perimetro.size() >= 3);
     }
 }

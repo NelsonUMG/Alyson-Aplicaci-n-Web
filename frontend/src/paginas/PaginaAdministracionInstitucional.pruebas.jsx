@@ -29,7 +29,9 @@ describe("Administración de contenido institucional", () => {
   it("carga y guarda el contenido que se muestra en Nosotros", async () => {
     render(<MemoryRouter><PaginaAdministracionInstitucional /></MemoryRouter>);
 
-    expect(await screen.findByDisplayValue("Misión original.")).toBeTruthy();
+    fireEvent.click(await screen.findByRole("button", { name: "Editar contenido" }));
+    expect(screen.getByRole("button", { name: "Ocultar Contenido" })).toBeTruthy();
+    expect(screen.getByDisplayValue("Misión original.")).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Resumen institucional"), { target: { value: "Resumen actualizado." } });
     fireEvent.click(screen.getByRole("button", { name: "Guardar contenido institucional" }));
 

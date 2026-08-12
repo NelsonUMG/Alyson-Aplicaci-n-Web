@@ -1,12 +1,24 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { calcularRutaMapa, consultarMapa } from "../api/portalPublico";
+import { useEffect, useMemo, useRef, useState } from "react";
+import * as maplibregl from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
+import trabajadorMapLibre from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
+import { calcularRecorridoPeatonal, consultarMapa } from "../api/portalPublico";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
 
-const mapaVacio = { nodos: [], conexiones: [], actualizadoEn: null };
-const centroParque = { lat: 14.638834, lng: -90.543997 };
-const claveGoogleMaps = import.meta.env.VITE_GOOGLE_MAPS_API_KEY?.trim() || "";
-const idMapaGoogle = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID?.trim() || "DEMO_MAP_ID";
-let promesaGoogleMaps = null;
+const mapaVacio = { nodos: [], conexiones: [], areas: [], actualizadoEn: null };
+maplibregl.setWorkerUrl(trabajadorMapLibre);
+const coordenadaParque = [-90.5410824, 14.6391786];
+const estiloOpenFreeMap = "https://tiles.openfreemap.org/styles/liberty";
+const identificadorFuenteConexiones = "conexiones-parque";
+const identificadorCapaConexiones = "conexiones-parque";
+const identificadorFuenteRuta = "ruta-parque";
+const identificadorCapaRuta = "ruta-parque";
+const identificadorFuenteSatelite = "vista-satelital";
+const identificadorCapaSatelite = "vista-satelital";
+const identificadorFuenteAreas = "areas-parque";
+const identificadorCapaRellenoAreas = "areas-parque-relleno";
+const identificadorCapaBordeAreas = "areas-parque-borde";
+const mosaicosSatelitales = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 
 const estadosBloqueados = new Set(["ENMANTENIMIENTO", "CERRADA", "FUERADESERVICIO", "PENDIENTECONFIRMACION"]);
 
@@ -51,32 +63,6 @@ function textoReloj(nodo, ahora) {
     : `Disponible durante ${formatearDuracion(diferencia)}`;
 }
 
-function cargarGoogleMaps() {
-  if (!claveGoogleMaps) return Promise.reject(new Error("No hay llave pública de Google Maps configurada."));
-  if (window.google?.maps?.importLibrary) return Promise.resolve(window.google.maps);
-  if (promesaGoogleMaps) return promesaGoogleMaps;
-  promesaGoogleMaps = new Promise((resolver, rechazar) => {
-    const nombreCallback = "__parqueErickBarrondoGoogleMaps";
-    window[nombreCallback] = () => resolver(window.google.maps);
-    const guion = document.createElement("script");
-    const parametros = new URLSearchParams({
-      key: claveGoogleMaps,
-      auth_referrer_policy: "origin",
-      callback: nombreCallback,
-      language: "es",
-      libraries: "marker",
-      loading: "async",
-      region: "GT",
-      v: "weekly",
-    });
-    guion.src = `https://maps.googleapis.com/maps/api/js?${parametros.toString()}`;
-    guion.async = true;
-    guion.onerror = () => rechazar(new Error("No fue posible cargar Google Maps."));
-    document.head.appendChild(guion);
-  });
-  return promesaGoogleMaps;
-}
-
 function distanciaEntrePuntos(latitudUno, longitudUno, latitudDos, longitudDos) {
   const radianes = (grados) => grados * Math.PI / 180;
   const diferenciaLatitud = radianes(latitudDos - latitudUno);
@@ -87,241 +73,524 @@ function distanciaEntrePuntos(latitudUno, longitudUno, latitudDos, longitudDos) 
   return 6371000 * 2 * Math.atan2(Math.sqrt(valor), Math.sqrt(1 - valor));
 }
 
-function encontrarNodoCercano(nodos, ubicacion) {
-  if (!ubicacion || nodos.length === 0) return null;
-  return nodos.reduce((cercano, nodo) => {
-    const distancia = distanciaEntrePuntos(
-      ubicacion.latitud,
-      ubicacion.longitud,
-      Number(nodo.latitud),
-      Number(nodo.longitud),
-    );
-    return !cercano || distancia < cercano.distancia ? { nodo, distancia } : cercano;
-  }, null);
+function obtenerCentroArea(area) {
+  const perimetro = area?.perimetro || [];
+  if (perimetro.length === 0) return null;
+  const suma = perimetro.reduce((acumulado, vertice) => ({
+    latitud: acumulado.latitud + Number(vertice.latitud),
+    longitud: acumulado.longitud + Number(vertice.longitud),
+  }), { latitud: 0, longitud: 0 });
+  return {
+    latitud: Number((suma.latitud / perimetro.length).toFixed(8)),
+    longitud: Number((suma.longitud / perimetro.length).toFixed(8)),
+  };
 }
 
-function LienzoMapa({ mapa, ruta }) {
-  const lienzo = useRef(null);
+function formatearTiempoRecorrido(segundos) {
+  const minutos = Math.max(1, Math.round(Number(segundos) / 60));
+  if (minutos < 60) return `${minutos} min`;
+  const horas = Math.floor(minutos / 60);
+  const minutosRestantes = minutos % 60;
+  return minutosRestantes > 0 ? `${horas} h ${minutosRestantes} min` : `${horas} h`;
+}
+
+function crearContenidoPopupParque() {
+  const contenido = document.createElement("div");
+  contenido.className = "mapa-popup-parque";
+  const titulo = document.createElement("strong");
+  titulo.textContent = "Parque Erick Barrondo";
+  const descripcion = document.createElement("p");
+  descripcion.textContent = "Centro deportivo y recreativo";
+  contenido.append(titulo, descripcion);
+  return contenido;
+}
+
+function crearContenidoMarcadorParque() {
+  const marcador = document.createElement("button");
+  marcador.type = "button";
+  marcador.className = "mapa-marcador-parque";
+  marcador.setAttribute("aria-label", "Parque Erick Barrondo");
+  const etiqueta = document.createElement("span");
+  etiqueta.textContent = "P";
+  marcador.appendChild(etiqueta);
+  return marcador;
+}
+
+function coleccionVacia() {
+  return { type: "FeatureCollection", features: [] };
+}
+
+function coleccionAreas(areas, idAreaActiva) {
+  return {
+    type: "FeatureCollection",
+    features: areas.flatMap((area) => {
+      const coordenadas = (area.perimetro || []).map((vertice) => [
+        Number(vertice.longitud),
+        Number(vertice.latitud),
+      ]);
+      if (coordenadas.length < 3) return [];
+      return [{
+        type: "Feature",
+        properties: {
+          idArea: area.idArea,
+          nombre: area.nombreArea,
+          estado: obtenerEstadoNodo(area),
+          activa: area.idArea === idAreaActiva,
+        },
+        geometry: { type: "Polygon", coordinates: [[...coordenadas, coordenadas[0]]] },
+      }];
+    }),
+  };
+}
+
+function MapaInteractivo({
+  mapa,
+  ruta,
+  tipoVista,
+  solicitudUbicacion,
+  nodoActivo,
+  areaActiva,
+  alCambiarTipoVista,
+  alSeleccionarNodo,
+  alSeleccionarArea,
+  alSeleccionarCoordenada,
+  alActualizarUbicacion,
+  alCambiarSeguimiento,
+  alErrorUbicacion,
+  alErrorMapa,
+}) {
+  const contenedor = useRef(null);
+  const instanciaMapa = useRef(null);
+  const geolocalizador = useRef(null);
+  const marcadorParque = useRef(null);
+  const marcadorSeleccion = useRef(null);
+  const marcadoresNodos = useRef([]);
+  const ajusteInicial = useRef(false);
+  const ultimaRutaAjustada = useRef(null);
+  const panelInformacion = useRef(null);
+  const acciones = useRef({
+    alSeleccionarCoordenada,
+    alActualizarUbicacion,
+    alCambiarSeguimiento,
+    alErrorUbicacion,
+    alErrorMapa,
+    alSeleccionarArea,
+  });
+  const [mapaListo, establecerMapaListo] = useState(false);
+  const [informacionAbierta, establecerInformacionAbierta] = useState(false);
 
   useEffect(() => {
-    const elemento = lienzo.current;
-    if (!elemento || mapa.nodos.length === 0) return undefined;
-    const dibujar = () => {
-      const contexto = elemento.getContext?.("2d");
-      if (!contexto) return;
-      const rectangulo = elemento.getBoundingClientRect();
-      const ancho = Math.max(Math.round(rectangulo.width), 680);
-      const alto = Math.max(Math.round(rectangulo.height), 430);
-      const escala = window.devicePixelRatio || 1;
-      elemento.width = ancho * escala;
-      elemento.height = alto * escala;
-      contexto.setTransform(escala, 0, 0, escala, 0, 0);
-      contexto.clearRect(0, 0, ancho, alto);
-
-      const latitudes = mapa.nodos.map((nodo) => Number(nodo.latitud));
-      const longitudes = mapa.nodos.map((nodo) => Number(nodo.longitud));
-      const minimaLatitud = Math.min(...latitudes);
-      const maximaLatitud = Math.max(...latitudes);
-      const minimaLongitud = Math.min(...longitudes);
-      const maximaLongitud = Math.max(...longitudes);
-      const margen = 42;
-      const ubicar = (nodo) => ({
-        x: margen + ((Number(nodo.longitud) - minimaLongitud) / (maximaLongitud - minimaLongitud || 1))
-          * (ancho - margen * 2),
-        y: alto - margen - ((Number(nodo.latitud) - minimaLatitud) / (maximaLatitud - minimaLatitud || 1))
-          * (alto - margen * 2),
-      });
-      const porId = new Map(mapa.nodos.map((nodo) => [nodo.idNodoMapa, nodo]));
-      const pasos = new Set();
-      (ruta?.pasos || []).forEach((paso, indice, arreglo) => {
-        if (indice < arreglo.length - 1) {
-          pasos.add(`${paso.idNodoMapa}-${arreglo[indice + 1].idNodoMapa}`);
-          pasos.add(`${arreglo[indice + 1].idNodoMapa}-${paso.idNodoMapa}`);
-        }
-      });
-
-      mapa.conexiones.forEach((conexion) => {
-        const origen = porId.get(conexion.idNodoOrigen);
-        const destino = porId.get(conexion.idNodoDestino);
-        if (!origen || !destino) return;
-        const puntoOrigen = ubicar(origen);
-        const puntoDestino = ubicar(destino);
-        const seleccionada = pasos.has(`${conexion.idNodoOrigen}-${conexion.idNodoDestino}`);
-        contexto.beginPath();
-        contexto.moveTo(puntoOrigen.x, puntoOrigen.y);
-        contexto.lineTo(puntoDestino.x, puntoDestino.y);
-        contexto.lineWidth = seleccionada ? 6 : 3;
-        contexto.strokeStyle = seleccionada ? "#e09b31" : conexion.cerrada ? "#8f8f8f" : "#2f6b52";
-        contexto.setLineDash(conexion.cerrada ? [8, 8] : []);
-        contexto.stroke();
-      });
-      contexto.setLineDash([]);
-
-      mapa.nodos.forEach((nodo) => {
-        const punto = ubicar(nodo);
-        contexto.beginPath();
-        contexto.arc(punto.x, punto.y, 10, 0, Math.PI * 2);
-        contexto.fillStyle = colorEstadoNodo(nodo);
-        contexto.fill();
-        contexto.lineWidth = 3;
-        contexto.strokeStyle = estaDisponibleNodo(nodo) ? "#ffffff" : "#173b2d";
-        contexto.stroke();
-        contexto.fillStyle = "#173b2d";
-        contexto.font = "600 13px sans-serif";
-        contexto.textAlign = "center";
-        contexto.fillText(nodo.nombre, punto.x, punto.y - 16);
-      });
+    acciones.current = {
+      alSeleccionarCoordenada,
+      alActualizarUbicacion,
+      alCambiarSeguimiento,
+      alErrorUbicacion,
+      alErrorMapa,
+      alSeleccionarArea,
     };
-    dibujar();
-    if (typeof window.ResizeObserver === "undefined") return undefined;
-    const observador = new window.ResizeObserver(dibujar);
-    observador.observe(elemento);
-    return () => observador.disconnect();
-  }, [mapa, ruta]);
+  }, [
+    alSeleccionarCoordenada,
+    alActualizarUbicacion,
+    alCambiarSeguimiento,
+    alErrorUbicacion,
+    alErrorMapa,
+    alSeleccionarArea,
+  ]);
+
+  useEffect(() => {
+    if (!contenedor.current) return undefined;
+    let mapaCreado;
+    try {
+      mapaCreado = new maplibregl.Map({
+        container: contenedor.current,
+        style: estiloOpenFreeMap,
+        center: coordenadaParque,
+        zoom: 15.5,
+        minZoom: 7,
+        attributionControl: { compact: false },
+      });
+    } catch {
+      acciones.current.alErrorMapa("Este navegador no permite mostrar el mapa interactivo.");
+      return undefined;
+    }
+    instanciaMapa.current = mapaCreado;
+
+    mapaCreado.addControl(new maplibregl.NavigationControl({
+      showCompass: true,
+      showZoom: true,
+      visualizePitch: true,
+    }), "top-right");
+
+    const controlUbicacion = new maplibregl.GeolocateControl({
+      positionOptions: { enableHighAccuracy: true },
+      trackUserLocation: true,
+      showUserLocation: true,
+      showAccuracyCircle: true,
+      fitBoundsOptions: { maxZoom: 18 },
+    });
+    geolocalizador.current = controlUbicacion;
+    controlUbicacion.on("geolocate", (evento) => {
+      acciones.current.alActualizarUbicacion({
+        latitud: evento.coords.latitude,
+        longitud: evento.coords.longitude,
+        precision: evento.coords.accuracy,
+      });
+    });
+    controlUbicacion.on("trackuserlocationstart", () => acciones.current.alCambiarSeguimiento(true));
+    controlUbicacion.on("trackuserlocationend", () => acciones.current.alCambiarSeguimiento(false));
+    controlUbicacion.on("error", () => acciones.current.alErrorUbicacion());
+    mapaCreado.addControl(controlUbicacion, "top-right");
+
+    marcadorParque.current = new maplibregl.Marker({
+      element: crearContenidoMarcadorParque(),
+      anchor: "bottom",
+    })
+      .setLngLat(coordenadaParque)
+      .setPopup(new maplibregl.Popup({ offset: 28 }).setDOMContent(crearContenidoPopupParque()))
+      .addTo(mapaCreado);
+
+    const manejarSeleccion = (evento) => {
+      if (mapaCreado.queryRenderedFeatures?.(evento.point, {
+        layers: [identificadorCapaRellenoAreas],
+      }).length) return;
+      const latitud = Number(evento.lngLat.lat.toFixed(7));
+      const longitud = Number(evento.lngLat.lng.toFixed(7));
+      if (!marcadorSeleccion.current) {
+        marcadorSeleccion.current = new maplibregl.Marker({ color: "#e09b31" })
+          .setLngLat([longitud, latitud])
+          .addTo(mapaCreado);
+      } else {
+        marcadorSeleccion.current.setLngLat([longitud, latitud]);
+      }
+      acciones.current.alSeleccionarCoordenada({ latitud, longitud });
+    };
+
+    const manejarSeleccionArea = (evento) => {
+      const caracteristica = evento.features?.[0];
+      if (!caracteristica) return;
+      acciones.current.alSeleccionarArea(Number(caracteristica.properties.idArea));
+      const contenido = document.createElement("div");
+      const titulo = document.createElement("strong");
+      titulo.textContent = caracteristica.properties.nombre;
+      const estado = document.createElement("p");
+      estado.textContent = caracteristica.properties.estado;
+      contenido.append(titulo, estado);
+      new maplibregl.Popup({ closeButton: true })
+        .setLngLat(evento.lngLat)
+        .setDOMContent(contenido)
+        .addTo(mapaCreado);
+    };
+
+    const manejarCarga = () => {
+      mapaCreado.addSource(identificadorFuenteSatelite, {
+        type: "raster",
+        tiles: [mosaicosSatelitales],
+        tileSize: 256,
+        maxzoom: 19,
+        attribution: "Imágenes: Esri, Vantor, Earthstar Geographics y GIS User Community",
+      });
+      const primeraCapaEtiquetas = mapaCreado.getStyle().layers
+        .find((capa) => capa.type === "symbol")?.id;
+      mapaCreado.addLayer({
+        id: identificadorCapaSatelite,
+        type: "raster",
+        source: identificadorFuenteSatelite,
+        layout: { visibility: "visible" },
+      }, primeraCapaEtiquetas);
+      mapaCreado.addSource(identificadorFuenteAreas, {
+        type: "geojson",
+        data: coleccionVacia(),
+      });
+      mapaCreado.addLayer({
+        id: identificadorCapaRellenoAreas,
+        type: "fill",
+        source: identificadorFuenteAreas,
+        paint: {
+          "fill-color": [
+            "match", ["get", "estado"],
+            "DISPONIBLE", "#1f7a55",
+            "ENUSO", "#d97724",
+            "ENMANTENIMIENTO", "#a33b32",
+            "CERRADA", "#5f6863",
+            "FUERADESERVICIO", "#5f6863",
+            "#d9a62e",
+          ],
+          "fill-opacity": ["case", ["boolean", ["get", "activa"], false], 0.55, 0.32],
+        },
+      });
+      mapaCreado.addLayer({
+        id: identificadorCapaBordeAreas,
+        type: "line",
+        source: identificadorFuenteAreas,
+        paint: {
+          "line-color": [
+            "match", ["get", "estado"],
+            "DISPONIBLE", "#0c573b",
+            "ENUSO", "#944612",
+            "ENMANTENIMIENTO", "#72251f",
+            "#3e4843",
+          ],
+          "line-width": ["case", ["boolean", ["get", "activa"], false], 5, 3],
+        },
+      });
+      mapaCreado.addSource(identificadorFuenteConexiones, {
+        type: "geojson",
+        data: coleccionVacia(),
+      });
+      mapaCreado.addLayer({
+        id: identificadorCapaConexiones,
+        type: "line",
+        source: identificadorFuenteConexiones,
+        paint: {
+          "line-color": ["case", ["boolean", ["get", "cerrada"], false], "#8f8f8f", "#2f6b52"],
+          "line-opacity": 0.8,
+          "line-width": 3,
+        },
+      });
+      mapaCreado.addSource(identificadorFuenteRuta, {
+        type: "geojson",
+        data: coleccionVacia(),
+      });
+      mapaCreado.addLayer({
+        id: identificadorCapaRuta,
+        type: "line",
+        source: identificadorFuenteRuta,
+        paint: {
+          "line-color": "#e09b31",
+          "line-opacity": 0.95,
+          "line-width": 6,
+        },
+      });
+      establecerMapaListo(true);
+    };
+
+    mapaCreado.on("click", manejarSeleccion);
+    mapaCreado.on("click", identificadorCapaRellenoAreas, manejarSeleccionArea);
+    mapaCreado.on("load", manejarCarga);
+
+    return () => {
+      mapaCreado.off("click", manejarSeleccion);
+      mapaCreado.off("click", identificadorCapaRellenoAreas, manejarSeleccionArea);
+      mapaCreado.off("load", manejarCarga);
+      marcadoresNodos.current.forEach((marcador) => marcador.remove());
+      marcadoresNodos.current = [];
+      marcadorSeleccion.current?.remove();
+      marcadorParque.current?.remove();
+      geolocalizador.current = null;
+      instanciaMapa.current = null;
+      mapaCreado.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapaListo || solicitudUbicacion === 0 || !geolocalizador.current) return;
+    const activado = geolocalizador.current.trigger();
+    if (!activado) acciones.current.alErrorUbicacion();
+  }, [mapaListo, solicitudUbicacion]);
+
+  useEffect(() => {
+    if (!mapaListo || !instanciaMapa.current) return;
+    instanciaMapa.current.setLayoutProperty(
+      identificadorCapaSatelite,
+      "visibility",
+      tipoVista === "satelite" ? "visible" : "none",
+    );
+  }, [mapaListo, tipoVista]);
+
+  useEffect(() => {
+    if (!informacionAbierta || typeof panelInformacion.current?.scrollIntoView !== "function") return;
+    panelInformacion.current.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [informacionAbierta]);
+
+  useEffect(() => {
+    const mapaCreado = instanciaMapa.current;
+    if (!mapaListo || !mapaCreado) return;
+
+    marcadoresNodos.current.forEach((marcador) => marcador.remove());
+    marcadoresNodos.current = mapa.nodos.map((nodo) => {
+      const elemento = document.createElement("button");
+      elemento.type = "button";
+      elemento.className = claseEstadoNodo(nodo);
+      elemento.setAttribute("aria-label", nodo.nombreArea || nodo.nombre);
+      if (nodoActivo?.idNodoMapa === nodo.idNodoMapa) elemento.classList.add("mapa-marcador-activo");
+      elemento.style.setProperty("--color-marcador", colorEstadoNodo(nodo));
+      const etiqueta = document.createElement("span");
+      etiqueta.textContent = nodo.nombreArea ? nodo.nombreArea.slice(0, 2).toUpperCase() : "•";
+      elemento.appendChild(etiqueta);
+      elemento.addEventListener("click", (evento) => {
+        evento.stopPropagation();
+        alSeleccionarNodo(nodo);
+      });
+      const popup = document.createElement("div");
+      const titulo = document.createElement("strong");
+      titulo.textContent = nodo.nombreArea || nodo.nombre;
+      const estado = document.createElement("p");
+      estado.textContent = obtenerEstadoNodo(nodo);
+      popup.append(titulo, estado);
+      return new maplibregl.Marker({ element: elemento, anchor: "center" })
+        .setLngLat([Number(nodo.longitud), Number(nodo.latitud)])
+        .setPopup(new maplibregl.Popup({ offset: 22 }).setDOMContent(popup))
+        .addTo(mapaCreado);
+    });
+
+    const nodosPorId = new Map(mapa.nodos.map((nodo) => [nodo.idNodoMapa, nodo]));
+    const conexiones = mapa.conexiones.flatMap((conexion) => {
+      const origen = nodosPorId.get(conexion.idNodoOrigen);
+      const destino = nodosPorId.get(conexion.idNodoDestino);
+      if (!origen || !destino) return [];
+      return [{
+        type: "Feature",
+        properties: { cerrada: Boolean(conexion.cerrada) },
+        geometry: {
+          type: "LineString",
+          coordinates: [
+            [Number(origen.longitud), Number(origen.latitud)],
+            [Number(destino.longitud), Number(destino.latitud)],
+          ],
+        },
+      }];
+    });
+    mapaCreado.getSource(identificadorFuenteConexiones)?.setData({
+      type: "FeatureCollection",
+      features: conexiones,
+    });
+    mapaCreado.getSource(identificadorFuenteAreas)?.setData(
+      coleccionAreas(mapa.areas || [], areaActiva?.idArea),
+    );
+
+    const camino = (ruta?.coordenadas || []).map((coordenada) => [
+      Number(coordenada[0]),
+      Number(coordenada[1]),
+    ]);
+    mapaCreado.getSource(identificadorFuenteRuta)?.setData({
+      type: "FeatureCollection",
+      features: camino.length > 1 ? [{
+        type: "Feature",
+        properties: {},
+        geometry: { type: "LineString", coordinates: camino },
+      }] : [],
+    });
+
+    if (camino.length > 1 && ultimaRutaAjustada.current !== ruta) {
+      const limitesRuta = new maplibregl.LngLatBounds(camino[0], camino[0]);
+      camino.slice(1).forEach((coordenada) => limitesRuta.extend(coordenada));
+      mapaCreado.fitBounds(limitesRuta, { padding: 70, maxZoom: 18 });
+      ultimaRutaAjustada.current = ruta;
+    }
+
+    if (!ajusteInicial.current && (mapa.nodos.length > 0 || (mapa.areas || []).length > 0)) {
+      const limites = new maplibregl.LngLatBounds(coordenadaParque, coordenadaParque);
+      mapa.nodos.forEach((nodo) => limites.extend([Number(nodo.longitud), Number(nodo.latitud)]));
+      (mapa.areas || []).forEach((area) => area.perimetro.forEach((vertice) => limites.extend([
+        Number(vertice.longitud),
+        Number(vertice.latitud),
+      ])));
+      mapaCreado.fitBounds(limites, { padding: 55, maxZoom: 17 });
+      ajusteInicial.current = true;
+    }
+  }, [mapaListo, mapa.nodos, mapa.conexiones, mapa.areas, nodoActivo, areaActiva, ruta, alSeleccionarNodo]);
 
   return (
-    <div className="mapa-lienzo" aria-label="Mapa pendiente de habilitación">
-      {mapa.nodos.length > 0 ? (
-        <canvas className="mapa-grafo" ref={lienzo} />
-      ) : (
-        <>
-          <span className="mapa-ruta mapa-ruta-uno" />
-          <span className="mapa-ruta mapa-ruta-dos" />
-          <i className="mapa-punto mapa-punto-uno" />
-          <i className="mapa-punto mapa-punto-dos" />
-          <i className="mapa-punto mapa-punto-tres" />
-        </>
+    <div className="mapa-visor">
+      <div className="mapa-maplibre" ref={contenedor} aria-label="Mapa interactivo del Parque Erick Barrondo" />
+      <div className="mapa-selector-vista" role="group" aria-label="Tipo de mapa">
+        <button
+          type="button"
+          aria-pressed={tipoVista === "mapa"}
+          onClick={() => alCambiarTipoVista("mapa")}
+        >
+          Mapa
+        </button>
+        <button
+          type="button"
+          aria-pressed={tipoVista === "satelite"}
+          onClick={() => alCambiarTipoVista("satelite")}
+        >
+          Satélite
+        </button>
+      </div>
+      {(mapa.areas || []).length > 0 && <div className="mapa-leyenda-estados" aria-label="Estados de las áreas">
+        <strong>Estado de las áreas</strong>
+        <span><i className="mapa-leyenda-disponible" />Disponible</span>
+        <span><i className="mapa-leyenda-en-uso" />En uso</span>
+        <span><i className="mapa-leyenda-mantenimiento" />En mantenimiento</span>
+      </div>}
+      <button
+        className="mapa-boton-informacion"
+        type="button"
+        aria-label="Ver información y atribuciones del mapa"
+        aria-expanded={informacionAbierta}
+        aria-controls="mapa-panel-informacion"
+        onClick={() => establecerInformacionAbierta(true)}
+      >
+        ⓘ
+      </button>
+      {informacionAbierta && (
+        <section
+          className="mapa-panel-informacion"
+          id="mapa-panel-informacion"
+          ref={panelInformacion}
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby="mapa-titulo-informacion"
+        >
+          <div className="mapa-panel-informacion-cabecera">
+            <h3 id="mapa-titulo-informacion">Información del mapa y atribuciones</h3>
+            <button
+              type="button"
+              aria-label="Cerrar información del mapa"
+              onClick={() => establecerInformacionAbierta(false)}
+            >
+              ×
+            </button>
+          </div>
+          {tipoVista === "mapa" ? (
+            <div className="mapa-panel-informacion-seccion">
+              <h4>Mapa estándar</h4>
+              <ul>
+                <li><strong>OpenFreeMap</strong> — proveedor del mapa.</li>
+                <li><strong>OpenMapTiles</strong> — tecnología/datos cartográficos.</li>
+                <li><strong>OpenStreetMap contributors</strong> — datos geográficos.</li>
+                <li><strong>MapLibre GL JS</strong> — motor de visualización.</li>
+              </ul>
+              <p>OpenFreeMap y los datos cartográficos se utilizan conforme a sus respectivas licencias y requisitos de atribución.</p>
+            </div>
+          ) : (
+            <div className="mapa-panel-informacion-seccion">
+              <h4>Imágenes satelitales</h4>
+              <ul>
+                <li>Esri</li>
+                <li>Vantor</li>
+                <li>Earthstar Geographics</li>
+                <li>GIS User Community</li>
+              </ul>
+              <p>Las imágenes y datos pertenecen a sus respectivos proveedores y se muestran con la atribución correspondiente.</p>
+            </div>
+          )}
+          <p className="mapa-panel-informacion-aviso">
+            Esta aplicación no reclama propiedad sobre los mapas, imágenes satelitales ni datos geográficos de terceros. Las marcas y contenidos pertenecen a sus respectivos propietarios y están sujetos a sus términos y licencias.
+          </p>
+        </section>
       )}
     </div>
   );
 }
 
-function MapaGoogle({ mapa, ruta, nodoActivo, alSeleccionarNodo, alError }) {
-  const contenedor = useRef(null);
-  const instanciaMapa = useRef(null);
-  const marcadores = useRef([]);
-  const lineaRuta = useRef(null);
-
-  useEffect(() => {
-    let cancelado = false;
-    if (!contenedor.current || mapa.nodos.length === 0) return undefined;
-
-    cargarGoogleMaps()
-      .then(async () => {
-        const [{ Map: MapaGoogleClase }, { AdvancedMarkerElement }] = await Promise.all([
-          window.google.maps.importLibrary("maps"),
-          window.google.maps.importLibrary("marker"),
-        ]);
-        if (cancelado) return;
-
-        if (!instanciaMapa.current) {
-          instanciaMapa.current = new MapaGoogleClase(contenedor.current, {
-            center: centroParque,
-            zoom: 17,
-            mapId: idMapaGoogle,
-            mapTypeId: "satellite",
-            fullscreenControl: true,
-            mapTypeControl: false,
-            streetViewControl: false,
-          });
-        }
-
-        marcadores.current.forEach((marcador) => {
-          marcador.map = null;
-        });
-        marcadores.current = mapa.nodos.map((nodo) => {
-          const contenido = document.createElement("button");
-          contenido.type = "button";
-          contenido.className = claseEstadoNodo(nodo);
-          if (nodoActivo?.idNodoMapa === nodo.idNodoMapa) {
-            contenido.classList.add("mapa-marcador-activo");
-          }
-          contenido.style.setProperty("--color-marcador", colorEstadoNodo(nodo));
-          const etiqueta = document.createElement("span");
-          etiqueta.textContent = nodo.nombreArea ? nodo.nombreArea.slice(0, 2).toUpperCase() : "•";
-          contenido.appendChild(etiqueta);
-          contenido.addEventListener("click", () => alSeleccionarNodo(nodo));
-          const marcador = new AdvancedMarkerElement({
-            map: instanciaMapa.current,
-            position: { lat: Number(nodo.latitud), lng: Number(nodo.longitud) },
-            title: nodo.nombreArea || nodo.nombre,
-            content: contenido,
-          });
-          marcador.addListener("click", () => alSeleccionarNodo(nodo));
-          return marcador;
-        });
-
-        const limites = new window.google.maps.LatLngBounds();
-        mapa.nodos.forEach((nodo) => limites.extend({
-          lat: Number(nodo.latitud),
-          lng: Number(nodo.longitud),
-        }));
-        instanciaMapa.current.fitBounds(limites, 52);
-        if (mapa.nodos.length === 1) instanciaMapa.current.setZoom(18);
-
-        if (lineaRuta.current) lineaRuta.current.setMap(null);
-        const nodosPorId = new Map(mapa.nodos.map((nodo) => [nodo.idNodoMapa, nodo]));
-        const camino = (ruta?.pasos || [])
-          .map((paso) => nodosPorId.get(paso.idNodoMapa))
-          .filter(Boolean)
-          .map((nodo) => ({ lat: Number(nodo.latitud), lng: Number(nodo.longitud) }));
-        lineaRuta.current = camino.length > 1
-          ? new window.google.maps.Polyline({
-            path: camino,
-            map: instanciaMapa.current,
-            strokeColor: "#e09b31",
-            strokeOpacity: 0.95,
-            strokeWeight: 6,
-          })
-          : null;
-      })
-      .catch(() => {
-        if (!cancelado) alError();
-      });
-
-    return () => {
-      cancelado = true;
-    };
-  }, [mapa.nodos, nodoActivo, ruta, alSeleccionarNodo, alError]);
-
-  useEffect(() => () => {
-    marcadores.current.forEach((marcador) => {
-      marcador.map = null;
-    });
-    if (lineaRuta.current) lineaRuta.current.setMap(null);
-  }, []);
-
-  return <div className="mapa-google" ref={contenedor} aria-label="Mapa satelital del parque" />;
-}
-
-function MapaInteractivo({ mapa, ruta, nodoActivo, alSeleccionarNodo }) {
-  const [googleDisponible, establecerGoogleDisponible] = useState(Boolean(claveGoogleMaps));
-  const manejarErrorGoogle = useCallback(() => establecerGoogleDisponible(false), []);
-
-  if (googleDisponible && mapa.nodos.length > 0) {
-    return (
-      <MapaGoogle
-        mapa={mapa}
-        ruta={ruta}
-        nodoActivo={nodoActivo}
-        alSeleccionarNodo={alSeleccionarNodo}
-        alError={manejarErrorGoogle}
-      />
-    );
-  }
-
-  return <LienzoMapa mapa={mapa} ruta={ruta} />;
-}
-
 export function PaginaMapa() {
   const [mapa, establecerMapa] = useState(mapaVacio);
-  const [seleccion, establecerSeleccion] = useState({ origen: "", destino: "", accesible: false });
+  const [seleccion, establecerSeleccion] = useState({ destino: "" });
   const [ruta, establecerRuta] = useState(null);
   const [ubicacion, establecerUbicacion] = useState(null);
+  const [coordenadaSeleccionada, establecerCoordenadaSeleccionada] = useState(null);
+  const [solicitudUbicacion, establecerSolicitudUbicacion] = useState(0);
+  const [mensajeCoordenadas, establecerMensajeCoordenadas] = useState("");
   const [nodoActivo, establecerNodoActivo] = useState(null);
+  const [areaActiva, establecerAreaActiva] = useState(null);
+  const [tipoVista, establecerTipoVista] = useState("satelite");
   const [momentoActual, establecerMomentoActual] = useState(() => Date.now());
-  const [estado, establecerEstado] = useState({ cargando: true, error: "", ubicando: false });
-  const seguimiento = useRef(null);
+  const [solicitudRecorrido, establecerSolicitudRecorrido] = useState(0);
+  const [estado, establecerEstado] = useState({ cargando: true, calculandoRuta: false, error: "", ubicando: false });
+  const ultimaUbicacionCalculada = useRef(null);
 
   useEffect(() => {
     let vigente = true;
@@ -343,9 +612,6 @@ export function PaginaMapa() {
     return () => {
       vigente = false;
       window.clearInterval(actualizacion);
-      if (seguimiento.current !== null && window.navigator.geolocation) {
-        window.navigator.geolocation.clearWatch(seguimiento.current);
-      }
     };
   }, []);
 
@@ -360,66 +626,135 @@ export function PaginaMapa() {
     if (actualizado !== nodoActivo) establecerNodoActivo(actualizado);
   }, [mapa.nodos, nodoActivo]);
 
-  const nodoCercano = useMemo(() => encontrarNodoCercano(mapa.nodos, ubicacion), [mapa.nodos, ubicacion]);
+  useEffect(() => {
+    if (!areaActiva) return;
+    const actualizada = (mapa.areas || []).find((area) => area.idArea === areaActiva.idArea) || null;
+    if (actualizada !== areaActiva) establecerAreaActiva(actualizada);
+  }, [mapa.areas, areaActiva]);
+
   const nodosConDisponibilidad = useMemo(
     () => mapa.nodos.filter((nodo) => nodo.idArea || nodo.codigoArea || nodo.estadoArea),
     [mapa.nodos],
   );
-  const nodoDetalle = nodoActivo || nodosConDisponibilidad[0] || null;
+  const areasConDisponibilidad = mapa.areas || [];
+  const elementosDisponibilidad = areasConDisponibilidad.length > 0
+    ? areasConDisponibilidad
+    : nodosConDisponibilidad;
+  const elementoDetalle = areaActiva || nodoActivo || elementosDisponibilidad[0] || null;
 
-  function iniciarUbicacion() {
-    if (!window.navigator.geolocation) {
-      establecerEstado((actual) => ({ ...actual, error: "La ubicación no está disponible en este navegador." }));
-      return;
-    }
-    if (seguimiento.current !== null) window.navigator.geolocation.clearWatch(seguimiento.current);
-    establecerEstado((actual) => ({ ...actual, error: "", ubicando: true }));
-    seguimiento.current = window.navigator.geolocation.watchPosition(
-      (posicion) => {
-        const nuevaUbicacion = {
-          latitud: posicion.coords.latitude,
-          longitud: posicion.coords.longitude,
-          precision: posicion.coords.accuracy,
-        };
-        establecerUbicacion(nuevaUbicacion);
-        const cercano = encontrarNodoCercano(mapa.nodos, nuevaUbicacion);
-        if (cercano) {
-          establecerSeleccion((actual) => ({ ...actual, origen: String(cercano.nodo.idNodoMapa) }));
-        }
-        establecerEstado((actual) => ({ ...actual, ubicando: true, error: "" }));
-      },
-      () => establecerEstado((actual) => ({
-        ...actual,
-        ubicando: false,
-        error: "No fue posible obtener tu ubicación. Revisa el permiso del navegador e intenta nuevamente.",
-      })),
-      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 },
-    );
+  useEffect(() => {
+    const idArea = Number(seleccion.destino);
+    const areaDestino = areasConDisponibilidad.find((area) => area.idArea === idArea);
+    const destino = obtenerCentroArea(areaDestino);
+    if (!ubicacion || !destino) return undefined;
+
+    const anterior = ultimaUbicacionCalculada.current;
+    const desplazamiento = anterior
+      ? distanciaEntrePuntos(
+          anterior.latitud,
+          anterior.longitud,
+          ubicacion.latitud,
+          ubicacion.longitud,
+        )
+      : Number.POSITIVE_INFINITY;
+    if (anterior?.idArea === idArea
+        && anterior.solicitud === solicitudRecorrido
+        && desplazamiento < 15) return undefined;
+
+    ultimaUbicacionCalculada.current = {
+      idArea,
+      latitud: ubicacion.latitud,
+      longitud: ubicacion.longitud,
+      solicitud: solicitudRecorrido,
+    };
+    let vigente = true;
+    establecerEstado((actual) => ({ ...actual, calculandoRuta: true, error: "" }));
+    calcularRecorridoPeatonal(ubicacion, destino)
+      .then((recorrido) => {
+        if (!vigente) return;
+        establecerRuta({ ...recorrido, idArea, nombreDestino: areaDestino.nombreArea });
+        establecerEstado((actual) => ({ ...actual, calculandoRuta: false, error: "" }));
+      })
+      .catch((error) => {
+        if (!vigente) return;
+        establecerRuta(null);
+        establecerEstado((actual) => ({ ...actual, calculandoRuta: false, error: error.message }));
+      });
+    return () => {
+      vigente = false;
+    };
+  }, [areasConDisponibilidad, seleccion.destino, solicitudRecorrido, ubicacion]);
+
+  function seleccionarNodo(nodo) {
+    establecerNodoActivo(nodo);
+    establecerAreaActiva(null);
   }
 
-  function detenerUbicacion() {
-    if (seguimiento.current !== null && window.navigator.geolocation) {
-      window.navigator.geolocation.clearWatch(seguimiento.current);
-      seguimiento.current = null;
-    }
-    establecerEstado((actual) => ({ ...actual, ubicando: false }));
+  function seleccionarArea(idArea) {
+    const area = areasConDisponibilidad.find((elemento) => elemento.idArea === idArea) || null;
+    establecerAreaActiva(area);
+    establecerNodoActivo(null);
   }
 
-  async function solicitarRuta(evento) {
-    evento.preventDefault();
+  function cambiarDestino(evento) {
+    const destino = evento.target.value;
+    establecerSeleccion({ destino });
     establecerRuta(null);
-    establecerEstado((actual) => ({ ...actual, cargando: true, error: "" }));
+    ultimaUbicacionCalculada.current = null;
+    if (!destino) return;
+    seleccionarArea(Number(destino));
+    establecerSolicitudRecorrido((actual) => actual + 1);
+    if (!ubicacion) alternarUbicacion();
+  }
+
+  function alternarUbicacion() {
+    establecerEstado((actual) => ({ ...actual, error: "" }));
+    establecerSolicitudUbicacion((actual) => actual + 1);
+  }
+
+  function actualizarUbicacion(nuevaUbicacion) {
+    establecerUbicacion(nuevaUbicacion);
+    establecerEstado((actual) => ({ ...actual, ubicando: true, error: "" }));
+  }
+
+  function cambiarSeguimiento(ubicando) {
+    establecerEstado((actual) => ({ ...actual, ubicando }));
+  }
+
+  function mostrarErrorUbicacion() {
+    establecerEstado((actual) => ({
+      ...actual,
+      ubicando: false,
+      error: "No fue posible obtener tu ubicación. Revisa el permiso del navegador e intenta nuevamente.",
+    }));
+  }
+
+  function seleccionarCoordenada(coordenada) {
+    establecerCoordenadaSeleccionada(coordenada);
+    establecerMensajeCoordenadas("");
+  }
+
+  async function copiarCoordenadas() {
+    if (!coordenadaSeleccionada) return;
+    const texto = [
+      coordenadaSeleccionada.latitud.toFixed(7),
+      coordenadaSeleccionada.longitud.toFixed(7),
+    ].join(", ");
     try {
-      const respuesta = await calcularRutaMapa(
-        seleccion.origen,
-        seleccion.destino,
-        seleccion.accesible,
-      );
-      establecerRuta(respuesta);
-      establecerEstado((actual) => ({ ...actual, cargando: false, error: "" }));
-    } catch (error) {
-      establecerEstado((actual) => ({ ...actual, cargando: false, error: error.message }));
+      if (!window.navigator.clipboard?.writeText) throw new Error("Portapapeles no disponible");
+      await window.navigator.clipboard.writeText(texto);
+      establecerMensajeCoordenadas("Coordenadas copiadas.");
+    } catch {
+      establecerMensajeCoordenadas("No fue posible copiar las coordenadas.");
     }
+  }
+
+  function solicitarRuta(evento) {
+    evento.preventDefault();
+    establecerEstado((actual) => ({ ...actual, error: "" }));
+    ultimaUbicacionCalculada.current = null;
+    establecerSolicitudRecorrido((actual) => actual + 1);
+    if (!ubicacion) alternarUbicacion();
   }
 
   return (
@@ -427,53 +762,78 @@ export function PaginaMapa() {
       <CabeceraPagina
         etiqueta="Orientación"
         titulo="Mapa del parque"
-        descripcion="Ubica entradas, áreas, servicios y recorridos accesibles."
+        descripcion="Ubica las áreas y traza recorridos peatonales desde tu posición."
       />
       <section className="portal-seccion">
         <div className="portal-contenedor mapa-contenido">
           <MapaInteractivo
             mapa={mapa}
             ruta={ruta}
-            nodoActivo={nodoDetalle}
-            alSeleccionarNodo={establecerNodoActivo}
+            tipoVista={tipoVista}
+            solicitudUbicacion={solicitudUbicacion}
+            nodoActivo={nodoActivo}
+            areaActiva={areaActiva}
+            alCambiarTipoVista={establecerTipoVista}
+            alSeleccionarNodo={seleccionarNodo}
+            alSeleccionarArea={seleccionarArea}
+            alSeleccionarCoordenada={seleccionarCoordenada}
+            alActualizarUbicacion={actualizarUbicacion}
+            alCambiarSeguimiento={cambiarSeguimiento}
+            alErrorUbicacion={mostrarErrorUbicacion}
+            alErrorMapa={(mensaje) => establecerEstado((actual) => ({ ...actual, error: mensaje }))}
           />
           <aside className="mapa-informacion">
             <p className="portal-sobrelinea">Mapa interactivo</p>
-            <h2>Coordenadas pendientes de confirmación</h2>
-            <p>El mapa se habilitará únicamente con ubicaciones verificadas por la institución.</p>
+            <h2>{elementosDisponibilidad.length > 0 ? "Disponibilidad del parque en tiempo real" : "Mapa real del Parque Erick Barrondo"}</h2>
+            <p>
+              {elementosDisponibilidad.length > 0
+                ? "Consulta las áreas disponibles, ocupadas o cerradas según la información registrada por la institución."
+                : "Explora el parque y selecciona puntos para obtener coordenadas exactas. Las instalaciones aparecerán cuando sus ubicaciones sean confirmadas."}
+            </p>
             <ul>
               <li>Entradas y salidas</li>
               <li>Áreas deportivas</li>
               <li>Servicios y puntos de interés</li>
-              <li>Recorridos accesibles</li>
+              <li>Recorridos peatonales</li>
             </ul>
-            {nodosConDisponibilidad.length > 0 && (
+            {elementosDisponibilidad.length > 0 && (
               <div className="mapa-disponibilidad" aria-live="polite">
-                {nodosConDisponibilidad.map((nodo) => (
+                {elementosDisponibilidad.map((elemento) => (
                   <button
-                    className={nodoDetalle?.idNodoMapa === nodo.idNodoMapa ? "mapa-disponibilidad-activa" : ""}
+                    className={elementoDetalle === elemento ? "mapa-disponibilidad-activa" : ""}
                     type="button"
-                    key={nodo.idNodoMapa}
-                    onClick={() => establecerNodoActivo(nodo)}
+                    key={elemento.idArea ? `area-${elemento.idArea}` : `nodo-${elemento.idNodoMapa}`}
+                    onClick={() => (elemento.perimetro
+                      ? seleccionarArea(elemento.idArea)
+                      : seleccionarNodo(elemento))}
                   >
                     <span>
-                      <strong>{nodo.nombreArea || nodo.nombre}</strong>
-                      <small>{textoReloj(nodo, momentoActual) || nodo.notaDisponibilidad || nodo.nombre}</small>
+                      <strong>{elemento.nombreArea || elemento.nombre}</strong>
+                      <small>{textoReloj(elemento, momentoActual) || elemento.notaDisponibilidad || elemento.nombre}</small>
                     </span>
-                    <span className="mapa-estado-disponibilidad" style={{ "--color-estado": colorEstadoNodo(nodo) }}>
-                      {obtenerEstadoNodo(nodo)}
+                    <span className="mapa-estado-disponibilidad" style={{ "--color-estado": colorEstadoNodo(elemento) }}>
+                      {obtenerEstadoNodo(elemento)}
                     </span>
                   </button>
                 ))}
               </div>
             )}
-            {nodoDetalle && (
+            {elementoDetalle && (
               <div className="mapa-detalle-disponibilidad">
-                <strong>{nodoDetalle.nombreArea || nodoDetalle.nombre}</strong>
-                <span>{estaDisponibleNodo(nodoDetalle) ? "Disponible" : "No disponible"}</span>
-                {textoReloj(nodoDetalle, momentoActual) && <p>{textoReloj(nodoDetalle, momentoActual)}</p>}
-                {nodoDetalle.tituloReservaActiva && <p>{nodoDetalle.tituloReservaActiva}</p>}
-                {!nodoDetalle.tituloReservaActiva && nodoDetalle.tituloProximaReserva && <p>{nodoDetalle.tituloProximaReserva}</p>}
+                <strong>{elementoDetalle.nombreArea || elementoDetalle.nombre}</strong>
+                <span>{estaDisponibleNodo(elementoDetalle) ? "Disponible" : "No disponible"}</span>
+                {textoReloj(elementoDetalle, momentoActual) && <p>{textoReloj(elementoDetalle, momentoActual)}</p>}
+                {elementoDetalle.tituloReservaActiva && <p>{elementoDetalle.tituloReservaActiva}</p>}
+                {!elementoDetalle.tituloReservaActiva && elementoDetalle.tituloProximaReserva && <p>{elementoDetalle.tituloProximaReserva}</p>}
+              </div>
+            )}
+            {coordenadaSeleccionada && (
+              <div className="mapa-coordenada-seleccionada" aria-live="polite">
+                <strong>Coordenada seleccionada</strong>
+                <span>Latitud: {coordenadaSeleccionada.latitud.toFixed(7)}</span>
+                <span>Longitud: {coordenadaSeleccionada.longitud.toFixed(7)}</span>
+                <button type="button" onClick={copiarCoordenadas}>Copiar coordenadas</button>
+                {mensajeCoordenadas && <small role="status">{mensajeCoordenadas}</small>}
               </div>
             )}
           </aside>
@@ -481,42 +841,42 @@ export function PaginaMapa() {
         <div className="portal-contenedor mapa-planificador">
           <div>
             <p className="portal-sobrelinea">Orientación dentro del parque</p>
-            <h2>Planifica un recorrido confirmado</h2>
-            <p>La ubicación permanece en tu navegador y se usa solamente para sugerir el punto de inicio más cercano.</p>
+            <h2>Cómo llegar a una cancha</h2>
+            <p>Selecciona el destino. El GPS tomará tu ubicación actual y el recorrido peatonal aparecerá directamente sobre el mapa.</p>
             <div className="mapa-acciones-ubicacion">
-              <button type="button" onClick={iniciarUbicacion}>Usar mi ubicación</button>
-              {estado.ubicando && <button type="button" className="boton-secundario" onClick={detenerUbicacion}>Detener ubicación</button>}
+              <button type="button" onClick={alternarUbicacion}>{estado.ubicando ? "Detener ubicación" : "Usar mi ubicación"}</button>
             </div>
             {ubicacion && (
               <p className="mapa-precision" role="status">
                 Ubicación obtenida con precisión aproximada de {Math.round(ubicacion.precision)} metros.
-                {nodoCercano && ` Punto confirmado más cercano: ${nodoCercano.nodo.nombre}.`}
               </p>
             )}
+            <p className="mapa-aviso-privacidad-ruta">
+              Para calcular el camino, las coordenadas se envían temporalmente al servicio de rutas Valhalla con datos de OpenStreetMap. Esta aplicación no las guarda.
+            </p>
             {estado.error && <p className="portal-mensaje-error" role="alert">{estado.error}</p>}
           </div>
           <form className="mapa-formulario-ruta" onSubmit={solicitarRuta}>
-            <label htmlFor="mapa-origen">Origen</label>
-            <select id="mapa-origen" required value={seleccion.origen} onChange={(evento) => establecerSeleccion({ ...seleccion, origen: evento.target.value })}>
-              <option value="">Selecciona un punto</option>
-              {mapa.nodos.map((nodo) => <option key={nodo.idNodoMapa} value={nodo.idNodoMapa}>{nodo.nombre}</option>)}
-            </select>
             <label htmlFor="mapa-destino">Destino</label>
-            <select id="mapa-destino" required value={seleccion.destino} onChange={(evento) => establecerSeleccion({ ...seleccion, destino: evento.target.value })}>
-              <option value="">Selecciona un punto</option>
-              {mapa.nodos.map((nodo) => <option key={nodo.idNodoMapa} value={nodo.idNodoMapa}>{nodo.nombre}</option>)}
+            <select id="mapa-destino" required value={seleccion.destino} onChange={cambiarDestino}>
+              <option value="">Selecciona una cancha o área</option>
+              {areasConDisponibilidad.map((area) => (
+                <option key={area.idArea} value={area.idArea}>
+                  {area.nombreArea} — {obtenerEstadoNodo(area)}
+                </option>
+              ))}
             </select>
-            <label className="campo-verificacion">
-              <input type="checkbox" checked={seleccion.accesible} onChange={(evento) => establecerSeleccion({ ...seleccion, accesible: evento.target.checked })} />
-              Necesito un recorrido accesible
-            </label>
-            <button type="submit" disabled={estado.cargando || mapa.nodos.length === 0}>Calcular recorrido</button>
+            <button type="submit" disabled={estado.calculandoRuta || !seleccion.destino || areasConDisponibilidad.length === 0}>
+              {estado.calculandoRuta ? "Calculando recorrido..." : ruta ? "Actualizar recorrido" : "Marcar recorrido"}
+            </button>
           </form>
           {ruta && (
             <div className="mapa-resultado-ruta" role="status">
-              <h3>Recorrido disponible</h3>
+              <h3>Recorrido hacia {ruta.nombreDestino}</h3>
               <p>Distancia aproximada: {Number(ruta.distanciaTotalMetros).toLocaleString("es-GT")} metros.</p>
-              <ol>{ruta.pasos.map((paso) => <li key={paso.idNodoMapa}>{paso.nombre}</li>)}</ol>
+              <p>Tiempo estimado caminando: {formatearTiempoRecorrido(ruta.duracionTotalSegundos)}.</p>
+              <ol>{ruta.instrucciones.map((paso, indice) => <li key={`${indice}-${paso.instruccion}`}>{paso.instruccion}</li>)}</ol>
+              <small>Ruta calculada con {ruta.proveedor}.</small>
             </div>
           )}
         </div>

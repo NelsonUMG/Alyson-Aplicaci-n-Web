@@ -46,6 +46,10 @@ export function actualizarArea(idArea, datos) {
   return enviar(`/administracion/areas/${idArea}`, "PUT", datos);
 }
 
+export function eliminarArea(idArea, version) {
+  return enviar(`/administracion/areas/${idArea}`, "DELETE", { version });
+}
+
 export function listarHistorialArea(idArea) {
   return solicitarApi(`/administracion/areas/${idArea}/historial`);
 }

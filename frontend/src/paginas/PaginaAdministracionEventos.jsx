@@ -109,7 +109,7 @@ export function PaginaAdministracionEventos() {
   }
 
   function nuevoEvento() {
-    establecerEventoEdicion({ ...eventoVacio, requisitos: [] });
+    establecerEventoEdicion((actual) => (actual ? null : { ...eventoVacio, requisitos: [] }));
     establecerInscripciones(paginaVacia);
   }
 
@@ -245,13 +245,14 @@ export function PaginaAdministracionEventos() {
       {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
       {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
 
+      {puedeCrear && <div className="acciones-superiores-administracion"><button className={eventoEdicion ? "boton-gestion-activo" : ""} type="button" aria-expanded={Boolean(eventoEdicion)} onClick={nuevoEvento}>{eventoEdicion ? "Ocultar Evento" : "Nuevo evento"}</button></div>}
+
       <section className="panel-edicion" aria-labelledby="titulo-listado-eventos">
         <div className="cabecera-panel-administracion">
           <div>
             <h2 id="titulo-listado-eventos">Actividades registradas</h2>
             <p>{pagina.totalElementos} eventos y cursos encontrados.</p>
           </div>
-          {puedeCrear && <button type="button" onClick={nuevoEvento}>Nuevo evento</button>}
         </div>
         <form className="filtros-administracion" onSubmit={aplicarFiltros}>
           <label>Buscar<input value={filtros.busqueda} onChange={(evento) => establecerFiltros({ ...filtros, busqueda: evento.target.value })} /></label>

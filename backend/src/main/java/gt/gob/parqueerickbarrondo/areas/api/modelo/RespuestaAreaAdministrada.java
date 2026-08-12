@@ -2,6 +2,7 @@ package gt.gob.parqueerickbarrondo.areas.api.modelo;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 
 public record RespuestaAreaAdministrada(
         Long idArea,
@@ -17,6 +18,8 @@ public record RespuestaAreaAdministrada(
         BigDecimal latitud,
         BigDecimal longitud,
         boolean coordenadasConfirmadas,
+        List<CoordenadaAreaMapa> perimetro,
+        boolean perimetroConfirmado,
         String horarioJson,
         String observacionesInternas,
         boolean tieneImagen,

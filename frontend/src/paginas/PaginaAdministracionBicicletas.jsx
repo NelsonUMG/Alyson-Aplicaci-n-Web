@@ -127,7 +127,7 @@ export function PaginaAdministracionBicicletas() {
   }
 
   function nuevaBicicleta() {
-    establecerBicicletaEdicion({ ...bicicletaVacia });
+    establecerBicicletaEdicion((actual) => (actual ? null : { ...bicicletaVacia }));
     establecerHistorial([]);
     establecerCambioEstado({ estado: "", motivo: "" });
     claveCreacion.current = null;
@@ -197,13 +197,14 @@ export function PaginaAdministracionBicicletas() {
       {estadoPagina.error && <p className="mensaje-error" role="alert">{estadoPagina.error}</p>}
       {estadoPagina.mensaje && <p className="mensaje-exito" role="status">{estadoPagina.mensaje}</p>}
 
+      {puedeCrear && <div className="acciones-superiores-administracion"><button className={bicicletaEdicion ? "boton-gestion-activo" : ""} type="button" aria-expanded={Boolean(bicicletaEdicion)} onClick={nuevaBicicleta}>{bicicletaEdicion ? "Ocultar Bicicleta" : "Nueva bicicleta"}</button></div>}
+
       <section className="panel-edicion" aria-labelledby="titulo-inventario-bicicletas">
         <div className="cabecera-panel-administracion">
           <div>
             <h2 id="titulo-inventario-bicicletas">Bicicletas registradas</h2>
             <p>{pagina.totalElementos} bicicletas encontradas.</p>
           </div>
-          {puedeCrear && <button type="button" onClick={nuevaBicicleta}>Nueva bicicleta</button>}
         </div>
         <form className="filtros-administracion filtros-bicicletas" onSubmit={aplicarFiltros}>
           <label>Buscar<input maxLength="100" value={filtros.busqueda} onChange={(evento) => establecerFiltros({ ...filtros, busqueda: evento.target.value })} /></label>

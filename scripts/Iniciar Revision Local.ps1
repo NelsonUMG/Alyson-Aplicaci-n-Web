@@ -121,7 +121,7 @@ ALTER ROLE db_owner ADD MEMBER [$nombreLoginSql];
     $rutaNpm = (Get-Command npm.cmd -ErrorAction Stop).Source
     $procesoBackend = Start-Process `
         -FilePath $rutaJava `
-        -ArgumentList @('-jar', $rutaJar) `
+        -ArgumentList @('-jar', ('"{0}"' -f $rutaJar)) `
         -WorkingDirectory $rutaBackend `
         -RedirectStandardOutput $archivoBackendSalida `
         -RedirectStandardError $archivoBackendErrores `

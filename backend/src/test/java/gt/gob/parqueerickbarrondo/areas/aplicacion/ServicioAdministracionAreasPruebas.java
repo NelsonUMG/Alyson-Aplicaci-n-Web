@@ -1,14 +1,19 @@
 package gt.gob.parqueerickbarrondo.areas.aplicacion;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
+import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 
+import gt.gob.parqueerickbarrondo.areas.api.modelo.CoordenadaAreaMapa;
 import gt.gob.parqueerickbarrondo.areas.api.modelo.SolicitudArea;
 import gt.gob.parqueerickbarrondo.areas.api.modelo.SolicitudReservaArea;
 import gt.gob.parqueerickbarrondo.areas.dominio.HistorialEstadoArea;
@@ -81,7 +86,11 @@ class ServicioAdministracionAreasPruebas {
         when(repositorioUsuario.findById(5L)).thenReturn(Optional.of(responsable));
         var solicitud = new SolicitudArea(
                 2L, "CANCHA1", 1, "Cancha", null, "ENMANTENIMIENTO", null,
-                null, null, false, null, "Revisión interna", "Reparación programada", 3L);
+                null, null, false, List.of(
+                        new CoordenadaAreaMapa(new BigDecimal("14.63910000"), new BigDecimal("-90.54130000")),
+                        new CoordenadaAreaMapa(new BigDecimal("14.63910000"), new BigDecimal("-90.54090000")),
+                        new CoordenadaAreaMapa(new BigDecimal("14.63950000"), new BigDecimal("-90.54090000"))), true,
+                null, "Revisión interna", "Reparación programada", 3L);
 
         var respuesta = servicioAdministracion.actualizarArea(9L, solicitud, actor);
 
@@ -93,6 +102,8 @@ class ServicioAdministracionAreasPruebas {
         assertThat(historial.getValue().obtenerCambiadoPor()).isSameAs(responsable);
         assertThat(respuesta.estado()).isEqualTo("ENMANTENIMIENTO");
         assertThat(respuesta.nombreActualizadoPor()).isEqualTo("Nelson Prueba");
+        assertThat(respuesta.perimetroConfirmado()).isTrue();
+        assertThat(respuesta.perimetro()).hasSize(3);
         verify(servicioAuditoria).registrar(
                 eq(5L), eq("AREAACTUALIZADA"), eq("AREA"), eq("9"), eq("EXITOSO"), anyString());
     }
@@ -131,5 +142,47 @@ class ServicioAdministracionAreasPruebas {
         assertThat(respuesta.estado()).isEqualTo("PROGRAMADA");
         verify(servicioAuditoria).registrar(
                 eq(5L), eq("RESERVAAREACREADA"), eq("RESERVAAREA"), eq("21"), eq("EXITOSO"), anyString());
+    }
+
+    @Test
+    void eliminaUnAreaSinInformacionOperativaYConservaLaAuditoriaGeneral() {
+        var responsable = new Usuario(
+                "nelson@ejemplo.com", "Nelson", "Prueba", "hash", Instant.now());
+        var categoria = new CategoriaArea("DEPORTE", "Deporte", null, true);
+        var area = new Area(
+                categoria, "CANCHA1", 1, "Cancha", null, "DISPONIBLE", null,
+                null, null, false, null, null, responsable);
+        ReflectionTestUtils.setField(area, "idArea", 9L);
+        ReflectionTestUtils.setField(area, "version", 3L);
+        var actor = org.mockito.Mockito.mock(UsuarioSesion.class);
+        when(actor.obtenerIdUsuario()).thenReturn(5L);
+        when(repositorioArea.buscarAdministradaPorId(9L)).thenReturn(Optional.of(area));
+        servicioAdministracion.eliminarArea(9L, 3L, actor);
+
+        verify(repositorioHistorial).eliminarTodosPorIdArea(9L);
+        verify(repositorioArea).delete(area);
+        verify(repositorioArea).flush();
+        verify(servicioAuditoria).registrar(
+                eq(5L), eq("AREAELIMINADA"), eq("AREA"), eq("9"), eq("EXITOSO"), anyString());
+    }
+
+    @Test
+    void impideEliminarUnAreaConReservasAsociadas() {
+        var responsable = new Usuario(
+                "nelson@ejemplo.com", "Nelson", "Prueba", "hash", Instant.now());
+        var categoria = new CategoriaArea("DEPORTE", "Deporte", null, true);
+        var area = new Area(
+                categoria, "CANCHA1", 1, "Cancha", null, "DISPONIBLE", null,
+                null, null, false, null, null, responsable);
+        ReflectionTestUtils.setField(area, "idArea", 9L);
+        ReflectionTestUtils.setField(area, "version", 3L);
+        var actor = org.mockito.Mockito.mock(UsuarioSesion.class);
+        when(repositorioArea.buscarAdministradaPorId(9L)).thenReturn(Optional.of(area));
+        when(repositorioReserva.existsByArea_IdArea(9L)).thenReturn(true);
+
+        assertThatThrownBy(() -> servicioAdministracion.eliminarArea(9L, 3L, actor))
+                .isInstanceOf(gt.gob.parqueerickbarrondo.identidad.aplicacion.ConflictoDatosException.class)
+                .hasMessageContaining("información operativa asociada");
+        verify(repositorioArea, never()).delete(area);
     }
 }

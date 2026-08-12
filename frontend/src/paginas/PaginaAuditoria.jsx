@@ -13,6 +13,70 @@ const filtrosVacios = {
   hasta: "",
 };
 
+const accionesCrear = new Set([
+  "ADMINISTRADORINICIALCREADO",
+  "AREACREADA",
+  "BICICLETACREADA",
+  "CATEGORIAAREACREADA",
+  "CATEGORIAPUBLICACIONCREADA",
+  "CONEXIONMAPACREADA",
+  "CUENTAREGISTRADA",
+  "EMPLEADOCREADO",
+  "EVENTOCREADO",
+  "NODOMAPACREADO",
+  "PUBLICACIONCREADA",
+  "RESERVAAREACREADA",
+  "ROLCREADO",
+]);
+
+const accionesEliminar = new Set([
+  "AREAELIMINADA",
+  "CONEXIONMAPAELIMINADA",
+  "IMAGENAREAELIMINADA",
+  "IMAGENEVENTOELIMINADA",
+  "IMAGENPUBLICACIONELIMINADA",
+  "NODOMAPAELIMINADO",
+  "PUBLICACIONELIMINADA",
+]);
+
+const etiquetasAccionesEspeciales = {
+  CIERRESESION: "Cerrar sesión",
+  INICIOSESION: "Iniciar sesión",
+};
+
+const etiquetasModulos = {
+  AREA: "Áreas",
+  BICICLETA: "Bicicletas",
+  CATEGORIAAREA: "Áreas",
+  CATEGORIAPUBLICACION: "Publicaciones",
+  CONEXIONMAPA: "Mapa",
+  EVENTO: "Eventos",
+  INSCRIPCIONEVENTO: "Eventos",
+  NODOMAPA: "Mapa",
+  PUBLICACION: "Publicaciones",
+  RESERVAAREA: "Áreas",
+  ROL: "Usuarios y roles",
+  SESION: "Sesión",
+  USUARIO: "Usuarios y roles",
+};
+
+const etiquetasResultados = {
+  DENEGADO: "Denegado",
+  EXITOSO: "Exitoso",
+  FALLIDO: "Fallido",
+};
+
+function etiquetaLegible(codigo, etiquetas) {
+  if (!codigo) return "";
+  return etiquetas[codigo] ?? codigo.charAt(0).toUpperCase() + codigo.slice(1).toLowerCase();
+}
+
+function etiquetaAccion(codigo) {
+  if (accionesCrear.has(codigo)) return "Crear";
+  if (accionesEliminar.has(codigo)) return "Eliminar";
+  return etiquetasAccionesEspeciales[codigo] ?? "Modificar";
+}
+
 function formatearFecha(fecha) {
   return new Intl.DateTimeFormat("es-GT", {
     dateStyle: "medium",
@@ -77,9 +141,8 @@ export function PaginaAuditoria() {
         </div>
         <form className="filtros-administracion filtros-auditoria" onSubmit={aplicarFiltros}>
           <label>Acción<input maxLength="80" value={filtros.accion} onChange={(evento) => establecerFiltros({ ...filtros, accion: evento.target.value })} /></label>
-          <label>Tipo de recurso<input maxLength="80" value={filtros.tipoRecurso} onChange={(evento) => establecerFiltros({ ...filtros, tipoRecurso: evento.target.value })} /></label>
-          <label>Identificador del recurso<input maxLength="80" value={filtros.idRecurso} onChange={(evento) => establecerFiltros({ ...filtros, idRecurso: evento.target.value })} /></label>
-          <label>Resultado<select value={filtros.resultado} onChange={(evento) => establecerFiltros({ ...filtros, resultado: evento.target.value })}><option value="">Todos</option><option>EXITOSO</option><option>DENEGADO</option><option>FALLIDO</option></select></label>
+          <label>Módulo<input maxLength="80" value={filtros.tipoRecurso} onChange={(evento) => establecerFiltros({ ...filtros, tipoRecurso: evento.target.value })} /></label>
+          <label>Resultado<select value={filtros.resultado} onChange={(evento) => establecerFiltros({ ...filtros, resultado: evento.target.value })}><option value="">Todos</option><option value="EXITOSO">Exitoso</option><option value="DENEGADO">Denegado</option><option value="FALLIDO">Fallido</option></select></label>
           <label>Id del actor<input type="number" min="1" value={filtros.idUsuarioActor} onChange={(evento) => establecerFiltros({ ...filtros, idUsuarioActor: evento.target.value })} /></label>
           <label>Desde<input type="datetime-local" value={filtros.desde} onChange={(evento) => establecerFiltros({ ...filtros, desde: evento.target.value })} /></label>
           <label>Hasta<input type="datetime-local" value={filtros.hasta} onChange={(evento) => establecerFiltros({ ...filtros, hasta: evento.target.value })} /></label>
@@ -88,19 +151,18 @@ export function PaginaAuditoria() {
 
         <div className="tabla-contenedor tabla-auditoria">
           <table>
-            <thead><tr><th>Fecha</th><th>Actor</th><th>Acción</th><th>Recurso</th><th>Resultado</th><th>Correlación</th></tr></thead>
+            <thead><tr><th>Fecha</th><th>Actor</th><th>Acción</th><th>Módulo</th><th>Resultado</th></tr></thead>
             <tbody>
               {pagina.contenido.map((evento) => (
                 <tr key={evento.idEventoAuditoria}>
                   <td>{formatearFecha(evento.ocurridoEn)}</td>
                   <td>{evento.nombreActor}{evento.idUsuarioActor ? <small>Id {evento.idUsuarioActor}</small> : null}</td>
-                  <td>{evento.codigoAccion}</td>
-                  <td>{evento.tipoRecurso}{evento.idRecurso ? <small>{evento.idRecurso}</small> : null}</td>
-                  <td><span className="etiqueta-estado">{evento.resultado}</span></td>
-                  <td><code>{evento.idCorrelacion}</code></td>
+                  <td>{etiquetaAccion(evento.codigoAccion)}</td>
+                  <td>{etiquetaLegible(evento.tipoRecurso, etiquetasModulos)}{evento.idRecurso ? <small>Registro {evento.idRecurso}</small> : null}</td>
+                  <td><span className="etiqueta-estado">{etiquetaLegible(evento.resultado, etiquetasResultados)}</span></td>
                 </tr>
               ))}
-              {!estado.cargando && pagina.contenido.length === 0 && <tr><td colSpan="6">No hay eventos que coincidan con la consulta.</td></tr>}
+              {!estado.cargando && pagina.contenido.length === 0 && <tr><td colSpan="5">No hay eventos que coincidan con la consulta.</td></tr>}
             </tbody>
           </table>
         </div>

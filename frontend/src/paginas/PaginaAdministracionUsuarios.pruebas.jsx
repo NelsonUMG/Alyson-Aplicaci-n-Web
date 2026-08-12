@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -35,8 +35,14 @@ describe("Administración de usuarios", () => {
     render(<MemoryRouter><PaginaAdministracionUsuarios /></MemoryRouter>);
 
     expect(await screen.findByText("No se encontraron usuarios.")).toBeTruthy();
+    const acciones = screen.getByLabelText("Administración de empleados y roles");
+    expect(within(acciones).getAllByRole("button").map((boton) => boton.textContent)).toEqual([
+      "Crear Roles",
+      "Registrar empleado",
+    ]);
     fireEvent.click(screen.getByRole("button", { name: "Registrar empleado" }));
 
+    expect(screen.getByRole("button", { name: "Ocultar Empleado" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Registrar empleado" })).toBeTruthy();
     expect(screen.getByLabelText("Correo electrónico")).toBeTruthy();
     expect(screen.getByText("El rol USUARIOREGISTRADO se asigna automáticamente.")).toBeTruthy();
@@ -47,10 +53,36 @@ describe("Administración de usuarios", () => {
     render(<MemoryRouter><PaginaAdministracionUsuarios /></MemoryRouter>);
 
     await screen.findByText("No se encontraron usuarios.");
-    fireEvent.click(screen.getByRole("button", { name: "Crear rol para empleados" }));
+    fireEvent.click(screen.getByRole("button", { name: "Crear Roles" }));
 
+    expect(screen.getByRole("button", { name: "Ocultar Roles" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Crear rol para empleados" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Eventos e inscripciones" })).toBeTruthy();
     expect(screen.getByLabelText(/EVENTO LEER/)).toBeTruthy();
+  });
+
+  it("impide abrir el registro de empleados cuando no hay roles asignables", async () => {
+    apiUsuarios.listarRoles.mockResolvedValue([
+      { codigo: "USUARIOREGISTRADO", nombre: "Usuario registrado", descripcion: "Persona con cuenta activa." },
+    ]);
+    render(<MemoryRouter><PaginaAdministracionUsuarios /></MemoryRouter>);
+
+    await screen.findByText("No se encontraron usuarios.");
+    const botonRegistro = screen.getByRole("button", { name: "Registrar empleado" });
+    expect(botonRegistro.disabled).toBe(true);
+    expect(screen.getByText(/Primero crea al menos un rol asignable/)).toBeTruthy();
+    fireEvent.click(botonRegistro);
+    expect(screen.queryByRole("heading", { name: "Registrar empleado" })).toBeNull();
+  });
+
+  it("no permite completar un empleado sin seleccionar un rol", async () => {
+    render(<MemoryRouter><PaginaAdministracionUsuarios /></MemoryRouter>);
+
+    await screen.findByText("No se encontraron usuarios.");
+    fireEvent.click(screen.getByRole("button", { name: "Registrar empleado" }));
+
+    const panelRegistro = screen.getByRole("heading", { name: "Registrar empleado" }).closest("section");
+    expect(within(panelRegistro).getByRole("button", { name: "Registrar empleado" }).disabled).toBe(true);
+    expect(apiUsuarios.crearEmpleado).not.toHaveBeenCalled();
   });
 });

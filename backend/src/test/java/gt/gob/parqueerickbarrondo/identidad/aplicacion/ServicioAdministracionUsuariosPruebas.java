@@ -52,6 +52,19 @@ class ServicioAdministracionUsuariosPruebas {
     }
 
     @Test
+    void rechazaCrearUnEmpleadoSinUnRolDeEmpleado() {
+        var repositorioUsuario = mock(RepositorioUsuario.class);
+        var servicio = crearServicio(repositorioUsuario, mock(RepositorioRol.class), mock(RepositorioPermiso.class));
+
+        assertThatThrownBy(() -> servicio.crearEmpleado(
+                new SolicitudEmpleadoAdministrado(
+                        "Empleado", "Prueba", "empleado@parque.local", "Contrasena inicial segura", Set.of()),
+                mock(UsuarioSesion.class)))
+                .isInstanceOf(SolicitudInvalidaException.class)
+                .hasMessageContaining("al menos un rol de empleado");
+    }
+
+    @Test
     void impideCrearUnRolConPermisosQueElActorNoTiene() {
         var repositorioRol = mock(RepositorioRol.class);
         var repositorioPermiso = mock(RepositorioPermiso.class);

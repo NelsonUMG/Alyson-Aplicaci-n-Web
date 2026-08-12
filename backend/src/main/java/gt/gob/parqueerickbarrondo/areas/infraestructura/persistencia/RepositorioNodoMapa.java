@@ -11,6 +11,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface RepositorioNodoMapa extends JpaRepository<NodoMapa, Long> {
 
+    boolean existsByArea_IdArea(Long idArea);
+
     @Query("select n from NodoMapa n order by n.nombre, n.idNodoMapa")
     @EntityGraph(attributePaths = {"area", "area.categoria"})
     List<NodoMapa> buscarTodosAdministrados();

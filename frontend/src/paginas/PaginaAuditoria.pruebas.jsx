@@ -33,18 +33,23 @@ describe("Consulta de auditoría", () => {
     });
   });
 
-  it("presenta eventos de solo lectura con actor y correlación", async () => {
+  it("presenta eventos de solo lectura sin exponer la correlación", async () => {
     render(<MemoryRouter><PaginaAuditoria /></MemoryRouter>);
 
-    expect(await screen.findByText("ESTADOBICICLETAACTUALIZADO")).toBeTruthy();
+    expect(await screen.findByText("Modificar")).toBeTruthy();
+    expect(screen.getByText("Bicicletas")).toBeTruthy();
+    expect(screen.getAllByText("Exitoso").some((elemento) => elemento.tagName === "SPAN")).toBe(true);
+    expect(screen.getByText("Registro 7")).toBeTruthy();
     expect(screen.getByText("Nelson Prueba")).toBeTruthy();
-    expect(screen.getByText("38572cf8-c15e-4e1c-a52f-416b046e3b41")).toBeTruthy();
+    expect(screen.queryByText("38572cf8-c15e-4e1c-a52f-416b046e3b41")).toBeNull();
+    expect(screen.queryByText("Correlación")).toBeNull();
+    expect(screen.queryByLabelText("Identificador del registro")).toBeNull();
     expect(screen.queryByRole("button", { name: /eliminar/i })).toBeNull();
   });
 
   it("envía filtros autorizados a la API", async () => {
     render(<MemoryRouter><PaginaAuditoria /></MemoryRouter>);
-    await screen.findByText("ESTADOBICICLETAACTUALIZADO");
+    await screen.findByText("Modificar");
 
     fireEvent.change(screen.getByLabelText("Acción"), { target: { value: "INICIOSESION" } });
     fireEvent.click(screen.getByRole("button", { name: "Aplicar" }));
@@ -52,5 +57,32 @@ describe("Consulta de auditoría", () => {
     expect(apiAuditoria.listarEventosAuditoria).toHaveBeenLastCalledWith(
       expect.objectContaining({ accion: "INICIOSESION" }),
     );
+  });
+
+  it("resume la acción y presenta el módulo correspondiente", async () => {
+    apiAuditoria.listarEventosAuditoria.mockResolvedValueOnce({
+      contenido: [{
+        idEventoAuditoria: 14,
+        idUsuarioActor: 5,
+        nombreActor: "Nelson Prueba",
+        codigoAccion: "IMAGENPUBLICACIONAGREGADA",
+        tipoRecurso: "CATEGORIAPUBLICACION",
+        idRecurso: "2",
+        resultado: "FALLIDO",
+        idCorrelacion: "88572cf8-c15e-4e1c-a52f-416b046e3b45",
+        ocurridoEn: "2026-08-03T18:00:00Z",
+      }],
+      pagina: 0,
+      tamano: 20,
+      totalElementos: 1,
+      totalPaginas: 1,
+    });
+
+    render(<MemoryRouter><PaginaAuditoria /></MemoryRouter>);
+
+    expect(await screen.findByText("Modificar")).toBeTruthy();
+    expect(screen.getByText("Publicaciones")).toBeTruthy();
+    expect(screen.getByText("Registro 2")).toBeTruthy();
+    expect(screen.getAllByText("Fallido").some((elemento) => elemento.tagName === "SPAN")).toBe(true);
   });
 });

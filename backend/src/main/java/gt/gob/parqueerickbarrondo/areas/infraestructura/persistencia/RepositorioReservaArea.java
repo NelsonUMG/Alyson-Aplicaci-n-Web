@@ -13,6 +13,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface RepositorioReservaArea extends JpaRepository<ReservaArea, Long> {
 
+    boolean existsByArea_IdArea(Long idArea);
+
     @Query("""
             select r from ReservaArea r
             join r.area a

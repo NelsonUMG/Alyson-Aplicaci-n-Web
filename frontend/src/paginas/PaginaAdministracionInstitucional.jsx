@@ -15,6 +15,7 @@ const contenidoVacio = {
 
 export function PaginaAdministracionInstitucional() {
   const [contenido, establecerContenido] = useState(contenidoVacio);
+  const [mostrarEdicion, establecerMostrarEdicion] = useState(false);
   const [estado, establecerEstado] = useState({ cargando: true, guardando: false, error: "", mensaje: "" });
 
   useEffect(() => {
@@ -53,7 +54,10 @@ export function PaginaAdministracionInstitucional() {
       <p>Administra la información que se muestra en la sección Nosotros.</p>
       {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
       {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
-      {estado.cargando ? <p className="estado-carga">Cargando contenido institucional…</p> : (
+      <div className="acciones-superiores-administracion">
+        <button className={mostrarEdicion ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarEdicion} onClick={() => establecerMostrarEdicion((actual) => !actual)}>{mostrarEdicion ? "Ocultar Contenido" : "Editar contenido"}</button>
+      </div>
+      {estado.cargando ? <p className="estado-carga">Cargando contenido institucional…</p> : mostrarEdicion && (
         <section className="panel-edicion" aria-labelledby="titulo-edicion-institucional">
           <h2 id="titulo-edicion-institucional">Misión, visión y valores</h2>
           <form className="formulario-administracion formulario-institucional" onSubmit={guardar}>

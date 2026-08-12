@@ -152,6 +152,9 @@ public class ServicioAdministracionUsuarios {
         }
 
         var codigosRoles = normalizarCodigos(solicitud.codigosRoles());
+        if (codigosRoles.isEmpty() || (codigosRoles.size() == 1 && codigosRoles.contains("USUARIOREGISTRADO"))) {
+            throw new SolicitudInvalidaException("Debes asignar al menos un rol de empleado.");
+        }
         codigosRoles.add("USUARIOREGISTRADO");
         var roles = repositorioRol.findAllByCodigoInAndActivoTrue(codigosRoles);
         if (roles.size() != codigosRoles.size()) {

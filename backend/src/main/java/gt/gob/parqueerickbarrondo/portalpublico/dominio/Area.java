@@ -2,9 +2,14 @@ package gt.gob.parqueerickbarrondo.portalpublico.dominio;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
+import gt.gob.parqueerickbarrondo.areas.dominio.VerticeAreaMapa;
 import gt.gob.parqueerickbarrondo.identidad.dominio.Usuario;
 import jakarta.persistence.Column;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -12,6 +17,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OrderColumn;
 import jakarta.persistence.Table;
 import jakarta.persistence.Version;
 
@@ -54,6 +60,17 @@ public class Area {
 
     @Column(name = "CoordenadasConfirmadas", nullable = false)
     private boolean coordenadasConfirmadas;
+
+    @ElementCollection
+    @CollectionTable(
+            name = "VerticesAreasMapa",
+            schema = "dbo",
+            joinColumns = @JoinColumn(name = "IdArea"))
+    @OrderColumn(name = "Orden")
+    private List<VerticeAreaMapa> perimetro = new ArrayList<>();
+
+    @Column(name = "PerimetroConfirmado", nullable = false)
+    private boolean perimetroConfirmado;
 
     @Column(name = "HorarioJson")
     private String horarioJson;
@@ -110,6 +127,7 @@ public class Area {
         this.latitud = latitud;
         this.longitud = longitud;
         this.coordenadasConfirmadas = coordenadasConfirmadas;
+        this.perimetroConfirmado = false;
         this.horarioJson = horarioJson;
         this.observacionesInternas = observacionesInternas;
         this.creadoPor = responsable;
@@ -163,6 +181,14 @@ public class Area {
         return coordenadasConfirmadas;
     }
 
+    public List<VerticeAreaMapa> obtenerPerimetro() {
+        return List.copyOf(perimetro);
+    }
+
+    public boolean tienePerimetroConfirmado() {
+        return perimetroConfirmado;
+    }
+
     public String obtenerHorarioJson() {
         return horarioJson;
     }
@@ -201,6 +227,8 @@ public class Area {
             BigDecimal latitud,
             BigDecimal longitud,
             boolean coordenadasConfirmadas,
+            List<VerticeAreaMapa> perimetro,
+            boolean perimetroConfirmado,
             String horarioJson,
             String observacionesInternas,
             Usuario responsable) {
@@ -213,6 +241,9 @@ public class Area {
         this.latitud = latitud;
         this.longitud = longitud;
         this.coordenadasConfirmadas = coordenadasConfirmadas;
+        this.perimetro.clear();
+        this.perimetro.addAll(perimetro == null ? List.of() : perimetro);
+        this.perimetroConfirmado = perimetroConfirmado;
         this.horarioJson = horarioJson;
         this.observacionesInternas = observacionesInternas;
         this.actualizadoPor = responsable;
@@ -221,6 +252,17 @@ public class Area {
 
     public void cambiarEstado(String nuevoEstado, Usuario responsable) {
         estado = nuevoEstado;
+        actualizadoPor = responsable;
+        actualizadoEn = Instant.now();
+    }
+
+    public void establecerPerimetro(
+            List<VerticeAreaMapa> nuevoPerimetro,
+            boolean confirmado,
+            Usuario responsable) {
+        perimetro.clear();
+        perimetro.addAll(nuevoPerimetro == null ? List.of() : nuevoPerimetro);
+        perimetroConfirmado = confirmado;
         actualizadoPor = responsable;
         actualizadoEn = Instant.now();
     }

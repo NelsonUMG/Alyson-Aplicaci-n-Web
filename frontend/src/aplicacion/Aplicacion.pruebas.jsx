@@ -1,8 +1,16 @@
 import { createMemoryRouter } from "react-router-dom";
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { Aplicacion } from "./Aplicacion";
 import { rutasAplicacion } from "./rutas";
+
+vi.mock("../paginas/PaginaMapa", () => ({
+  PaginaMapa: () => (
+    <section aria-label="Mapa interactivo del Parque Erick Barrondo">
+      <h1>Mapa real del Parque Erick Barrondo</h1>
+    </section>
+  ),
+}));
 
 function mostrarRuta(ruta) {
   const enrutador = createMemoryRouter(rutasAplicacion, { initialEntries: [ruta] });
@@ -29,8 +37,8 @@ describe("Aplicacion", () => {
   it("mantiene el mapa en su propia página", async () => {
     mostrarRuta("/mapa");
 
-    expect(await screen.findByRole("heading", { name: "Mapa del parque", level: 1 })).toBeTruthy();
-    expect(screen.getByLabelText("Mapa pendiente de habilitación")).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Mapa real del Parque Erick Barrondo", level: 1 })).toBeTruthy();
+    expect(screen.getByLabelText("Mapa interactivo del Parque Erick Barrondo")).toBeTruthy();
   });
 
   it("muestra una página accesible para rutas inexistentes", async () => {

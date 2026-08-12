@@ -16,17 +16,20 @@ import java.util.Set;
 import gt.gob.parqueerickbarrondo.areas.dominio.ConexionMapa;
 import gt.gob.parqueerickbarrondo.areas.dominio.NodoMapa;
 import gt.gob.parqueerickbarrondo.areas.dominio.ReservaArea;
+import gt.gob.parqueerickbarrondo.areas.api.modelo.CoordenadaAreaMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioConexionMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioNodoMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioReservaArea;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.RecursoNoEncontradoException;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.SolicitudInvalidaException;
 import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaConexionMapaPublica;
+import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaAreaMapaPublica;
 import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaMapaPublico;
 import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaNodoMapaPublico;
 import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaPasoRutaMapa;
 import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaRutaMapa;
 import gt.gob.parqueerickbarrondo.portalpublico.dominio.Area;
+import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioArea;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,14 +42,17 @@ public class ServicioMapaPublico {
     private final RepositorioNodoMapa repositorioNodo;
     private final RepositorioConexionMapa repositorioConexion;
     private final RepositorioReservaArea repositorioReserva;
+    private final RepositorioArea repositorioArea;
 
     public ServicioMapaPublico(
             RepositorioNodoMapa repositorioNodo,
             RepositorioConexionMapa repositorioConexion,
-            RepositorioReservaArea repositorioReserva) {
+            RepositorioReservaArea repositorioReserva,
+            RepositorioArea repositorioArea) {
         this.repositorioNodo = repositorioNodo;
         this.repositorioConexion = repositorioConexion;
         this.repositorioReserva = repositorioReserva;
+        this.repositorioArea = repositorioArea;
     }
 
     @Transactional(readOnly = true)
@@ -56,11 +62,17 @@ public class ServicioMapaPublico {
         var actualizaciones = new ArrayList<Instant>();
         datos.nodos().values().forEach(nodo -> actualizaciones.add(nodo.obtenerActualizadoEn()));
         datos.conexiones().forEach(conexion -> actualizaciones.add(conexion.obtenerActualizadoEn()));
+        datos.areas().values().forEach(area -> actualizaciones.add(area.obtenerActualizadoEn()));
         return new RespuestaMapaPublico(
                 datos.nodos().values().stream()
                         .map(nodo -> convertirNodo(nodo, disponibilidad))
                         .toList(),
                 datos.conexiones().stream().map(this::convertirConexion).toList(),
+                datos.areas().values().stream()
+                        .filter(Area::tienePerimetroConfirmado)
+                        .filter(area -> area.obtenerPerimetro().size() >= 3)
+                        .map(area -> convertirArea(area, disponibilidad))
+                        .toList(),
                 actualizaciones.stream().max(Comparator.naturalOrder()).orElse(null));
     }
 
@@ -150,7 +162,17 @@ public class ServicioMapaPublico {
                 .filter(conexion -> nodos.containsKey(conexion.obtenerNodoOrigen().obtenerIdNodoMapa()))
                 .filter(conexion -> nodos.containsKey(conexion.obtenerNodoDestino().obtenerIdNodoMapa()))
                 .toList();
-        return new DatosMapa(nodos, conexiones);
+        var areas = repositorioArea.buscarPublicas().stream().collect(
+                java.util.stream.Collectors.toMap(
+                        Area::obtenerIdArea,
+                        area -> area,
+                        (primera, ignorada) -> primera,
+                        LinkedHashMap::new));
+        nodos.values().stream()
+                .map(NodoMapa::obtenerArea)
+                .filter(Objects::nonNull)
+                .forEach(area -> areas.putIfAbsent(area.obtenerIdArea(), area));
+        return new DatosMapa(nodos, conexiones, areas);
     }
 
     private Map<Long, List<Trayecto>> construirAdyacencias(DatosMapa datos, boolean perfilAccesible) {
@@ -190,14 +212,7 @@ public class ServicioMapaPublico {
     }
 
     private Map<Long, DisponibilidadArea> calcularDisponibilidad(DatosMapa datos, Instant ahora) {
-        var areas = datos.nodos().values().stream()
-                .map(NodoMapa::obtenerArea)
-                .filter(Objects::nonNull)
-                .collect(java.util.stream.Collectors.toMap(
-                        Area::obtenerIdArea,
-                        area -> area,
-                        (primera, ignorada) -> primera,
-                        LinkedHashMap::new));
+        var areas = datos.areas();
         if (areas.isEmpty()) {
             return Map.of();
         }
@@ -317,12 +332,44 @@ public class ServicioMapaPublico {
                 conexion.obtenerMotivoCierre());
     }
 
+    private RespuestaAreaMapaPublica convertirArea(
+            Area area,
+            Map<Long, DisponibilidadArea> disponibilidad) {
+        var estadoTemporal = disponibilidad.getOrDefault(
+                area.obtenerIdArea(),
+                new DisponibilidadArea(
+                        area.obtenerEstado(),
+                        "DISPONIBLE".equals(area.obtenerEstado()),
+                        null,
+                        null,
+                        null,
+                        area.obtenerNotaDisponibilidad()));
+        return new RespuestaAreaMapaPublica(
+                area.obtenerIdArea(),
+                area.obtenerCodigo(),
+                area.obtenerNombre(),
+                area.obtenerEstado(),
+                estadoTemporal.estadoCalculado(),
+                estadoTemporal.disponibleAhora(),
+                estadoTemporal.cambiaEstadoEn(),
+                estadoTemporal.tituloReservaActiva(),
+                estadoTemporal.tituloProximaReserva(),
+                estadoTemporal.notaDisponibilidad(),
+                area.obtenerPerimetro().stream()
+                        .map(vertice -> new CoordenadaAreaMapa(
+                                vertice.obtenerLatitud(), vertice.obtenerLongitud()))
+                        .toList());
+    }
+
     private RespuestaPasoRutaMapa convertirPaso(NodoMapa nodo) {
         return new RespuestaPasoRutaMapa(
                 nodo.obtenerIdNodoMapa(), nodo.obtenerNombre(), nodo.obtenerTipoNodo());
     }
 
-    private record DatosMapa(Map<Long, NodoMapa> nodos, List<ConexionMapa> conexiones) {
+    private record DatosMapa(
+            Map<Long, NodoMapa> nodos,
+            List<ConexionMapa> conexiones,
+            Map<Long, Area> areas) {
     }
 
     private record DisponibilidadArea(
