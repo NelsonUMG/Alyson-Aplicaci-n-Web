@@ -8,6 +8,7 @@ const enlacesNavegacion = [
   { destino: "/areas-servicios", texto: "Áreas y servicios" },
   { destino: "/noticias", texto: "Noticias" },
   { destino: "/eventos", texto: "Eventos" },
+  { destino: "/bicicletas", texto: "Bicicletas" },
   { destino: "/mapa", texto: "Mapa" },
 ];
 

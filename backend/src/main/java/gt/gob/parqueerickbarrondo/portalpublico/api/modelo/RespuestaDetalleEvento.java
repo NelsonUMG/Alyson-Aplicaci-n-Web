@@ -18,5 +18,6 @@ public record RespuestaDetalleEvento(
         String estado,
         List<RespuestaRequisitoEvento> requisitos,
         String esquemaFormularioJson,
-        String urlImagen) {
+        String urlImagen,
+        List<RespuestaImagenEventoPublica> imagenesSecundarias) {
 }

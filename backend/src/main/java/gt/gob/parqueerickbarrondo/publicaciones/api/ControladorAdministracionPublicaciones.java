@@ -9,13 +9,17 @@ import gt.gob.parqueerickbarrondo.publicaciones.api.modelo.RespuestaImagenAdmini
 import gt.gob.parqueerickbarrondo.publicaciones.api.modelo.RespuestaPublicacionAdministrada;
 import gt.gob.parqueerickbarrondo.publicaciones.api.modelo.SolicitudCategoriaPublicacion;
 import gt.gob.parqueerickbarrondo.publicaciones.api.modelo.SolicitudPublicacion;
+import gt.gob.parqueerickbarrondo.publicaciones.api.modelo.SolicitudVersionCategoriaPublicacion;
 import gt.gob.parqueerickbarrondo.publicaciones.api.modelo.SolicitudVersionPublicacion;
 import gt.gob.parqueerickbarrondo.publicaciones.aplicacion.ServicioAdministracionPublicaciones;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -63,6 +67,15 @@ public class ControladorAdministracionPublicaciones {
         return servicioAdministracion.actualizarCategoria(idCategoria, solicitud, actor);
     }
 
+    @DeleteMapping("/categorias-publicaciones/{idCategoria}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminarCategoria(
+            @PathVariable Long idCategoria,
+            @Valid @RequestBody SolicitudVersionCategoriaPublicacion solicitud,
+            @AuthenticationPrincipal UsuarioSesion actor) {
+        servicioAdministracion.eliminarCategoria(idCategoria, solicitud.version(), actor);
+    }
+
     @GetMapping("/publicaciones")
     public RespuestaPaginaPublica<RespuestaPublicacionAdministrada> listarPublicaciones(
             @RequestParam(defaultValue = "") String busqueda,
@@ -83,6 +96,18 @@ public class ControladorAdministracionPublicaciones {
     @GetMapping("/publicaciones/{idPublicacion}/imagenes")
     public List<RespuestaImagenAdministrada> listarImagenes(@PathVariable Long idPublicacion) {
         return servicioAdministracion.listarImagenes(idPublicacion);
+    }
+
+    @GetMapping("/publicaciones/{idPublicacion}/imagenes/{idImagen}/archivo")
+    public ResponseEntity<Resource> consultarImagen(
+            @PathVariable Long idPublicacion,
+            @PathVariable Long idImagen) {
+        var imagen = servicioAdministracion.cargarImagen(idPublicacion, idImagen);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(imagen.tipoMedio()))
+                .contentLength(imagen.tamanoBytes())
+                .cacheControl(CacheControl.noCache().cachePrivate())
+                .body(imagen.recurso());
     }
 
     @PostMapping("/publicaciones")

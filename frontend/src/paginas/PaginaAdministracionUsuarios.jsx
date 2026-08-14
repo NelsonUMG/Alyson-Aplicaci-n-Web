@@ -27,6 +27,7 @@ const datosRolIniciales = {
 export function PaginaAdministracionUsuarios() {
   const [busqueda, setBusqueda] = useState("");
   const [pagina, setPagina] = useState({ contenido: [], pagina: 0, totalPaginas: 0 });
+  const [cargandoUsuarios, setCargandoUsuarios] = useState(true);
   const [roles, setRoles] = useState([]);
   const [permisos, setPermisos] = useState([]);
   const [seleccion, setSeleccion] = useState(null);
@@ -37,10 +38,9 @@ export function PaginaAdministracionUsuarios() {
 
   useEffect(() => {
     let vigente = true;
-    Promise.all([listarUsuarios(), listarRoles(), listarPermisos()])
-      .then(([usuarios, catalogoRoles, catalogoPermisos]) => {
+    Promise.all([listarRoles(), listarPermisos()])
+      .then(([catalogoRoles, catalogoPermisos]) => {
         if (!vigente) return;
-        setPagina(usuarios);
         setRoles(catalogoRoles);
         setPermisos(catalogoPermisos);
         setEstado({ cargando: false, guardando: false, error: "", mensaje: "" });
@@ -53,37 +53,53 @@ export function PaginaAdministracionUsuarios() {
     };
   }, []);
 
+  useEffect(() => {
+    let vigente = true;
+    setCargandoUsuarios(true);
+    setEstado((actual) => ({ ...actual, error: "", mensaje: "" }));
+    const temporizador = window.setTimeout(() => {
+      listarUsuarios(busqueda, 0)
+        .then((usuarios) => {
+          if (!vigente) return;
+          setPagina(usuarios);
+          setSeleccion(null);
+          setCargandoUsuarios(false);
+        })
+        .catch((error) => {
+          if (!vigente) return;
+          setCargandoUsuarios(false);
+          setEstado((actual) => ({ ...actual, error: error.message, mensaje: "" }));
+        });
+    }, busqueda ? 250 : 0);
+
+    return () => {
+      vigente = false;
+      window.clearTimeout(temporizador);
+    };
+  }, [busqueda]);
+
   async function recargarUsuarios(texto = busqueda, numeroPagina = pagina.pagina) {
     const usuarios = await listarUsuarios(texto, numeroPagina);
     setPagina(usuarios);
   }
 
-  async function buscar(evento) {
-    evento.preventDefault();
-    setEstado((actual) => ({ ...actual, cargando: true, error: "", mensaje: "" }));
-    try {
-      await recargarUsuarios(busqueda, 0);
-      setSeleccion(null);
-      setEstado({ cargando: false, guardando: false, error: "", mensaje: "" });
-    } catch (error) {
-      setEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
-    }
-  }
-
   async function cambiarPagina(numeroPagina) {
+    setCargandoUsuarios(true);
     setEstado((actual) => ({ ...actual, cargando: true, error: "", mensaje: "" }));
     try {
       await recargarUsuarios(busqueda, numeroPagina);
       setSeleccion(null);
+      setCargandoUsuarios(false);
       setEstado({ cargando: false, guardando: false, error: "", mensaje: "" });
     } catch (error) {
+      setCargandoUsuarios(false);
       setEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
     }
   }
 
   function editar(usuario) {
     setSeleccion({ ...usuario, rolesSeleccionados: [...usuario.roles] });
-    setPanelActivo("");
+    setPanelActivo("listado");
     setEstado((actual) => ({ ...actual, error: "", mensaje: "" }));
   }
 
@@ -121,7 +137,7 @@ export function PaginaAdministracionUsuarios() {
       }));
       return;
     }
-    setPanelActivo((actual) => (actual === nombrePanel ? "" : nombrePanel));
+    setPanelActivo(nombrePanel);
     setSeleccion(null);
     setEstado((actual) => ({ ...actual, error: "", mensaje: "" }));
   }
@@ -202,10 +218,14 @@ export function PaginaAdministracionUsuarios() {
   const gruposPermisos = agruparPermisos(permisos);
 
   return (
-    <main className="pagina-administracion">
+    <main className="pagina-administracion pagina-administracion-usuarios">
       <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
       <p className="etiqueta-fase">Administración</p>
       <h1>Usuarios y roles</h1>
+      <div className="disposicion-modulo-administracion">
+        <aside className="menu-lateral-administracion">
+          <details open>
+            <summary>Usuarios y roles</summary>
       <div className="acciones-gestion-usuarios" aria-label="Administración de empleados y roles">
         <button
           className={panelActivo === "rol" ? "boton-gestion-activo" : "boton-secundario"}
@@ -213,7 +233,7 @@ export function PaginaAdministracionUsuarios() {
           aria-expanded={panelActivo === "rol"}
           onClick={() => mostrarPanel("rol")}
         >
-          {panelActivo === "rol" ? "Ocultar Roles" : "Crear Roles"}
+          Crear Roles
         </button>
         <button
           className={panelActivo === "empleado" ? "boton-gestion-activo" : "boton-secundario"}
@@ -223,9 +243,20 @@ export function PaginaAdministracionUsuarios() {
           disabled={registroEmpleadoNoDisponible}
           onClick={() => mostrarPanel("empleado")}
         >
-          {panelActivo === "empleado" ? "Ocultar Empleado" : "Registrar empleado"}
+          Registrar empleado
+        </button>
+        <button
+          className={panelActivo === "listado" ? "boton-gestion-activo" : "boton-secundario"}
+          type="button"
+          aria-expanded={panelActivo === "listado"}
+          onClick={() => mostrarPanel("listado")}
+        >
+          Listado de usuarios
         </button>
       </div>
+          </details>
+        </aside>
+        <div className="contenido-modulo-administracion">
       {!estado.cargando && rolesParaEmpleado.length === 0 && (
         <p id="aviso-sin-roles-empleado" className="nota-formulario-administracion" role="status">
           Primero crea al menos un rol asignable con el botón Crear Roles para poder registrar empleados.
@@ -312,14 +343,15 @@ export function PaginaAdministracionUsuarios() {
           </form>
         </section>
       )}
-      <form className="busqueda-usuarios" onSubmit={buscar}>
+      {panelActivo === "listado" && <section className="panel-edicion panel-listado-administracion" aria-labelledby="titulo-listado-usuarios">
+      <h2 id="titulo-listado-usuarios">Listado de usuarios</h2>
+      <div className="busqueda-usuarios">
         <label htmlFor="busqueda">Buscar por nombre o correo</label>
         <div>
-          <input id="busqueda" value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} />
-          <button type="submit">Buscar</button>
+          <input id="busqueda" maxLength="100" autoComplete="off" value={busqueda} onChange={(evento) => setBusqueda(evento.target.value)} />
         </div>
-      </form>
-      {estado.cargando ? (
+      </div>
+      {cargandoUsuarios ? (
         <p role="status">Cargando usuarios…</p>
       ) : (
         <div className="tabla-contenedor">
@@ -329,12 +361,18 @@ export function PaginaAdministracionUsuarios() {
             </thead>
             <tbody>
               {pagina.contenido.map((usuario) => (
-                <tr key={usuario.idUsuario}>
+                <tr className={seleccion?.idUsuario === usuario.idUsuario ? "fila-seleccionada" : ""} key={usuario.idUsuario}>
                   <td>{usuario.nombre} {usuario.apellido}</td>
                   <td>{usuario.correo}</td>
                   <td>{usuario.estado}</td>
                   <td>{usuario.roles.join(", ")}</td>
-                  <td><button className="boton-tabla" type="button" onClick={() => editar(usuario)}>Editar roles</button></td>
+                  <td><button
+                    className="boton-tabla"
+                    type="button"
+                    aria-expanded={seleccion?.idUsuario === usuario.idUsuario}
+                    aria-controls={seleccion?.idUsuario === usuario.idUsuario ? "detalle-usuario-seleccionado" : undefined}
+                    onClick={() => editar(usuario)}
+                  >Editar roles</button></td>
                 </tr>
               ))}
             </tbody>
@@ -361,8 +399,9 @@ export function PaginaAdministracionUsuarios() {
           )}
         </div>
       )}
+      </section>}
       {seleccion && (
-        <section className="panel-edicion" aria-labelledby="titulo-edicion">
+        <section id="detalle-usuario-seleccionado" className="panel-edicion panel-detalle-administracion" aria-labelledby="titulo-edicion">
           <h2 id="titulo-edicion">Roles de {seleccion.nombre} {seleccion.apellido}</h2>
           <div className="lista-roles">
             {roles.map((rol) => (
@@ -381,6 +420,8 @@ export function PaginaAdministracionUsuarios() {
           </button>
         </section>
       )}
+        </div>
+      </div>
     </main>
   );
 }

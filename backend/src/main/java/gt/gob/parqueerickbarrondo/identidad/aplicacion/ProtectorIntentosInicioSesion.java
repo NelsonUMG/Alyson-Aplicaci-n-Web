@@ -73,8 +73,8 @@ public class ProtectorIntentosInicioSesion {
                 huellas.huellaCorreo(),
                 huellas.huellaIp(),
                 huellas.huellaAgenteUsuario(),
-                resultado,
-                motivoFallo,
+                FormatoAuditoria.resultadoIntentoInicioSesion(resultado),
+                FormatoAuditoria.motivoIntentoInicioSesion(motivoFallo),
                 idCorrelacion));
     }
 

@@ -52,11 +52,18 @@ export function PaginaAdministracionInstitucional() {
       <p className="etiqueta-fase">Administración</p>
       <h1>Contenido institucional</h1>
       <p>Administra la información que se muestra en la sección Nosotros.</p>
+      <div className="disposicion-modulo-administracion">
+        <aside className="menu-lateral-administracion">
+          <details open>
+            <summary>Contenido institucional</summary>
+            <div className="acciones-superiores-administracion">
+              <button className={mostrarEdicion ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarEdicion} onClick={() => establecerMostrarEdicion(true)}>Editar contenido</button>
+            </div>
+          </details>
+        </aside>
+        <div className="contenido-modulo-administracion">
       {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
       {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
-      <div className="acciones-superiores-administracion">
-        <button className={mostrarEdicion ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarEdicion} onClick={() => establecerMostrarEdicion((actual) => !actual)}>{mostrarEdicion ? "Ocultar Contenido" : "Editar contenido"}</button>
-      </div>
       {estado.cargando ? <p className="estado-carga">Cargando contenido institucional…</p> : mostrarEdicion && (
         <section className="panel-edicion" aria-labelledby="titulo-edicion-institucional">
           <h2 id="titulo-edicion-institucional">Misión, visión y valores</h2>
@@ -73,6 +80,8 @@ export function PaginaAdministracionInstitucional() {
           </form>
         </section>
       )}
+        </div>
+      </div>
     </main>
   );
 }

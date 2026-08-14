@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import gt.gob.parqueerickbarrondo.portalpublico.dominio.CategoriaPublicacion;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 public interface RepositorioCategoriaPublicacion extends JpaRepository<CategoriaPublicacion, Long> {
 
@@ -14,7 +15,13 @@ public interface RepositorioCategoriaPublicacion extends JpaRepository<Categoria
 
     Optional<CategoriaPublicacion> findByIdCategoriaPublicacion(Long idCategoriaPublicacion);
 
-    boolean existsByCodigoIgnoreCase(String codigo);
+    @Query("select c.codigo from CategoriaPublicacion c")
+    List<String> findAllCodigos();
 
-    boolean existsByCodigoIgnoreCaseAndIdCategoriaPublicacionNot(String codigo, Long idCategoriaPublicacion);
+    boolean existsByOrdenVisualizacion(Short ordenVisualizacion);
+
+    boolean existsByOrdenVisualizacionAndIdCategoriaPublicacionNot(
+            Short ordenVisualizacion,
+            Long idCategoriaPublicacion);
+
 }

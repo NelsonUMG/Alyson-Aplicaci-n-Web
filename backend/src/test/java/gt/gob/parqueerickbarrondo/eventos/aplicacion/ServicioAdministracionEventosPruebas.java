@@ -19,6 +19,7 @@ import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.Reposit
 import gt.gob.parqueerickbarrondo.identidad.seguridad.UsuarioSesion;
 import gt.gob.parqueerickbarrondo.portalpublico.dominio.Evento;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioEvento;
+import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioImagenEvento;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -31,6 +32,8 @@ class ServicioAdministracionEventosPruebas {
 
     @Mock
     private RepositorioEvento repositorioEvento;
+    @Mock
+    private RepositorioImagenEvento repositorioImagenEvento;
     @Mock
     private RepositorioInscripcionEvento repositorioInscripcion;
     @Mock

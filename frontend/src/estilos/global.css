@@ -496,6 +496,33 @@ button:disabled {
   color: #10231c;
 }
 
+.tarjeta-formulario .opcion-mantener-sesion {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin: 0.45rem 0 0.3rem;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.tarjeta-formulario .opcion-mantener-sesion input {
+  width: 1.15rem;
+  min-height: 1.15rem;
+  margin-top: 0.15rem;
+  flex: 0 0 1.15rem;
+}
+
+.opcion-mantener-sesion span {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.opcion-mantener-sesion small {
+  color: #607069;
+  font-size: 0.78rem;
+  font-weight: 500;
+}
+
 .campos-formulario-administracion {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -609,23 +636,13 @@ button:disabled {
   row-gap: 0.4rem;
 }
 
-.formulario-categoria-publicacion label[for="codigoCategoria"] {
-  grid-column: 1;
-  grid-row: 1;
-}
-
-.formulario-categoria-publicacion #codigoCategoria {
-  grid-column: 1;
-  grid-row: 2;
-}
-
 .formulario-categoria-publicacion label[for="nombreCategoria"] {
-  grid-column: 2;
+  grid-column: 1 / -1;
   grid-row: 1;
 }
 
 .formulario-categoria-publicacion #nombreCategoria {
-  grid-column: 2;
+  grid-column: 1 / -1;
   grid-row: 2;
 }
 
@@ -640,12 +657,6 @@ button:disabled {
   grid-column: 1;
 }
 
-.formulario-categoria-publicacion > .control-casilla {
-  grid-column: 2;
-  grid-row: 5 / span 2;
-  align-self: end;
-}
-
 .formulario-categoria-publicacion input,
 .formulario-categoria-publicacion select {
   min-height: 2.45rem;
@@ -654,10 +665,6 @@ button:disabled {
 
 .formulario-categoria-publicacion textarea {
   min-height: 4.5rem;
-}
-
-.formulario-categoria-publicacion .control-casilla {
-  margin-block: 0.2rem;
 }
 
 .formulario-categoria-publicacion .acciones-publicacion {
@@ -820,6 +827,30 @@ button:disabled {
   align-items: end;
 }
 
+.vista-previa-carga-publicacion {
+  grid-column: 1 / -1;
+  width: min(100%, 26rem);
+  margin: 0.35rem 0 0;
+  padding: 0.75rem;
+  border: 1px solid #d5ddd8;
+  border-radius: 0.5rem;
+  background: #f7f9f7;
+}
+
+.vista-previa-carga-publicacion .vista-previa-imagen {
+  width: 100%;
+  max-height: 16rem;
+  margin-bottom: 0.5rem;
+  object-fit: contain;
+  background: #fff;
+}
+
+.vista-previa-carga-publicacion figcaption {
+  color: #607069;
+  font-size: 0.82rem;
+  overflow-wrap: anywhere;
+}
+
 .panel-imagenes-publicacion ul {
   display: grid;
   gap: 0.5rem;
@@ -838,7 +869,19 @@ button:disabled {
 
 .panel-imagenes-publicacion li span {
   display: grid;
+  flex: 1;
   gap: 0.2rem;
+  min-width: 0;
+}
+
+.miniatura-imagen-publicacion {
+  width: 4rem;
+  height: 4rem;
+  flex: 0 0 4rem;
+  border: 1px solid #c7d0ca;
+  border-radius: 0.4rem;
+  background: #f7f9f7;
+  object-fit: cover;
 }
 
 .pagina-administracion-eventos {
@@ -953,7 +996,7 @@ button:disabled {
 }
 
 .filtros-auditoria {
-  grid-template-columns: repeat(4, minmax(10rem, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .tabla-auditoria td {
@@ -1130,6 +1173,9 @@ button:disabled {
 
 .selector-horario-area {
   display: grid;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   gap: 1rem;
   margin: 0;
   padding: 1rem;
@@ -1148,39 +1194,29 @@ button:disabled {
   color: #607069;
 }
 
-.selector-horario-dias {
+.selector-horario-controles {
   display: grid;
-  grid-template-columns: repeat(7, minmax(6rem, 1fr));
-  gap: 0.5rem;
-}
-
-.selector-horario-dias label {
-  display: flex;
-  min-height: 2.75rem;
-  gap: 0.45rem;
-  align-items: center;
-  justify-content: center;
-  padding: 0.55rem;
-  border: 1px solid #cbd5d0;
-  border-radius: 0.35rem;
-  background: #fff;
-  cursor: pointer;
-}
-
-.selector-horario-dias input {
-  width: 1rem;
-  min-height: 1rem;
-}
-
-.selector-horario-horas {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(10rem, 1fr)) auto;
+  grid-template-columns: minmax(8.5rem, 9.5rem) repeat(2, minmax(7.5rem, 8.75rem)) auto;
   gap: 0.75rem;
   align-items: end;
+  justify-content: start;
 }
 
-.selector-horario-horas button {
+.selector-horario-controles label {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.selector-horario-controles select,
+.selector-horario-controles input {
+  width: 100%;
+  min-height: 2.65rem;
+  padding: 0.55rem 0.65rem;
+}
+
+.selector-horario-controles button {
   min-height: 2.8rem;
+  white-space: nowrap;
 }
 
 .selector-horario-periodos {
@@ -1370,8 +1406,81 @@ button:disabled {
   gap: 0.35rem;
 }
 
+.formulario-evento input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.formulario-evento select,
+.formulario-evento textarea {
+  font-weight: 400;
+}
+
 .formulario-evento .campo-ancho {
   grid-column: 1 / -1;
+}
+
+.constructor-formulario-evento {
+  display: grid;
+  gap: 0.8rem;
+  margin-block: 0.5rem;
+  padding: 1rem;
+  border: 1px solid #d5ddd8;
+  background: #f7faf8;
+}
+
+.constructor-formulario-evento h3,
+.constructor-formulario-evento p {
+  margin-block: 0;
+}
+
+.constructor-formulario-evento .cabecera-panel-administracion p {
+  margin-top: 0.2rem;
+  color: #52645d;
+  font-size: 0.8rem;
+}
+
+.lista-campos-formulario-evento {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.campo-formulario-evento {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(11rem, 0.75fr) auto;
+  gap: 0.65rem 0.75rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.85rem;
+  border: 1px solid #cbd5d0;
+  background: #fff;
+}
+
+.campo-formulario-evento legend {
+  padding-inline: 0.3rem;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.campo-formulario-evento .campo-formulario-obligatorio {
+  display: flex;
+  align-items: center;
+  align-self: end;
+  gap: 0.45rem;
+  min-height: 2.2rem;
+  white-space: nowrap;
+}
+
+.campo-formulario-evento .campo-formulario-obligatorio input {
+  width: 1.1rem;
+  min-height: 1.1rem;
+}
+
+.campo-formulario-evento .campo-formulario-opciones,
+.campo-formulario-evento .acciones-campo-formulario-evento {
+  grid-column: 1 / -1;
+}
+
+.acciones-campo-formulario-evento {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
 }
 
 .requisitos-administracion {
@@ -1436,6 +1545,48 @@ button:disabled {
   align-items: center;
 }
 
+.bloque-imagen-evento {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid #d5ddd8;
+  border-radius: 0;
+  background: #f7faf8;
+}
+
+.bloque-imagen-evento p,
+.bloque-imagen-evento h3 {
+  margin: 0;
+}
+
+.galeria-imagenes-evento-administracion {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 0.8rem;
+}
+
+.galeria-imagenes-evento-administracion article {
+  display: grid;
+  gap: 0.5rem;
+  align-content: start;
+  padding: 0.65rem;
+  border: 1px solid #bdcbc3;
+  border-radius: 0;
+  background: #fff;
+}
+
+.galeria-imagenes-evento-administracion img {
+  width: 100%;
+  height: 9rem;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+.galeria-imagenes-evento-administracion span {
+  overflow-wrap: anywhere;
+  font-size: 0.85rem;
+}
+
 .gestion-imagen-area form label {
   display: grid;
   flex: 1 1 20rem;
@@ -1449,6 +1600,27 @@ button:disabled {
   overflow-x: auto;
   border: 1px solid #d5ddd8;
   border-radius: 0.55rem;
+}
+
+.respuestas-requisitos-evento {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 14rem;
+  margin: 0.6rem 0 0;
+}
+
+.respuestas-requisitos-evento div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.respuestas-requisitos-evento dt {
+  font-weight: 700;
+}
+
+.respuestas-requisitos-evento dd {
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .lista-mis-inscripciones {
@@ -1471,7 +1643,278 @@ button:disabled {
   margin: 0.25rem 0;
 }
 
+.estructura-administracion {
+  min-height: 100vh;
+  background: #fff;
+}
+
+.barra-superior-administracion {
+  position: sticky;
+  z-index: 30;
+  top: 0;
+  min-height: 3.5rem;
+  background: #55b7e8;
+  color: #fff;
+  box-shadow: 0 1px 0 rgb(0 0 0 / 8%);
+}
+
+.contenido-barra-superior-administracion {
+  display: grid;
+  width: min(62.5rem, 100%);
+  min-height: 3.5rem;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  align-items: center;
+  margin-inline: auto;
+}
+
+.marca-barra-administracion {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding-inline: 1rem;
+  color: #fff;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.05rem;
+  text-decoration: none;
+}
+
+.marca-barra-administracion:hover,
+.marca-barra-administracion:focus-visible {
+  background: rgb(255 255 255 / 12%);
+}
+
+.sesion-barra-administracion {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0;
+  padding-right: 1rem;
+  font-size: 0.82rem;
+}
+
+.sesion-barra-administracion span,
+.sesion-barra-administracion button {
+  min-height: auto;
+  padding: 0.15rem 0.75rem;
+  border: 0;
+  border-left: 1px solid rgb(255 255 255 / 38%);
+  border-radius: 0;
+  background: transparent;
+  color: #fff;
+  font: inherit;
+}
+
+.sesion-barra-administracion span {
+  border-left: 0;
+}
+
+.sesion-barra-administracion button:hover:not(:disabled),
+.sesion-barra-administracion button:focus-visible:not(:disabled) {
+  background: rgb(255 255 255 / 14%);
+}
+
+.estructura-administracion .pagina-administracion {
+  width: min(62.5rem, 100%);
+  min-height: calc(100vh - 3.5rem);
+  margin: 0 auto;
+  padding: 1.25rem 0 0;
+  background: #f3f7f5;
+}
+
+.estructura-administracion .pagina-administracion > .enlace-regreso,
+.estructura-administracion .pagina-administracion > .etiqueta-fase {
+  display: none;
+}
+
+.pagina-administracion > h1,
+.pagina-administracion > h1 + p,
+.encabezado-gestion-areas {
+  width: min(47.5rem, calc(100% - 17rem));
+  margin-right: max(calc((100% - 62.5rem) / 2), 1rem);
+  margin-left: max(calc((100% - 62.5rem) / 2 + 15rem), 16rem);
+  text-align: center;
+}
+
+.pagina-administracion > h1,
+.encabezado-gestion-areas h1 {
+  font-size: clamp(2rem, 2.5vw, 2.25rem);
+}
+
+.pagina-administracion > .enlace-regreso,
+.pagina-administracion > .etiqueta-fase {
+  display: block;
+  width: min(62.5rem, calc(100% - 2rem));
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.pagina-administracion > .etiqueta-fase {
+  width: min(47.5rem, calc(100% - 17rem));
+  margin-right: max(calc((100% - 62.5rem) / 2), 1rem);
+  margin-left: max(calc((100% - 62.5rem) / 2 + 15rem), 16rem);
+}
+
+.disposicion-modulo-administracion {
+  display: grid;
+  width: min(62.5rem, 100%);
+  min-height: calc(100vh - 10rem);
+  grid-template-columns: 15rem minmax(0, 1fr);
+  align-items: start;
+  gap: 0;
+  margin: 1.25rem auto 0;
+  background: #f3f7f5;
+  box-shadow: 0 0 1.5rem rgb(16 35 28 / 5%);
+}
+
+.menu-lateral-administracion {
+  position: sticky;
+  top: 3.5rem;
+  align-self: stretch;
+  min-height: calc(100vh - 10rem);
+  margin-top: -7.375rem;
+  overflow: hidden;
+  border: 0;
+  border-right: 1px solid #cbd5cf;
+  border-radius: 0;
+  background: #edf2ef;
+  box-shadow: none;
+}
+
+.pagina-administracion-usuarios .menu-lateral-administracion {
+  margin-top: -5.075rem;
+}
+
+.menu-lateral-administracion summary {
+  min-height: 3.25rem;
+  padding: 0.9rem 1rem;
+  background: #dfe8e3;
+  color: #10231c;
+  cursor: pointer;
+  font-weight: 850;
+  line-height: 1.35;
+}
+
+.menu-lateral-administracion details,
+.menu-lateral-administracion .acciones-gestion-usuarios,
+.menu-lateral-administracion .acciones-superiores-administracion,
+.menu-lateral-administracion .acciones-superiores-areas {
+  display: block;
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+}
+
+.menu-lateral-administracion summary:hover,
+.menu-lateral-administracion summary:focus-visible {
+  background: #d8e4dd;
+}
+
+.menu-lateral-administracion .acciones-gestion-usuarios,
+.menu-lateral-administracion .acciones-superiores-administracion,
+.menu-lateral-administracion .acciones-superiores-areas {
+  width: 100%;
+  gap: 0;
+  margin: 0;
+}
+
+.menu-lateral-administracion button,
+.menu-lateral-administracion .boton-secundario {
+  display: block;
+  width: 100% !important;
+  max-width: none !important;
+  box-sizing: border-box;
+  justify-self: stretch;
+  min-height: 3rem;
+  justify-content: flex-start;
+  padding: 0.75rem 1rem;
+  border: 0 !important;
+  border-top: 1px solid #d7dfda !important;
+  border-radius: 0;
+  background: #fff !important;
+  color: #17372b !important;
+  text-align: left;
+}
+
+.menu-lateral-administracion button:hover:not(:disabled),
+.menu-lateral-administracion button:focus-visible:not(:disabled) {
+  background: #edf5f0 !important;
+}
+
+.menu-lateral-administracion .boton-gestion-activo {
+  padding-left: calc(1rem - 4px);
+  border-left: 4px solid #153c2e !important;
+  background: #dcebe3 !important;
+  color: #102f24 !important;
+}
+
+.menu-lateral-administracion button:disabled {
+  background: #eef1ef !important;
+  color: #77847e !important;
+}
+
+.contenido-modulo-administracion {
+  display: grid;
+  min-width: 0;
+  justify-items: center;
+  gap: 1rem;
+  padding: 0 1.5rem 2rem;
+}
+
+.contenido-modulo-administracion > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.contenido-modulo-administracion > .panel-edicion,
+.contenido-modulo-administracion > .disposicion-principal-areas,
+.contenido-modulo-administracion > .nota-formulario-administracion,
+.contenido-modulo-administracion > .mensaje-error,
+.contenido-modulo-administracion > .mensaje-exito {
+  width: 100%;
+  max-width: 74rem;
+  margin-top: 0;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.contenido-modulo-administracion > .panel-edicion {
+  min-width: 0;
+  max-width: 100%;
+  padding: 1.5rem;
+  border-radius: 0;
+  background: #fff;
+  box-shadow: none;
+}
+
+.contenido-modulo-administracion .tabla-contenedor,
+.contenido-modulo-administracion .tabla-administracion {
+  max-width: 100%;
+}
+
+.contenido-modulo-administracion > .panel-formulario-administracion {
+  max-width: 68rem;
+}
+
+/* Geometría institucional: controles y contenedores administrativos sin esquinas redondeadas. */
+.estructura-administracion .pagina-administracion * {
+  border-radius: 0 !important;
+}
+
+.estructura-administracion .pagina-administracion .editor-perimetro-marcador {
+  border-radius: 50% !important;
+}
+
 @media (max-width: 70rem) {
+  .contenido-barra-superior-administracion {
+    grid-template-columns: 14rem minmax(0, 1fr);
+  }
+
+  .disposicion-modulo-administracion {
+    width: min(62.5rem, 100%);
+    grid-template-columns: 14rem minmax(0, 1fr);
+  }
+
   .disposicion-principal-areas {
     grid-template-columns: 1fr;
   }
@@ -1486,6 +1929,53 @@ button:disabled {
 }
 
 @media (max-width: 55rem) {
+  .contenido-barra-superior-administracion {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .marca-barra-administracion {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .estructura-administracion .pagina-administracion {
+    padding: 1.25rem 1rem 2rem;
+    background: #f6f8f6;
+  }
+
+  .pagina-administracion > h1,
+  .pagina-administracion > h1 + p,
+  .encabezado-gestion-areas,
+  .pagina-administracion > .etiqueta-fase {
+    width: min(40rem, 100%);
+    margin-right: auto;
+    margin-left: auto;
+  }
+
+  .disposicion-modulo-administracion {
+    grid-template-columns: 1fr;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .menu-lateral-administracion {
+    position: static;
+    width: min(32rem, 100%);
+    min-height: 0;
+    margin-top: 0;
+    margin-inline: auto;
+    border: 1px solid #cbd5cf;
+  }
+
+  .pagina-administracion-usuarios .menu-lateral-administracion {
+    margin-top: 0;
+  }
+
+  .contenido-modulo-administracion {
+    padding: 0;
+  }
+
   .rejilla-categorias-administracion,
   .filtros-administracion,
   .formulario-imagen,
@@ -1499,13 +1989,18 @@ button:disabled {
     grid-template-columns: 1fr;
   }
 
-  .formulario-categoria-publicacion label[for="codigoCategoria"],
-  .formulario-categoria-publicacion #codigoCategoria,
+  .campo-formulario-evento {
+    grid-template-columns: 1fr;
+  }
+
+  .campo-formulario-evento > * {
+    grid-column: 1;
+  }
+
   .formulario-categoria-publicacion label[for="nombreCategoria"],
   .formulario-categoria-publicacion #nombreCategoria,
   .formulario-categoria-publicacion label[for="ordenCategoria"],
-  .formulario-categoria-publicacion #ordenCategoria,
-  .formulario-categoria-publicacion > .control-casilla {
+  .formulario-categoria-publicacion #ordenCategoria {
     grid-column: 1;
     grid-row: auto;
   }
@@ -1526,12 +2021,12 @@ button:disabled {
     min-height: 22rem;
   }
 
-  .selector-horario-dias {
+  .selector-horario-controles {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .selector-horario-horas {
-    grid-template-columns: 1fr;
+  .selector-horario-controles button {
+    width: fit-content;
   }
 
   .panel-listado-areas .filtros-administracion {
@@ -1553,8 +2048,221 @@ button:disabled {
 }
 
 @media (max-width: 36rem) {
+  .selector-horario-controles {
+    grid-template-columns: 1fr;
+  }
+
   .pagina-administracion-areas .lista-areas-administracion {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Listado compacto de áreas y detalle desplegado sin abandonar el listado. */
+.contenido-modulo-administracion > .panel-listado-areas {
+  order: 1;
+  width: 100%;
+  min-height: 0;
+  padding: 1rem;
+}
+
+.contenido-modulo-administracion > .detalle-area-seleccionada {
+  order: 2;
+  width: 100%;
+  grid-template-columns: 1fr;
+}
+
+.panel-listado-areas .cabecera-panel-administracion h2,
+.panel-listado-areas .cabecera-panel-administracion p {
+  margin-block: 0;
+}
+
+.panel-listado-areas .cabecera-panel-administracion p {
+  margin-top: 0.3rem;
+}
+
+.panel-listado-areas .filtros-administracion {
+  grid-template-columns: minmax(10rem, 1.4fr) repeat(2, minmax(8rem, 1fr)) auto;
+  gap: 0.55rem;
+  margin-block: 0.8rem;
+}
+
+.panel-listado-areas .filtros-administracion label:first-child,
+.panel-listado-areas .filtros-administracion button {
+  grid-column: auto;
+}
+
+.panel-listado-areas .filtros-administracion input,
+.panel-listado-areas .filtros-administracion select,
+.panel-listado-areas .filtros-administracion button {
+  min-height: 2.35rem;
+  padding: 0.4rem 0.55rem;
+}
+
+.cabecera-listado-areas,
+.pagina-administracion-areas .lista-areas-administracion > button {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(8rem, 0.8fr) minmax(7rem, 0.6fr);
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cabecera-listado-areas {
+  padding: 0.45rem 0.7rem;
+  border: 1px solid #c7d0ca;
+  border-bottom: 0;
+  background: #e9eeeb;
+  color: #29483c;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.pagina-administracion-areas .lista-areas-administracion {
+  grid-template-columns: 1fr;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid #c7d0ca;
+}
+
+.pagina-administracion-areas .lista-areas-administracion > button {
+  min-height: 3rem;
+  padding: 0.45rem 0.7rem;
+  border: 0;
+  border-bottom: 1px solid #d8dfdb;
+  border-radius: 0;
+}
+
+.pagina-administracion-areas .lista-areas-administracion > button:last-child {
+  border-bottom: 0;
+}
+
+.pagina-administracion-areas .lista-areas-administracion > button.seleccionado {
+  box-shadow: inset 4px 0 #0d5a45;
+}
+
+.pagina-administracion-areas .lista-areas-administracion > button span,
+.pagina-administracion-areas .lista-areas-administracion > button span:last-child {
+  justify-items: start;
+  gap: 0.1rem;
+}
+
+.pagina-administracion-areas .lista-areas-administracion .etiqueta-estado {
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.detalle-area-seleccionada > .panel-detalle-area {
+  width: 100%;
+  margin-top: 0;
+  padding: 1rem;
+}
+
+.panel-detalle-area > h2 {
+  margin: 0;
+}
+
+.panel-detalle-area .formulario-area {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.55rem 0.65rem;
+  margin-top: 0.75rem;
+}
+
+.panel-detalle-area .formulario-administracion input,
+.panel-detalle-area .formulario-administracion select,
+.panel-detalle-area .formulario-administracion button,
+.panel-detalle-area .gestion-imagen-area button {
+  min-height: 2.35rem;
+  padding: 0.4rem 0.55rem;
+}
+
+.panel-detalle-area .formulario-administracion textarea {
+  min-height: 4rem;
+  padding: 0.5rem 0.6rem;
+}
+
+.panel-detalle-area .editor-perimetro-mapa {
+  min-height: 18rem;
+}
+
+.panel-detalle-area .gestion-imagen-area {
+  margin-top: 0.8rem;
+  padding-top: 0.8rem;
+}
+
+.editor-perimetro-instrucciones .acciones-publicacion > button {
+  width: auto;
+  min-height: 2rem;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.78rem;
+  line-height: 1.15;
+  white-space: nowrap;
+}
+
+/* Botones compactos y uniformes en todos los módulos administrativos. */
+.pagina-administracion button,
+.pagina-administracion .boton-secundario,
+.pagina-administracion .enlace-principal {
+  min-height: 2.15rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 0.3rem;
+  font-size: 0.8rem;
+  line-height: 1.15;
+}
+
+.pagina-administracion .enlace-principal {
+  margin-top: 0;
+}
+
+.pagina-administracion .boton-tabla {
+  min-height: 2.15rem !important;
+}
+
+.pagina-administracion input[type="file"]::file-selector-button {
+  min-height: 1.9rem;
+  padding: 0.25rem 0.45rem;
+  font-size: 0.76rem;
+}
+
+.pagina-administracion .menu-lateral-administracion button,
+.pagina-administracion .menu-lateral-administracion .boton-secundario {
+  min-height: 2.55rem;
+  padding: 0.55rem 0.8rem;
+  font-size: 0.82rem;
+}
+
+.pagina-administracion .menu-lateral-administracion .boton-gestion-activo {
+  padding-left: calc(0.8rem - 4px);
+}
+
+@media (max-width: 70rem) {
+  .contenido-modulo-administracion > .panel-listado-areas,
+  .contenido-modulo-administracion > .detalle-area-seleccionada,
+  .detalle-area-seleccionada > .panel-detalle-area {
+    width: 100%;
+  }
+
+  .panel-detalle-area .formulario-area {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 55rem) {
+  .panel-listado-areas .filtros-administracion,
+  .panel-detalle-area .formulario-area {
+    grid-template-columns: 1fr;
+  }
+
+  .panel-listado-areas .filtros-administracion label:first-child,
+  .panel-listado-areas .filtros-administracion button {
+    grid-column: 1;
+  }
+
+  .cabecera-listado-areas {
+    display: none;
+  }
+
+  .pagina-administracion-areas .lista-areas-administracion > button {
+    grid-template-columns: 1fr;
+    gap: 0.25rem;
   }
 }
 
@@ -1656,6 +2364,280 @@ th {
   *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Densidad común de formularios, listados y detalles administrativos. */
+.contenido-modulo-administracion > .panel-edicion,
+.contenido-modulo-administracion .panel-detalle-administracion {
+  min-height: 0;
+  padding: 1rem;
+}
+
+.contenido-modulo-administracion .panel-edicion h2,
+.contenido-modulo-administracion .panel-edicion h3 {
+  margin-top: 0;
+}
+
+.pagina-administracion .formulario-administracion,
+.pagina-administracion .formulario-administracion-usuarios {
+  gap: 0.55rem;
+}
+
+.pagina-administracion .formulario-administracion > button,
+.pagina-administracion .formulario-administracion-usuarios > button {
+  width: fit-content;
+  justify-self: start;
+}
+
+.pagina-administracion .formulario-administracion input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.pagina-administracion .formulario-administracion select,
+.pagina-administracion .filtros-administracion input,
+.pagina-administracion .filtros-administracion select,
+.pagina-administracion .formulario-imagen input:not([type="file"]),
+.pagina-administracion .formulario-administracion-usuarios input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.pagina-administracion .busqueda-usuarios input {
+  min-height: 2.2rem;
+  padding: 0.38rem 0.55rem;
+  border-radius: 0.3rem;
+  font-size: 0.82rem;
+}
+
+.pagina-administracion .formulario-administracion textarea,
+.pagina-administracion .formulario-administracion textarea.contenido-extenso,
+.pagina-administracion .formulario-institucional textarea {
+  field-sizing: content;
+  min-height: 3.2rem;
+  max-height: 24rem;
+  padding: 0.48rem 0.58rem;
+  overflow-y: auto;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  resize: vertical;
+}
+
+.pagina-administracion .formulario-administracion label,
+.pagina-administracion .filtros-administracion label,
+.pagina-administracion .formulario-imagen label,
+.pagina-administracion .formulario-administracion-usuarios label,
+.pagina-administracion .formulario-administracion-usuarios legend {
+  font-size: 0.78rem;
+}
+
+.pagina-administracion .filtros-administracion {
+  gap: 0.55rem;
+  margin-block: 0.8rem;
+}
+
+.pagina-auditoria .filtros-auditoria {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: 0.85rem;
+  row-gap: 0.6rem;
+}
+
+.pagina-auditoria .filtros-auditoria > label,
+.pagina-auditoria .filtros-auditoria input,
+.pagina-auditoria .filtros-auditoria select {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.pagina-auditoria .filtros-auditoria > button {
+  width: 100%;
+  justify-self: stretch;
+}
+
+.pagina-administracion .busqueda-usuarios {
+  margin: 0.8rem 0;
+}
+
+.pagina-administracion .busqueda-usuarios div {
+  gap: 0.5rem;
+  margin-top: 0.3rem;
+}
+
+.pagina-administracion .selector-administracion,
+.pagina-administracion .formulario-cambio-estado,
+.pagina-administracion .gestion-imagen-evento,
+.pagina-administracion .panel-imagenes-publicacion {
+  padding: 0.8rem;
+}
+
+.pagina-administracion .lista-seleccion-administracion,
+.pagina-administracion .grupos-permisos-administracion,
+.pagina-administracion .lista-roles {
+  gap: 0.5rem;
+}
+
+.pagina-administracion .lista-seleccion-administracion label,
+.pagina-administracion .lista-roles label {
+  padding: 0.55rem;
+}
+
+.pagina-administracion th,
+.pagina-administracion td {
+  padding: 0.5rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.pagina-administracion tr.fila-seleccionada td {
+  background: #edf7f2;
+}
+
+.pagina-administracion tr.fila-seleccionada td:first-child {
+  box-shadow: inset 4px 0 #0d5a45;
+}
+
+.panel-listado-administracion .cabecera-panel-administracion h2,
+.panel-listado-administracion .cabecera-panel-administracion p {
+  margin-block: 0;
+}
+
+.panel-listado-administracion .cabecera-panel-administracion p {
+  margin-top: 0.25rem;
+}
+
+.cabecera-listado-administracion,
+.lista-tabular-administracion > button {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(8rem, 0.85fr) minmax(8rem, 0.75fr);
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.cabecera-listado-administracion {
+  padding: 0.42rem 0.65rem;
+  border: 1px solid #c7d0ca;
+  border-bottom: 0;
+  background: #e9eeeb;
+  color: #29483c;
+  font-size: 0.76rem;
+  font-weight: 750;
+}
+
+.cabecera-listado-categorias,
+.lista-tabular-categorias > button {
+  grid-template-columns: minmax(4rem, 0.35fr) minmax(0, 1.4fr);
+}
+
+.lista-tabular-administracion {
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid #c7d0ca;
+}
+
+.lista-tabular-administracion > button,
+.lista-categorias-administracion.lista-tabular-administracion > button {
+  min-height: 2.65rem;
+  padding: 0.42rem 0.65rem;
+  border: 0;
+  border-bottom: 1px solid #d8dfdb;
+  border-radius: 0;
+  font-size: 0.8rem;
+}
+
+.lista-tabular-administracion > button:last-of-type {
+  border-bottom: 0;
+}
+
+.lista-tabular-administracion > button.seleccionado {
+  background: #edf7f2;
+  box-shadow: inset 4px 0 #0d5a45;
+}
+
+.lista-tabular-administracion > button span,
+.lista-tabular-administracion > button span:last-child {
+  justify-items: start;
+}
+
+.panel-categorias-publicaciones .rejilla-categorias-administracion {
+  grid-template-columns: 1fr;
+  gap: 0.8rem;
+}
+
+.panel-categorias-publicaciones .formulario-categoria-publicacion {
+  width: min(48rem, 100%);
+}
+
+.pagina-administracion-publicaciones .contenido-modulo-administracion > .panel-listado-administracion {
+  order: 1;
+}
+
+.pagina-administracion-publicaciones .contenido-modulo-administracion > .panel-detalle-administracion {
+  order: 2;
+}
+
+.pagina-administracion-publicaciones .formulario-publicacion {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  column-gap: 0.7rem;
+}
+
+.pagina-administracion-publicaciones .formulario-publicacion label[for="categoriaPublicacion"] {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.pagina-administracion-publicaciones .formulario-publicacion #categoriaPublicacion {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.pagina-administracion-publicaciones .formulario-publicacion label[for="tituloPublicacion"] {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.pagina-administracion-publicaciones .formulario-publicacion #tituloPublicacion {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.pagina-administracion-publicaciones .formulario-publicacion label[for="resumenPublicacion"],
+.pagina-administracion-publicaciones .formulario-publicacion #resumenPublicacion,
+.pagina-administracion-publicaciones .formulario-publicacion label[for="contenidoPublicacion"],
+.pagina-administracion-publicaciones .formulario-publicacion #contenidoPublicacion,
+.pagina-administracion-publicaciones .formulario-publicacion .ayuda-area-texto-autoexpandible,
+.pagina-administracion-publicaciones .formulario-publicacion .acciones-publicacion {
+  grid-column: 1 / -1;
+}
+
+.pagina-administracion-publicaciones .formulario-publicacion textarea.area-texto-autoexpandible {
+  field-sizing: content;
+  height: auto;
+  max-height: none;
+  overflow-y: hidden;
+  resize: none;
+}
+
+.ayuda-area-texto-autoexpandible {
+  margin: -0.1rem 0 0.2rem;
+  color: #52645d;
+  font-size: 0.76rem;
+}
+
+.pagina-administracion-publicaciones .formulario-publicacion label[for="fechaEditorial"],
+.pagina-administracion-publicaciones .formulario-publicacion #fechaEditorial {
+  grid-column: 1;
+}
+
+@media (max-width: 55rem) {
+  .pagina-auditoria .filtros-auditoria {
+    grid-template-columns: 1fr;
+  }
+
+  .cabecera-listado-administracion {
+    display: none;
+  }
+
+  .lista-tabular-administracion > button,
+  .pagina-administracion-publicaciones .formulario-publicacion {
+    grid-template-columns: 1fr;
+  }
+
+  .pagina-administracion-publicaciones .formulario-publicacion > * {
+    grid-column: 1 !important;
+    grid-row: auto !important;
   }
 }
 

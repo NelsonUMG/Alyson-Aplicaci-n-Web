@@ -88,4 +88,6 @@ public interface RepositorioPublicacion extends JpaRepository<Publicacion, Long>
     Optional<Publicacion> buscarAdministradaPorId(@Param("idPublicacion") Long idPublicacion);
 
     boolean existsByIdentificadorUrl(String identificadorUrl);
+
+    boolean existsByCategoria_IdCategoriaPublicacion(Long idCategoriaPublicacion);
 }

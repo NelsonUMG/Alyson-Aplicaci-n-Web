@@ -19,6 +19,7 @@ import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaDetalleEvent
 import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaDetallePublicacion;
 import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaEventoPublico;
 import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaImagenPublica;
+import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaImagenEventoPublica;
 import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaPaginaPublica;
 import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaPublicacionPublica;
 import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaRequisitoEvento;
@@ -26,12 +27,14 @@ import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaResumenBicic
 import gt.gob.parqueerickbarrondo.portalpublico.dominio.Area;
 import gt.gob.parqueerickbarrondo.portalpublico.dominio.Evento;
 import gt.gob.parqueerickbarrondo.portalpublico.dominio.ImagenPublicacion;
+import gt.gob.parqueerickbarrondo.portalpublico.dominio.ImagenEvento;
 import gt.gob.parqueerickbarrondo.portalpublico.dominio.Publicacion;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioArea;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioBicicleta;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioCategoriaPublicacion;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioEvento;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioImagenPublicacion;
+import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioImagenEvento;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioPublicacion;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -51,6 +54,7 @@ public class ServicioPortalPublico {
     private final RepositorioArea repositorioArea;
     private final RepositorioBicicleta repositorioBicicleta;
     private final RepositorioImagenPublicacion repositorioImagenPublicacion;
+    private final RepositorioImagenEvento repositorioImagenEvento;
 
     public ServicioPortalPublico(
             RepositorioPublicacion repositorioPublicacion,
@@ -58,13 +62,15 @@ public class ServicioPortalPublico {
             RepositorioEvento repositorioEvento,
             RepositorioArea repositorioArea,
             RepositorioBicicleta repositorioBicicleta,
-            RepositorioImagenPublicacion repositorioImagenPublicacion) {
+            RepositorioImagenPublicacion repositorioImagenPublicacion,
+            RepositorioImagenEvento repositorioImagenEvento) {
         this.repositorioPublicacion = repositorioPublicacion;
         this.repositorioCategoriaPublicacion = repositorioCategoriaPublicacion;
         this.repositorioEvento = repositorioEvento;
         this.repositorioArea = repositorioArea;
         this.repositorioBicicleta = repositorioBicicleta;
         this.repositorioImagenPublicacion = repositorioImagenPublicacion;
+        this.repositorioImagenEvento = repositorioImagenEvento;
     }
 
     @Transactional(readOnly = true)
@@ -167,7 +173,13 @@ public class ServicioPortalPublico {
                 evento.obtenerEstado(),
                 requisitos,
                 evento.obtenerEsquemaFormularioJson(),
-                obtenerUrlImagenEvento(evento));
+                obtenerUrlImagenEvento(evento),
+                repositorioImagenEvento
+                        .findAllByEvento_IdEventoOrderByOrdenVisualizacionAscIdImagenEventoAsc(
+                                evento.obtenerIdEvento())
+                        .stream()
+                        .map(imagen -> convertirImagenEvento(evento, imagen))
+                        .toList());
     }
 
     @Transactional(readOnly = true)
@@ -252,6 +264,15 @@ public class ServicioPortalPublico {
         return evento.obtenerClaveImagen() == null
                 ? null
                 : "/api/v1/publico/eventos/" + evento.obtenerIdentificadorUrl() + "/imagen";
+    }
+
+    private RespuestaImagenEventoPublica convertirImagenEvento(Evento evento, ImagenEvento imagen) {
+        return new RespuestaImagenEventoPublica(
+                imagen.obtenerIdImagenEvento(),
+                "/api/v1/publico/eventos/imagenes-secundarias/" + imagen.obtenerIdImagenEvento(),
+                evento.obtenerTitulo() + ", imagen secundaria " + imagen.obtenerOrdenVisualizacion(),
+                imagen.obtenerAnchoPixeles(),
+                imagen.obtenerAltoPixeles());
     }
 
     private RespuestaAreaPublica convertirArea(Area area) {

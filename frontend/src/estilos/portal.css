@@ -1775,6 +1775,23 @@
   object-fit: cover;
 }
 
+.portal-galeria-evento {
+  margin-top: 2rem;
+}
+
+.portal-galeria-evento > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  gap: 1rem;
+}
+
+.portal-galeria-evento img {
+  width: 100%;
+  height: 16rem;
+  border-radius: 0;
+  object-fit: cover;
+}
+
 .portal-imagen-evento {
   max-height: 30rem;
   margin-bottom: 1.5rem;
@@ -1789,7 +1806,7 @@
   margin-top: 2rem;
   padding: clamp(1.2rem, 3vw, 2rem);
   border: 1px solid var(--portal-linea);
-  border-radius: 0.55rem;
+  border-radius: 0;
   background: var(--portal-verde-100);
 }
 
@@ -1804,16 +1821,28 @@
 }
 
 .portal-formulario-inscripcion label {
-  display: flex;
-  align-items: flex-start;
-  gap: 0.65rem;
+  display: grid;
+  gap: 0.35rem;
   line-height: 1.5;
 }
 
-.portal-formulario-inscripcion input {
-  width: 1.2rem;
-  height: 1.2rem;
-  margin-top: 0.15rem;
+.portal-formulario-inscripcion input,
+.portal-formulario-inscripcion select,
+.portal-formulario-inscripcion textarea {
+  width: 100%;
+  min-height: 2.7rem;
+  padding: 0.6rem;
+  border: 1px solid var(--portal-linea);
+  border-radius: 0;
+  background: #fff;
+  color: var(--portal-tinta);
+  font: inherit;
+  font-weight: 400;
+}
+
+.portal-formulario-inscripcion textarea {
+  min-height: 7rem;
+  resize: vertical;
 }
 
 .portal-formulario-inscripcion button,
@@ -1821,7 +1850,7 @@
   width: fit-content;
   padding: 0.75rem 1rem;
   border: 0;
-  border-radius: 0.35rem;
+  border-radius: 0;
   background: var(--portal-verde-800);
   color: #fff;
   font: inherit;

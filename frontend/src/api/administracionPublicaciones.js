@@ -89,6 +89,14 @@ export async function eliminarPublicacion(idPublicacion, version) {
   });
 }
 
+export async function eliminarCategoria(idCategoria, version) {
+  await prepararCsrf();
+  return solicitarApi(`/administracion/categorias-publicaciones/${idCategoria}`, {
+    method: "DELETE",
+    body: JSON.stringify({ version }),
+  });
+}
+
 export function listarImagenesPublicacion(idPublicacion) {
   return solicitarApi(`/administracion/publicaciones/${idPublicacion}/imagenes`);
 }

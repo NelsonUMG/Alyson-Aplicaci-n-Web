@@ -9,6 +9,7 @@ import java.util.UUID;
 
 import gt.gob.parqueerickbarrondo.compartido.observabilidad.IdentificadorCorrelacion;
 import gt.gob.parqueerickbarrondo.eventos.api.modelo.RespuestaEventoAdministrado;
+import gt.gob.parqueerickbarrondo.eventos.api.modelo.RespuestaImagenEventoAdministrada;
 import gt.gob.parqueerickbarrondo.eventos.api.modelo.RespuestaInscripcionAdministrada;
 import gt.gob.parqueerickbarrondo.eventos.api.modelo.RespuestaRequisitoEventoAdministrado;
 import gt.gob.parqueerickbarrondo.eventos.api.modelo.SolicitudEvento;
@@ -22,8 +23,10 @@ import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.Reposit
 import gt.gob.parqueerickbarrondo.identidad.seguridad.UsuarioSesion;
 import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaPaginaPublica;
 import gt.gob.parqueerickbarrondo.portalpublico.dominio.Evento;
+import gt.gob.parqueerickbarrondo.portalpublico.dominio.ImagenEvento;
 import gt.gob.parqueerickbarrondo.portalpublico.dominio.RequisitoEvento;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioEvento;
+import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioImagenEvento;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -40,8 +43,10 @@ public class ServicioAdministracionEventos {
 
     private static final Set<String> ESTADOS_VALIDOS = Set.of(
             "BORRADOR", "PUBLICADO", "CERRADO", "CANCELADO", "FINALIZADO");
+    private static final int MAXIMO_IMAGENES_SECUNDARIAS = 8;
 
     private final RepositorioEvento repositorioEvento;
+    private final RepositorioImagenEvento repositorioImagenEvento;
     private final RepositorioInscripcionEvento repositorioInscripcion;
     private final RepositorioUsuario repositorioUsuario;
     private final ServicioAuditoria servicioAuditoria;
@@ -50,12 +55,14 @@ public class ServicioAdministracionEventos {
 
     public ServicioAdministracionEventos(
             RepositorioEvento repositorioEvento,
+            RepositorioImagenEvento repositorioImagenEvento,
             RepositorioInscripcionEvento repositorioInscripcion,
             RepositorioUsuario repositorioUsuario,
             ServicioAuditoria servicioAuditoria,
             ServicioAlmacenamientoImagenesEvento servicioAlmacenamiento,
             ObjectMapper serializadorJson) {
         this.repositorioEvento = repositorioEvento;
+        this.repositorioImagenEvento = repositorioImagenEvento;
         this.repositorioInscripcion = repositorioInscripcion;
         this.repositorioUsuario = repositorioUsuario;
         this.servicioAuditoria = servicioAuditoria;
@@ -245,6 +252,67 @@ public class ServicioAdministracionEventos {
         return servicioAlmacenamiento.cargar(evento.obtenerClaveImagen());
     }
 
+    @PreAuthorize("hasAuthority('EVENTOLEER')")
+    @Transactional(readOnly = true)
+    public List<RespuestaImagenEventoAdministrada> listarImagenesSecundarias(Long idEvento) {
+        buscarEvento(idEvento);
+        return repositorioImagenEvento
+                .findAllByEvento_IdEventoOrderByOrdenVisualizacionAscIdImagenEventoAsc(idEvento)
+                .stream().map(imagen -> convertirImagenSecundaria(idEvento, imagen)).toList();
+    }
+
+    @PreAuthorize("hasAuthority('EVENTOACTUALIZAR')")
+    @Transactional
+    public RespuestaImagenEventoAdministrada agregarImagenSecundaria(
+            Long idEvento, MultipartFile archivo, UsuarioSesion actor) {
+        var evento = buscarEvento(idEvento);
+        validarEditable(evento);
+        var cantidad = repositorioImagenEvento.countByEvento_IdEvento(idEvento);
+        if (cantidad >= MAXIMO_IMAGENES_SECUNDARIAS) {
+            throw new SolicitudInvalidaException(
+                    "Cada evento puede tener hasta 8 imágenes secundarias.");
+        }
+        var almacenada = servicioAlmacenamiento.guardar(archivo);
+        eliminarArchivoSiTransaccionFalla(almacenada.claveAlmacenamiento());
+        var siguienteOrden = repositorioImagenEvento
+                .findTopByEvento_IdEventoOrderByOrdenVisualizacionDescIdImagenEventoDesc(idEvento)
+                .map(imagen -> imagen.obtenerOrdenVisualizacion() + 1)
+                .orElse(1);
+        var imagen = new ImagenEvento(
+                evento,
+                almacenada.claveAlmacenamiento(),
+                almacenada.nombreArchivoOriginal(),
+                almacenada.tipoMedio(),
+                almacenada.tamanoBytes(),
+                almacenada.anchoPixeles(),
+                almacenada.altoPixeles(),
+                siguienteOrden.shortValue());
+        imagen = repositorioImagenEvento.saveAndFlush(imagen);
+        auditar(actor, "IMAGENEVENTOSECUNDARIAAGREGADA", idEvento);
+        return convertirImagenSecundaria(idEvento, imagen);
+    }
+
+    @PreAuthorize("hasAuthority('EVENTOLEER')")
+    @Transactional(readOnly = true)
+    public ArchivoImagenEvento cargarImagenSecundaria(Long idEvento, Long idImagenEvento) {
+        buscarEvento(idEvento);
+        var imagen = buscarImagenSecundaria(idEvento, idImagenEvento);
+        return servicioAlmacenamiento.cargar(imagen.obtenerClaveAlmacenamiento());
+    }
+
+    @PreAuthorize("hasAuthority('EVENTOACTUALIZAR')")
+    @Transactional
+    public void eliminarImagenSecundaria(Long idEvento, Long idImagenEvento, UsuarioSesion actor) {
+        var evento = buscarEvento(idEvento);
+        validarEditable(evento);
+        var imagen = buscarImagenSecundaria(idEvento, idImagenEvento);
+        var clave = imagen.obtenerClaveAlmacenamiento();
+        repositorioImagenEvento.delete(imagen);
+        repositorioImagenEvento.flush();
+        eliminarArchivoAnteriorDespuesDeConfirmar(clave);
+        auditar(actor, "IMAGENEVENTOSECUNDARIAELIMINADA", idEvento);
+    }
+
     @PreAuthorize("hasAuthority('EVENTOGESTIONARINSCRIPCIONES')")
     @Transactional(readOnly = true)
     public RespuestaPaginaPublica<RespuestaInscripcionAdministrada> listarInscripciones(
@@ -284,6 +352,7 @@ public class ServicioAdministracionEventos {
                             inscripcion.obtenerConfirmadaEn(),
                             inscripcion.obtenerCanceladaEn(),
                             inscripcion.obtenerMotivoCancelacion(),
+                            inscripcion.obtenerRespuestasFormularioJson(),
                             inscripcion.obtenerCreadoEn(),
                             inscripcion.obtenerActualizadoEn());
                 }).toList(),
@@ -296,6 +365,25 @@ public class ServicioAdministracionEventos {
     private Evento buscarEvento(Long idEvento) {
         return repositorioEvento.buscarAdministradoPorId(idEvento)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el evento solicitado."));
+    }
+
+    private ImagenEvento buscarImagenSecundaria(Long idEvento, Long idImagenEvento) {
+        return repositorioImagenEvento
+                .findByIdImagenEventoAndEvento_IdEvento(idImagenEvento, idEvento)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró la imagen secundaria solicitada."));
+    }
+
+    private RespuestaImagenEventoAdministrada convertirImagenSecundaria(
+            Long idEvento, ImagenEvento imagen) {
+        return new RespuestaImagenEventoAdministrada(
+                imagen.obtenerIdImagenEvento(),
+                imagen.obtenerNombreArchivoOriginal(),
+                "/api/v1/administracion/eventos/" + idEvento
+                        + "/imagenes-secundarias/" + imagen.obtenerIdImagenEvento() + "/archivo",
+                imagen.obtenerAnchoPixeles(),
+                imagen.obtenerAltoPixeles(),
+                imagen.obtenerOrdenVisualizacion());
     }
 
     private void reemplazarRequisitos(Evento evento, List<SolicitudRequisitoEvento> solicitudes) {

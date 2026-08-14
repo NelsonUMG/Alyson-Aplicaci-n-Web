@@ -13,26 +13,16 @@ const diasSemana = [
 const nombresDias = Object.fromEntries(diasSemana);
 
 function horarioVacio() {
-  return { dias: [], abre: "", cierra: "" };
+  return { dia: "", abre: "", cierra: "" };
 }
 
 export function SelectorHorarioArea({ periodos = [], alCambiar, formatoAnterior = false }) {
   const [nuevoHorario, establecerNuevoHorario] = useState(horarioVacio);
   const [error, establecerError] = useState("");
 
-  function alternarDia(dia) {
-    establecerNuevoHorario((actual) => ({
-      ...actual,
-      dias: actual.dias.includes(dia)
-        ? actual.dias.filter((valor) => valor !== dia)
-        : [...actual.dias, dia],
-    }));
-    establecerError("");
-  }
-
   function agregarHorario() {
-    if (nuevoHorario.dias.length === 0) {
-      establecerError("Selecciona al menos un día.");
+    if (!nuevoHorario.dia) {
+      establecerError("Selecciona un día.");
       return;
     }
     if (!nuevoHorario.abre || !nuevoHorario.cierra) {
@@ -43,7 +33,11 @@ export function SelectorHorarioArea({ periodos = [], alCambiar, formatoAnterior 
       establecerError("La hora de cierre debe ser posterior a la hora de apertura.");
       return;
     }
-    alCambiar([...periodos, { ...nuevoHorario }]);
+    alCambiar([...periodos, {
+      dias: [nuevoHorario.dia],
+      abre: nuevoHorario.abre,
+      cierra: nuevoHorario.cierra,
+    }]);
     establecerNuevoHorario(horarioVacio());
     establecerError("");
   }
@@ -51,25 +45,26 @@ export function SelectorHorarioArea({ periodos = [], alCambiar, formatoAnterior 
   return (
     <fieldset className="selector-horario-area">
       <legend>Horario del área</legend>
-      <p>Selecciona los días y las horas. Puedes agregar varios horarios si cambian durante la semana.</p>
+      <p>Selecciona un día y las horas. Agrega otra fila si el horario cambia durante la semana.</p>
       {formatoAnterior && periodos.length === 0 && (
         <p className="mensaje-advertencia">
           El horario guardado usa un formato anterior. Al agregar uno nuevo será reemplazado.
         </p>
       )}
-      <div className="selector-horario-dias" aria-label="Días del horario">
-        {diasSemana.map(([valor, etiqueta]) => (
-          <label key={valor}>
-            <input
-              type="checkbox"
-              checked={nuevoHorario.dias.includes(valor)}
-              onChange={() => alternarDia(valor)}
-            />
-            {etiqueta}
-          </label>
-        ))}
-      </div>
-      <div className="selector-horario-horas">
+      <div className="selector-horario-controles">
+        <label>
+          Día
+          <select
+            value={nuevoHorario.dia}
+            onChange={(evento) => {
+              establecerNuevoHorario({ ...nuevoHorario, dia: evento.target.value });
+              establecerError("");
+            }}
+          >
+            <option value="">Selecciona un día</option>
+            {diasSemana.map(([valor, etiqueta]) => <option key={valor} value={valor}>{etiqueta}</option>)}
+          </select>
+        </label>
         <label>
           Hora de apertura
           <input

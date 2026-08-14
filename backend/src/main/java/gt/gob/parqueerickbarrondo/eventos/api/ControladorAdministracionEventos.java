@@ -2,6 +2,8 @@ package gt.gob.parqueerickbarrondo.eventos.api;
 
 import gt.gob.parqueerickbarrondo.eventos.api.modelo.RespuestaEventoAdministrado;
 import gt.gob.parqueerickbarrondo.eventos.api.modelo.RespuestaInscripcionAdministrada;
+import gt.gob.parqueerickbarrondo.eventos.api.modelo.RespuestaImagenEventoAdministrada;
+import java.util.List;
 import gt.gob.parqueerickbarrondo.eventos.api.modelo.SolicitudEvento;
 import gt.gob.parqueerickbarrondo.eventos.api.modelo.SolicitudVersionEvento;
 import gt.gob.parqueerickbarrondo.eventos.aplicacion.ServicioAdministracionEventos;
@@ -124,6 +126,42 @@ public class ControladorAdministracionEventos {
             @PathVariable Long idEvento,
             @AuthenticationPrincipal UsuarioSesion actor) {
         return servicioAdministracion.eliminarImagen(idEvento, actor);
+    }
+
+    @GetMapping("/{idEvento}/imagenes-secundarias")
+    public List<RespuestaImagenEventoAdministrada> listarImagenesSecundarias(
+            @PathVariable Long idEvento) {
+        return servicioAdministracion.listarImagenesSecundarias(idEvento);
+    }
+
+    @GetMapping("/{idEvento}/imagenes-secundarias/{idImagenEvento}/archivo")
+    public ResponseEntity<Resource> consultarImagenSecundaria(
+            @PathVariable Long idEvento,
+            @PathVariable Long idImagenEvento) {
+        var imagen = servicioAdministracion.cargarImagenSecundaria(idEvento, idImagenEvento);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(imagen.tipoMedio()))
+                .contentLength(imagen.tamanoBytes())
+                .cacheControl(CacheControl.noCache())
+                .body(imagen.recurso());
+    }
+
+    @PostMapping(value = "/{idEvento}/imagenes-secundarias", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public RespuestaImagenEventoAdministrada agregarImagenSecundaria(
+            @PathVariable Long idEvento,
+            @RequestParam MultipartFile archivo,
+            @AuthenticationPrincipal UsuarioSesion actor) {
+        return servicioAdministracion.agregarImagenSecundaria(idEvento, archivo, actor);
+    }
+
+    @DeleteMapping("/{idEvento}/imagenes-secundarias/{idImagenEvento}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminarImagenSecundaria(
+            @PathVariable Long idEvento,
+            @PathVariable Long idImagenEvento,
+            @AuthenticationPrincipal UsuarioSesion actor) {
+        servicioAdministracion.eliminarImagenSecundaria(idEvento, idImagenEvento, actor);
     }
 
     @GetMapping("/{idEvento}/inscripciones")

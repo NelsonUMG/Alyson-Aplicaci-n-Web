@@ -16,12 +16,44 @@ const formatoFecha = new Intl.DateTimeFormat("es-GT", {
   timeZone: "America/Guatemala",
 });
 
+function interpretarRequisitos(esquemaFormularioJson) {
+  if (!esquemaFormularioJson) return [];
+  try {
+    const esquema = JSON.parse(esquemaFormularioJson);
+    return Array.isArray(esquema.campos) ? esquema.campos : [];
+  } catch {
+    return [];
+  }
+}
+
+function CampoRequisito({ campo, valor, alCambiar }) {
+  const propiedades = {
+    id: `requisito-${campo.id}`,
+    required: campo.obligatorio,
+    value: valor ?? "",
+    onChange: (evento) => alCambiar(campo.id, evento.target.value),
+  };
+  if (campo.tipo === "TEXTO_LARGO") return <textarea {...propiedades} rows="4" maxLength="5000" />;
+  if (campo.tipo === "FECHA") return <input {...propiedades} type="date" />;
+  if (campo.tipo === "NUMERO") return <input {...propiedades} type="number" step="any" />;
+  if (campo.tipo === "DPI_CUI") {
+    return <input {...propiedades} type="text" inputMode="numeric" pattern="[0-9]{13}" maxLength="13" title="Ingresa exactamente los 13 números del DPI o CUI." />;
+  }
+  if (campo.tipo === "SI_NO") {
+    return <select {...propiedades}><option value="">Selecciona</option><option value="true">Sí</option><option value="false">No</option></select>;
+  }
+  if (campo.tipo === "SELECCION_UNICA") {
+    return <select {...propiedades}><option value="">Selecciona</option>{(campo.opciones || []).map((opcion) => <option key={opcion} value={opcion}>{opcion}</option>)}</select>;
+  }
+  return <input {...propiedades} type="text" maxLength="500" />;
+}
+
 export function PaginaDetalleEvento() {
   const { identificadorUrl } = useParams();
   const { usuario, cargando: cargandoSesion } = usarSesion();
   const [evento, establecerEvento] = useState(null);
   const [inscripcion, establecerInscripcion] = useState(null);
-  const [aceptaRequisitos, establecerAceptaRequisitos] = useState(false);
+  const [respuestasRequisitos, establecerRespuestasRequisitos] = useState({});
   const [motivoCancelacion, establecerMotivoCancelacion] = useState("");
   const [claveIdempotencia, establecerClaveIdempotencia] = useState(() => window.crypto.randomUUID());
   const [operacion, establecerOperacion] = useState({ procesando: false, error: "", mensaje: "" });
@@ -73,10 +105,11 @@ export function PaginaDetalleEvento() {
     eventoFormulario.preventDefault();
     establecerOperacion({ procesando: true, error: "", mensaje: "" });
     try {
-      const confirmada = await inscribirEnEvento(evento.idEvento, claveIdempotencia);
+      const confirmada = await inscribirEnEvento(evento.idEvento, claveIdempotencia, respuestasRequisitos);
       establecerInscripcion(confirmada);
       establecerEvento((actual) => ({ ...actual, cuposDisponibles: confirmada.cuposDisponibles }));
       establecerClaveIdempotencia(window.crypto.randomUUID());
+      establecerRespuestasRequisitos({});
       establecerOperacion({ procesando: false, error: "", mensaje: "Tu inscripción quedó confirmada." });
     } catch (errorOperacion) {
       establecerOperacion({ procesando: false, error: errorOperacion.message, mensaje: "" });
@@ -91,12 +124,18 @@ export function PaginaDetalleEvento() {
       establecerInscripcion(cancelada);
       establecerEvento((actual) => ({ ...actual, cuposDisponibles: cancelada.cuposDisponibles }));
       establecerMotivoCancelacion("");
-      establecerAceptaRequisitos(false);
+      establecerRespuestasRequisitos({});
       establecerOperacion({ procesando: false, error: "", mensaje: "La inscripción fue cancelada." });
     } catch (errorOperacion) {
       establecerOperacion({ procesando: false, error: errorOperacion.message, mensaje: "" });
     }
   }
+
+  function actualizarRespuesta(idCampo, valor) {
+    establecerRespuestasRequisitos((actuales) => ({ ...actuales, [idCampo]: valor }));
+  }
+
+  const requisitosFormulario = interpretarRequisitos(evento?.esquemaFormularioJson);
 
   return (
     <>
@@ -117,17 +156,22 @@ export function PaginaDetalleEvento() {
                 <div><dt>Lugar</dt><dd>{evento.lugar || "Información pendiente de actualización"}</dd></div>
                 <div><dt>Cupos disponibles</dt><dd>{evento.cuposDisponibles} de {evento.capacidadTotal}</dd></div>
               </dl>
-              {evento.requisitos.length > 0 && (
-                <div className="portal-requisitos">
-                  <h2>Requisitos</h2>
-                  <ul>
-                    {evento.requisitos.map((requisito) => (
-                      <li key={`${requisito.descripcion}-${requisito.obligatorio}`}>
-                        {requisito.descripcion}{requisito.obligatorio ? " (obligatorio)" : ""}
-                      </li>
+              {evento.imagenesSecundarias?.length > 0 && (
+                <section className="portal-galeria-evento" aria-labelledby="titulo-galeria-evento">
+                  <h2 id="titulo-galeria-evento">Galería del evento</h2>
+                  <div>
+                    {evento.imagenesSecundarias.map((imagen) => (
+                      <img
+                        key={imagen.idImagenEvento}
+                        src={imagen.url}
+                        alt={imagen.descripcionAccesible}
+                        width={imagen.anchoPixeles}
+                        height={imagen.altoPixeles}
+                        loading="lazy"
+                      />
                     ))}
-                  </ul>
-                </div>
+                  </div>
+                </section>
               )}
               <section className="portal-inscripcion-evento" aria-labelledby="titulo-inscripcion-evento">
                 <h2 id="titulo-inscripcion-evento">Inscripción</h2>
@@ -149,8 +193,14 @@ export function PaginaDetalleEvento() {
                 )}
                 {usuario && inscripcion?.estado !== "CONFIRMADA" && inscripcionAbierta && (
                   <form className="portal-formulario-inscripcion" onSubmit={confirmarInscripcion}>
-                    <label><input type="checkbox" checked={aceptaRequisitos} onChange={(eventoCampo) => establecerAceptaRequisitos(eventoCampo.target.checked)} /> Confirmo que revisé y acepto los requisitos de la actividad.</label>
-                    <button type="submit" disabled={!aceptaRequisitos || operacion.procesando}>Confirmar inscripción</button>
+                    {requisitosFormulario.length > 0 && <h3>Requisitos para la inscripción</h3>}
+                    {requisitosFormulario.map((campo) => (
+                      <label key={campo.id} htmlFor={`requisito-${campo.id}`}>
+                        {campo.etiqueta}{campo.obligatorio ? " *" : ""}
+                        <CampoRequisito campo={campo} valor={respuestasRequisitos[campo.id]} alCambiar={actualizarRespuesta} />
+                      </label>
+                    ))}
+                    <button type="submit" disabled={operacion.procesando}>Confirmar inscripción</button>
                   </form>
                 )}
                 {usuario && inscripcion?.estado !== "CONFIRMADA" && !inscripcionAbierta && (

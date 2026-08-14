@@ -1,6 +1,7 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { RutaProtegida } from "../autenticacion/RutaProtegida";
 import { EstructuraPortal } from "../componentes/EstructuraPortal";
+import { EstructuraAdministracion } from "../componentes/EstructuraAdministracion";
 import { PaginaAdministracionUsuarios } from "../paginas/PaginaAdministracionUsuarios";
 import { PaginaAdministracionPublicaciones } from "../paginas/PaginaAdministracionPublicaciones";
 import { PaginaAdministracionEventos } from "../paginas/PaginaAdministracionEventos";
@@ -93,7 +94,7 @@ export const rutasAplicacion = [
     path: "/administracion/auditoria",
     element: (
       <RutaProtegida permiso="REPORTELEER">
-        <PaginaAuditoria />
+        <EstructuraAdministracion><PaginaAuditoria /></EstructuraAdministracion>
       </RutaProtegida>
     ),
   },
@@ -101,7 +102,7 @@ export const rutasAplicacion = [
     path: "/administracion/areas",
     element: (
       <RutaProtegida permiso="AREALEER">
-        <PaginaAdministracionAreas />
+        <EstructuraAdministracion><PaginaAdministracionAreas /></EstructuraAdministracion>
       </RutaProtegida>
     ),
   },
@@ -109,7 +110,7 @@ export const rutasAplicacion = [
     path: "/administracion/bicicletas",
     element: (
       <RutaProtegida permiso="BICICLETALEER">
-        <PaginaAdministracionBicicletas />
+        <EstructuraAdministracion><PaginaAdministracionBicicletas /></EstructuraAdministracion>
       </RutaProtegida>
     ),
   },
@@ -117,7 +118,7 @@ export const rutasAplicacion = [
     path: "/administracion/eventos",
     element: (
       <RutaProtegida permiso="EVENTOLEER">
-        <PaginaAdministracionEventos />
+        <EstructuraAdministracion><PaginaAdministracionEventos /></EstructuraAdministracion>
       </RutaProtegida>
     ),
   },
@@ -125,7 +126,7 @@ export const rutasAplicacion = [
     path: "/administracion/publicaciones",
     element: (
       <RutaProtegida permiso="PUBLICACIONLEER">
-        <PaginaAdministracionPublicaciones />
+        <EstructuraAdministracion><PaginaAdministracionPublicaciones /></EstructuraAdministracion>
       </RutaProtegida>
     ),
   },
@@ -133,7 +134,7 @@ export const rutasAplicacion = [
     path: "/administracion/institucional",
     element: (
       <RutaProtegida permiso="INSTITUCIONALGESTIONAR">
-        <PaginaAdministracionInstitucional />
+        <EstructuraAdministracion><PaginaAdministracionInstitucional /></EstructuraAdministracion>
       </RutaProtegida>
     ),
   },
@@ -141,7 +142,7 @@ export const rutasAplicacion = [
     path: "/administracion/usuarios",
     element: (
       <RutaProtegida permiso="ROLGESTIONAR">
-        <PaginaAdministracionUsuarios />
+        <EstructuraAdministracion><PaginaAdministracionUsuarios /></EstructuraAdministracion>
       </RutaProtegida>
     ),
   },

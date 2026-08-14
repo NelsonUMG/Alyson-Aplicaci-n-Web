@@ -77,15 +77,6 @@ export function PaginaBase() {
         <span className="inicio-imagen-provisional">Imagen provisional</span>
       </section>
 
-      <section className="inicio-franja" aria-label="Accesos rápidos">
-        <div className="portal-contenedor inicio-franja-enlaces">
-          <Link to="/areas-servicios"><strong>Áreas y servicios</strong><span>Conoce los espacios disponibles</span></Link>
-          <Link to="/eventos"><strong>Eventos</strong><span>Consulta las próximas actividades</span></Link>
-          <Link to="/mapa"><strong>Cómo llegar</strong><span>Ubica entradas y áreas del parque</span></Link>
-          <Link to="/bicicletas"><strong>Bicicletas</strong><span>Consulta la disponibilidad actual</span></Link>
-        </div>
-      </section>
-
       <section className="portal-seccion inicio-publicaciones" aria-labelledby="titulo-publicaciones">
         <div className="portal-contenedor">
           <div className="portal-cabecera-seccion">
@@ -139,17 +130,6 @@ export function PaginaBase() {
         </div>
       </section>
 
-      <section className="inicio-aliados" aria-labelledby="titulo-aliados">
-        <div className="portal-contenedor">
-          <h2 id="titulo-aliados">Instituciones aliadas</h2>
-          <div className="inicio-aliados-lista">
-            <span>Espacio reservado</span>
-            <span>Espacio reservado</span>
-            <span>Espacio reservado</span>
-          </div>
-          <p>Si en caso tiene patrocinadores o eliminarlo esta seción.</p>
-        </div>
-      </section>
     </>
   );
 }

@@ -17,6 +17,7 @@ import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.Rep
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioCategoriaPublicacion;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioEvento;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioImagenPublicacion;
+import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioImagenEvento;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioPublicacion;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.SolicitudInvalidaException;
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,8 @@ class ServicioPortalPublicoPruebas {
 
     @Mock
     private RepositorioImagenPublicacion repositorioImagenPublicacion;
+    @Mock
+    private RepositorioImagenEvento repositorioImagenEvento;
 
     @InjectMocks
     private ServicioPortalPublico servicioPortalPublico;

@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
 
 import gt.gob.parqueerickbarrondo.compartido.idempotencia.RegistroIdempotencia;
@@ -111,7 +112,7 @@ class ServicioInscripcionesEventoPruebas {
         var respuesta = servicioInscripciones.inscribir(7L, solicitud, "clave-nueva", actor);
 
         verify(repositorioEvento).reservarCupo(eq(7L), any(Instant.class));
-        verify(inscripcion).confirmarNuevamente(any(Instant.class));
+        verify(inscripcion).confirmarNuevamente(any(Instant.class), eq(null));
         verify(repositorioNotificacion).save(any(Notificacion.class));
         verify(servicioAuditoria).registrar(
                 eq(5L), eq("INSCRIPCIONEVENTOCONFIRMADA"), eq("INSCRIPCIONEVENTO"),
@@ -140,6 +141,35 @@ class ServicioInscripcionesEventoPruebas {
         assertThatThrownBy(() -> servicioInscripciones.inscribir(7L, solicitud, "clave-nueva", actor))
                 .isInstanceOf(SolicitudInvalidaException.class)
                 .hasMessageContaining("cupos");
+
+        verify(repositorioEvento, never()).reservarCupo(any(), any());
+    }
+
+    @Test
+    void rechazaUnDpiCuiQueNoTieneTreceNumeros() throws Exception {
+        var solicitud = new SolicitudInscripcionEvento(true, Map.of("campo_1", "12345"));
+        var actor = org.mockito.Mockito.mock(UsuarioSesion.class);
+        when(actor.obtenerIdUsuario()).thenReturn(5L);
+        var evento = org.mockito.Mockito.mock(Evento.class);
+        when(evento.obtenerEstado()).thenReturn("PUBLICADO");
+        when(evento.obtenerIniciaEn()).thenReturn(Instant.now().plusSeconds(86400));
+        when(evento.obtenerCapacidadTotal()).thenReturn(10);
+        when(evento.obtenerCantidadOcupada()).thenReturn(0);
+        var esquema = """
+                {"campos":[{"id":"campo_1","etiqueta":"DPI/CUI","tipo":"DPI_CUI","obligatorio":true}]}
+                """;
+        when(evento.obtenerEsquemaFormularioJson()).thenReturn(esquema);
+        when(repositorioEvento.findById(7L)).thenReturn(Optional.of(evento));
+        when(serializadorJson.readTree(esquema)).thenReturn(new ObjectMapper().readTree(esquema));
+        when(servicioIdempotencia.preparar(
+                eq("clave-nueva"), eq(5L), eq("INSCRIBIREVENTO:7"), eq(solicitud),
+                eq(RespuestaInscripcionEvento.class)))
+                .thenReturn(ServicioIdempotencia.ContextoIdempotencia.<RespuestaInscripcionEvento>nuevo(
+                        org.mockito.Mockito.mock(RegistroIdempotencia.class)));
+
+        assertThatThrownBy(() -> servicioInscripciones.inscribir(7L, solicitud, "clave-nueva", actor))
+                .isInstanceOf(SolicitudInvalidaException.class)
+                .hasMessageContaining("13 números");
 
         verify(repositorioEvento, never()).reservarCupo(any(), any());
     }

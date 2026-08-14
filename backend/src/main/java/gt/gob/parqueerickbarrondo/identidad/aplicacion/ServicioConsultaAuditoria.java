@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 public class ServicioConsultaAuditoria {
 
-    private static final Set<String> RESULTADOS_VALIDOS = Set.of("EXITOSO", "DENEGADO", "FALLIDO");
+    private static final Set<String> RESULTADOS_VALIDOS = Set.of("Exitoso", "Denegado", "Fallido");
 
     private final RepositorioEventoAuditoria repositorioEventoAuditoria;
     private final RepositorioUsuario repositorioUsuario;
@@ -46,10 +46,12 @@ public class ServicioConsultaAuditoria {
             Instant hasta,
             int numeroPagina,
             int tamano) {
-        var accionNormalizada = normalizarFiltro(accion, 80, "La acción");
-        var recursoNormalizado = normalizarFiltro(tipoRecurso, 80, "El tipo de recurso");
+        var accionNormalizada = normalizarFiltro(accion, 80, "La acción", FormatoAuditoria::accion);
+        var recursoNormalizado = normalizarFiltro(
+                tipoRecurso, 80, "El tipo de recurso", FormatoAuditoria::recurso);
         var identificadorNormalizado = normalizarFiltro(idRecurso, 80, "El identificador del recurso");
-        var resultadoNormalizado = normalizarFiltro(resultado, 32, "El resultado");
+        var resultadoNormalizado = normalizarFiltro(
+                resultado, 32, "El resultado", FormatoAuditoria::resultado);
         if (!resultadoNormalizado.isEmpty() && !RESULTADOS_VALIDOS.contains(resultadoNormalizado)) {
             throw new SolicitudInvalidaException("El resultado de auditoría no es válido.");
         }
@@ -100,6 +102,20 @@ public class ServicioConsultaAuditoria {
             throw new SolicitudInvalidaException(nombre + " supera la longitud permitida.");
         }
         return valor.strip().toUpperCase(Locale.ROOT);
+    }
+
+    private String normalizarFiltro(
+            String valor,
+            int longitudMaxima,
+            String nombre,
+            Function<String, String> formateador) {
+        if (valor == null || valor.isBlank()) {
+            return "";
+        }
+        if (valor.length() > longitudMaxima) {
+            throw new SolicitudInvalidaException(nombre + " supera la longitud permitida.");
+        }
+        return formateador.apply(valor);
     }
 
     private RespuestaEventoAuditoria convertir(EventoAuditoria evento, Usuario actor) {

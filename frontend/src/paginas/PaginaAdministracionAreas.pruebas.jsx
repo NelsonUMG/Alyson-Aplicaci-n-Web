@@ -59,10 +59,14 @@ describe("Administración de áreas", () => {
 
     expect(screen.queryByRole("heading", { name: "Categorías de áreas" })).toBeNull();
     expect(screen.getByRole("heading", { name: "Registrar área" })).toBeTruthy();
-    expect(screen.getByRole("button", { name: "Ocultar Área" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Nueva área" }).getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByLabelText("Coordenadas confirmadas")).toBeTruthy();
+    expect(within(screen.getByLabelText("Estado")).getByRole("option", { name: "Pendiente de confirmación" })).toBeTruthy();
+    expect(within(screen.getByLabelText("Estado")).getByRole("option", { name: "En mantenimiento" })).toBeTruthy();
+    expect(within(screen.getByLabelText("Estado")).getByRole("option", { name: "Fuera de servicio" })).toBeTruthy();
     expect(screen.getByLabelText("Observaciones internas")).toBeTruthy();
     expect(screen.getByRole("group", { name: "Horario del área" })).toBeTruthy();
+    expect(screen.getByRole("combobox", { name: "Día" })).toBeTruthy();
     expect(screen.getByLabelText("Hora de apertura")).toBeTruthy();
     expect(screen.queryByText("Horario en JSON")).toBeNull();
     expect(screen.getByLabelText("Mapa para dibujar el perímetro del área")).toBeTruthy();
@@ -84,7 +88,7 @@ describe("Administración de áreas", () => {
 
   it("convierte los días y horas seleccionados al JSON válido de la API", async () => {
     const horarioJson = JSON.stringify({
-      periodos: [{ dias: ["LUNES", "MARTES"], abre: "08:00", cierra: "17:00" }],
+      periodos: [{ dias: ["LUNES"], abre: "08:00", cierra: "17:00" }],
     });
     apiAreas.crearArea.mockResolvedValue({
       idArea: 9,
@@ -115,8 +119,7 @@ describe("Administración de áreas", () => {
     fireEvent.change(formulario.getByLabelText("Código"), { target: { value: "CAMPO1" } });
     fireEvent.change(formulario.getByLabelText("Nombre"), { target: { value: "Campo 1" } });
     fireEvent.change(formulario.getByLabelText("Motivo del estado"), { target: { value: "Registro inicial" } });
-    fireEvent.click(formulario.getByLabelText("Lunes"));
-    fireEvent.click(formulario.getByLabelText("Martes"));
+    fireEvent.change(formulario.getByLabelText("Día"), { target: { value: "LUNES" } });
     fireEvent.change(formulario.getByLabelText("Hora de apertura"), { target: { value: "08:00" } });
     fireEvent.change(formulario.getByLabelText("Hora de cierre"), { target: { value: "17:00" } });
     fireEvent.click(formulario.getByRole("button", { name: "Agregar horario" }));
@@ -159,7 +162,14 @@ describe("Administración de áreas", () => {
     vi.spyOn(window, "confirm").mockReturnValue(true);
     render(<MemoryRouter><PaginaAdministracionAreas /></MemoryRouter>);
 
-    fireEvent.click(await screen.findByRole("button", { name: /Campo 2/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Listado de áreas" }));
+    const filaArea = await screen.findByRole("button", { name: /Campo 2/ });
+    fireEvent.click(filaArea);
+
+    expect(screen.getByRole("heading", { name: "Áreas registradas" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Nueva área" }).getAttribute("aria-expanded")).toBe("false");
+    expect(filaArea.getAttribute("aria-expanded")).toBe("true");
+    expect(screen.getByRole("heading", { name: "Actualizar área" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Eliminar área" }));
 
     await waitFor(() => expect(apiAreas.eliminarArea).toHaveBeenCalledWith(9, 4));
@@ -200,6 +210,7 @@ describe("Administración de áreas", () => {
     });
     render(<MemoryRouter><PaginaAdministracionAreas /></MemoryRouter>);
 
+    fireEvent.click(screen.getByRole("button", { name: "Listado de áreas" }));
     fireEvent.click(await screen.findByRole("button", { name: /Campo 2/ }));
     const archivo = new window.File(["imagen"], "campo.jpg", { type: "image/jpeg" });
     const campoArchivo = screen.getByLabelText("Archivo PNG o JPEG");

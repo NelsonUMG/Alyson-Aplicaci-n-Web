@@ -18,6 +18,7 @@ import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.Reposit
 import gt.gob.parqueerickbarrondo.identidad.seguridad.ManejadorCierreSesion;
 import gt.gob.parqueerickbarrondo.identidad.seguridad.ServicioDetallesUsuario;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioEvento;
+import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioImagenEvento;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -42,6 +43,8 @@ class ControladorAdministracionEventosPruebas {
 
     @MockitoBean
     private RepositorioEvento repositorioEvento;
+    @MockitoBean
+    private RepositorioImagenEvento repositorioImagenEvento;
     @MockitoBean
     private RepositorioInscripcionEvento repositorioInscripcion;
     @MockitoBean

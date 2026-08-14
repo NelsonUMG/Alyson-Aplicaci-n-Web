@@ -31,4 +31,14 @@ public class ControladorImagenEventoPublica {
                 .cacheControl(CacheControl.maxAge(Duration.ofHours(24)).cachePublic())
                 .body(imagen.recurso());
     }
+
+    @GetMapping("/imagenes-secundarias/{idImagenEvento}")
+    public ResponseEntity<Resource> consultarSecundaria(@PathVariable Long idImagenEvento) {
+        var imagen = servicioConsulta.cargarSecundaria(idImagenEvento);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(imagen.tipoMedio()))
+                .contentLength(imagen.tamanoBytes())
+                .cacheControl(CacheControl.maxAge(Duration.ofHours(24)).cachePublic())
+                .body(imagen.recurso());
+    }
 }

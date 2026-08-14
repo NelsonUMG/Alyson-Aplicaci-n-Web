@@ -4,6 +4,7 @@ import java.util.Set;
 
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.RecursoNoEncontradoException;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioEvento;
+import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioImagenEvento;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,12 +15,15 @@ public class ServicioConsultaImagenEventoPublica {
             "PUBLICADO", "CERRADO", "CANCELADO", "FINALIZADO");
 
     private final RepositorioEvento repositorioEvento;
+    private final RepositorioImagenEvento repositorioImagenEvento;
     private final ServicioAlmacenamientoImagenesEvento servicioAlmacenamiento;
 
     public ServicioConsultaImagenEventoPublica(
             RepositorioEvento repositorioEvento,
+            RepositorioImagenEvento repositorioImagenEvento,
             ServicioAlmacenamientoImagenesEvento servicioAlmacenamiento) {
         this.repositorioEvento = repositorioEvento;
+        this.repositorioImagenEvento = repositorioImagenEvento;
         this.servicioAlmacenamiento = servicioAlmacenamiento;
     }
 
@@ -32,5 +36,13 @@ public class ServicioConsultaImagenEventoPublica {
             throw new RecursoNoEncontradoException("El evento no tiene una imagen registrada.");
         }
         return servicioAlmacenamiento.cargar(evento.obtenerClaveImagen());
+    }
+
+    @Transactional(readOnly = true)
+    public ArchivoImagenEvento cargarSecundaria(Long idImagenEvento) {
+        var imagen = repositorioImagenEvento.buscarImagenPublica(idImagenEvento)
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró la imagen secundaria solicitada."));
+        return servicioAlmacenamiento.cargar(imagen.obtenerClaveAlmacenamiento());
     }
 }

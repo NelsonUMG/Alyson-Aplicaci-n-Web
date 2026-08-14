@@ -13,6 +13,7 @@ public record RespuestaInscripcionAdministrada(
         Instant confirmadaEn,
         Instant canceladaEn,
         String motivoCancelacion,
+        String respuestasFormularioJson,
         Instant creadoEn,
         Instant actualizadoEn) {
 }

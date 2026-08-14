@@ -1,6 +1,11 @@
 package gt.gob.parqueerickbarrondo.eventos.aplicacion;
 
+import java.math.BigDecimal;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import gt.gob.parqueerickbarrondo.compartido.idempotencia.ServicioIdempotencia;
@@ -77,6 +82,7 @@ public class ServicioInscripcionesEvento {
         var ahora = Instant.now();
         var eventoInicial = buscarEvento(idEvento);
         validarInscripcionDisponible(eventoInicial, ahora);
+        var respuestasFormularioJson = validarYSerializarRespuestas(eventoInicial, solicitud.respuestas());
         var usuario = repositorioUsuario.findById(actor.obtenerIdUsuario())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el usuario solicitado."));
         if (!usuario.estaActivo()) {
@@ -98,9 +104,9 @@ public class ServicioInscripcionesEvento {
         var eventoActualizado = buscarEvento(idEvento);
         InscripcionEvento inscripcion;
         if (existente == null) {
-            inscripcion = new InscripcionEvento(eventoActualizado, usuario, ahora);
+            inscripcion = new InscripcionEvento(eventoActualizado, usuario, ahora, respuestasFormularioJson);
         } else {
-            existente.confirmarNuevamente(ahora);
+            existente.confirmarNuevamente(ahora, respuestasFormularioJson);
             inscripcion = existente;
         }
         inscripcion = repositorioInscripcion.saveAndFlush(inscripcion);
@@ -209,6 +215,124 @@ public class ServicioInscripcionesEvento {
         if (evento.obtenerCantidadOcupada() >= evento.obtenerCapacidadTotal()) {
             throw new SolicitudInvalidaException("No hay cupos disponibles para este evento.");
         }
+    }
+
+    private String validarYSerializarRespuestas(Evento evento, Map<String, Object> respuestas) {
+        var esquema = evento.obtenerEsquemaFormularioJson();
+        if (esquema == null || esquema.isBlank()) {
+            if (!respuestas.isEmpty()) {
+                throw new SolicitudInvalidaException(
+                        "El evento no solicita requisitos adicionales.");
+            }
+            return null;
+        }
+        try {
+            var raiz = serializadorJson.readTree(esquema);
+            var campos = raiz == null ? null : raiz.get("campos");
+            if (campos == null || !campos.isArray()) {
+                throw new SolicitudInvalidaException(
+                        "La configuración de requisitos del evento no es válida.");
+            }
+            var clavesPermitidas = new HashSet<String>();
+            var normalizadas = new LinkedHashMap<String, Object>();
+            for (var campo : campos) {
+                var id = textoNodo(campo.get("id"));
+                var etiqueta = textoNodo(campo.get("etiqueta"));
+                var tipo = textoNodo(campo.get("tipo"));
+                if (id.isBlank() || etiqueta.isBlank() || tipo.isBlank() || !clavesPermitidas.add(id)) {
+                    throw new SolicitudInvalidaException(
+                            "La configuración de requisitos del evento no es válida.");
+                }
+                var nodoObligatorio = campo.get("obligatorio");
+                var obligatorio = nodoObligatorio != null && nodoObligatorio.asBoolean();
+                var valor = respuestas.get(id);
+                if (valor == null || valor instanceof String texto && texto.isBlank()) {
+                    if (obligatorio) {
+                        throw new SolicitudInvalidaException(
+                                "Debes completar el requisito: " + etiqueta + ".");
+                    }
+                    continue;
+                }
+                normalizadas.put(id, normalizarRespuesta(tipo, valor, campo, etiqueta));
+            }
+            if (!clavesPermitidas.containsAll(respuestas.keySet())) {
+                throw new SolicitudInvalidaException(
+                        "Se enviaron respuestas que no pertenecen a este evento.");
+            }
+            return normalizadas.isEmpty() ? null : serializadorJson.writeValueAsString(normalizadas);
+        } catch (SolicitudInvalidaException excepcion) {
+            throw excepcion;
+        } catch (JacksonException excepcion) {
+            throw new SolicitudInvalidaException(
+                    "No fue posible validar los requisitos de la inscripción.");
+        }
+    }
+
+    private Object normalizarRespuesta(String tipo, Object valor, tools.jackson.databind.JsonNode campo,
+            String etiqueta) {
+        var texto = String.valueOf(valor).strip();
+        return switch (tipo) {
+            case "DPI_CUI" -> {
+                if (!texto.matches("\\d{13}")) {
+                    throw respuestaInvalida(etiqueta, "debe contener exactamente 13 números");
+                }
+                yield texto;
+            }
+            case "NUMERO" -> {
+                try {
+                    yield new BigDecimal(texto).stripTrailingZeros().toPlainString();
+                } catch (NumberFormatException excepcion) {
+                    throw respuestaInvalida(etiqueta, "debe ser un número válido");
+                }
+            }
+            case "FECHA" -> {
+                try {
+                    yield LocalDate.parse(texto).toString();
+                } catch (DateTimeParseException excepcion) {
+                    throw respuestaInvalida(etiqueta, "debe ser una fecha válida");
+                }
+            }
+            case "SI_NO" -> {
+                if (!"true".equalsIgnoreCase(texto) && !"false".equalsIgnoreCase(texto)) {
+                    throw respuestaInvalida(etiqueta, "debe indicar sí o no");
+                }
+                yield Boolean.valueOf(texto);
+            }
+            case "SELECCION_UNICA" -> {
+                var opciones = campo.get("opciones");
+                var permitida = false;
+                if (opciones != null && opciones.isArray()) {
+                    for (var opcion : opciones) {
+                        if (texto.equals(opcion.asText())) {
+                            permitida = true;
+                            break;
+                        }
+                    }
+                }
+                if (!permitida) {
+                    throw respuestaInvalida(etiqueta, "contiene una opción no permitida");
+                }
+                yield texto;
+            }
+            case "TEXTO_CORTO" -> validarLongitud(texto, 500, etiqueta);
+            case "TEXTO_LARGO" -> validarLongitud(texto, 5000, etiqueta);
+            default -> throw respuestaInvalida(etiqueta, "usa un tipo de campo no permitido");
+        };
+    }
+
+    private String validarLongitud(String texto, int maximo, String etiqueta) {
+        if (texto.length() > maximo) {
+            throw respuestaInvalida(etiqueta, "supera la longitud permitida");
+        }
+        return texto;
+    }
+
+    private SolicitudInvalidaException respuestaInvalida(String etiqueta, String detalle) {
+        return new SolicitudInvalidaException("El requisito " + etiqueta + " " + detalle + ".");
+    }
+
+    private String textoNodo(tools.jackson.databind.JsonNode nodo) {
+        return nodo == null || !nodo.isTextual() ? "" : nodo.asText().strip();
     }
 
     private void guardarNotificacion(

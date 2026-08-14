@@ -47,6 +47,9 @@ public class InscripcionEvento {
     @Column(name = "MotivoCancelacion", length = 300)
     private String motivoCancelacion;
 
+    @Column(name = "RespuestasFormularioJson")
+    private String respuestasFormularioJson;
+
     @Column(name = "CreadoEn", nullable = false)
     private Instant creadoEn;
 
@@ -61,11 +64,16 @@ public class InscripcionEvento {
     }
 
     public InscripcionEvento(Evento evento, Usuario usuario, Instant ahora) {
+        this(evento, usuario, ahora, null);
+    }
+
+    public InscripcionEvento(Evento evento, Usuario usuario, Instant ahora, String respuestasFormularioJson) {
         this.evento = evento;
         this.usuario = usuario;
         this.estado = "CONFIRMADA";
         this.requisitosAceptadosEn = ahora;
         this.confirmadaEn = ahora;
+        this.respuestasFormularioJson = respuestasFormularioJson;
         this.creadoEn = ahora;
         this.actualizadoEn = ahora;
         this.version = null;
@@ -103,6 +111,10 @@ public class InscripcionEvento {
         return motivoCancelacion;
     }
 
+    public String obtenerRespuestasFormularioJson() {
+        return respuestasFormularioJson;
+    }
+
     public Instant obtenerCreadoEn() {
         return creadoEn;
     }
@@ -120,11 +132,16 @@ public class InscripcionEvento {
     }
 
     public void confirmarNuevamente(Instant ahora) {
+        confirmarNuevamente(ahora, null);
+    }
+
+    public void confirmarNuevamente(Instant ahora, String respuestasFormularioJson) {
         estado = "CONFIRMADA";
         requisitosAceptadosEn = ahora;
         confirmadaEn = ahora;
         canceladaEn = null;
         motivoCancelacion = null;
+        this.respuestasFormularioJson = respuestasFormularioJson;
         actualizadoEn = ahora;
     }
 

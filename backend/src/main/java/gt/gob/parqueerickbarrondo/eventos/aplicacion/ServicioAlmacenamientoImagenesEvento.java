@@ -46,7 +46,7 @@ public class ServicioAlmacenamientoImagenesEvento {
             var tipo = detectarTipo(bytes);
             var nombreOriginal = normalizarNombreOriginal(archivo.getOriginalFilename());
             validarExtension(nombreOriginal, tipo.extension());
-            validarDimensiones(bytes);
+            var dimensiones = validarDimensiones(bytes);
             var clave = "eventos/" + UUID.randomUUID() + "." + tipo.extension();
             var destino = resolverRutaSegura(clave);
             Files.createDirectories(destino.getParent());
@@ -57,7 +57,13 @@ public class ServicioAlmacenamientoImagenesEvento {
             } finally {
                 Files.deleteIfExists(temporal);
             }
-            return new ImagenEventoAlmacenada(clave);
+            return new ImagenEventoAlmacenada(
+                    clave,
+                    nombreOriginal,
+                    tipo.tipoMedio(),
+                    bytes.length,
+                    dimensiones.ancho(),
+                    dimensiones.alto());
         } catch (SolicitudInvalidaException excepcion) {
             throw excepcion;
         } catch (IOException excepcion) {
@@ -112,7 +118,7 @@ public class ServicioAlmacenamientoImagenesEvento {
         throw new SolicitudInvalidaException("Solo se permiten imágenes PNG o JPEG válidas.");
     }
 
-    private void validarDimensiones(byte[] bytes) throws IOException {
+    private DimensionesImagen validarDimensiones(byte[] bytes) throws IOException {
         try (var entrada = new ByteArrayInputStream(bytes)) {
             BufferedImage imagen = ImageIO.read(entrada);
             if (imagen == null || imagen.getWidth() <= 0 || imagen.getHeight() <= 0) {
@@ -121,6 +127,7 @@ public class ServicioAlmacenamientoImagenesEvento {
             if (imagen.getWidth() > DIMENSION_MAXIMA || imagen.getHeight() > DIMENSION_MAXIMA) {
                 throw new SolicitudInvalidaException("La imagen no puede superar 8000 píxeles por lado.");
             }
+            return new DimensionesImagen(imagen.getWidth(), imagen.getHeight());
         }
     }
 
@@ -167,5 +174,11 @@ public class ServicioAlmacenamientoImagenesEvento {
     }
 
     private record TipoImagen(String extension) {
+        private String tipoMedio() {
+            return "png".equals(extension) ? "image/png" : "image/jpeg";
+        }
+    }
+
+    private record DimensionesImagen(int ancho, int alto) {
     }
 }

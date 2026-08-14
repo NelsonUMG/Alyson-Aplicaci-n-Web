@@ -3,18 +3,84 @@ import { Link } from "react-router-dom";
 import {
   actualizarEvento,
   agregarImagenEvento,
+  agregarImagenSecundariaEvento,
   cancelarEvento,
   cerrarEvento,
   crearEvento,
   eliminarImagenEvento,
+  eliminarImagenSecundariaEvento,
   finalizarEvento,
   listarEventosAdministrados,
+  listarImagenesSecundariasEvento,
   listarInscripcionesAdministradas,
   publicarEvento,
 } from "../api/administracionEventos";
 import { usarSesion } from "../autenticacion/ContextoSesion";
 
 const paginaVacia = { contenido: [], pagina: 0, totalPaginas: 0, totalElementos: 0 };
+const tiposCampoFormulario = [
+  { valor: "FECHA", etiqueta: "Fecha" },
+  { valor: "DPI_CUI", etiqueta: "DPI o CUI" },
+  { valor: "NUMERO", etiqueta: "Número" },
+  { valor: "TEXTO_CORTO", etiqueta: "Texto corto" },
+  { valor: "TEXTO_LARGO", etiqueta: "Texto de varios párrafos" },
+  { valor: "SI_NO", etiqueta: "Sí o no" },
+  { valor: "SELECCION_UNICA", etiqueta: "Elegir una opción" },
+];
+const tiposCampoPermitidos = new Set(tiposCampoFormulario.map((tipo) => tipo.valor));
+let secuenciaCampoFormulario = 0;
+
+function crearClaveCampoFormulario() {
+  secuenciaCampoFormulario += 1;
+  return `campo-formulario-${secuenciaCampoFormulario}`;
+}
+
+function campoFormularioVacio() {
+  return {
+    clave: crearClaveCampoFormulario(),
+    id: null,
+    etiqueta: "",
+    tipo: "TEXTO_CORTO",
+    obligatorio: true,
+    opciones: [],
+  };
+}
+
+function interpretarFormularioJson(esquemaFormularioJson) {
+  if (!esquemaFormularioJson?.trim()) return [];
+  try {
+    const estructura = JSON.parse(esquemaFormularioJson);
+    if (!Array.isArray(estructura?.campos)) return [];
+    return estructura.campos.map((campo) => ({
+      clave: crearClaveCampoFormulario(),
+      id: String(campo.id || ""),
+      etiqueta: String(campo.etiqueta || campo.pregunta || campo.nombre || ""),
+      tipo: tiposCampoPermitidos.has(campo.tipo) ? campo.tipo : "TEXTO_CORTO",
+      obligatorio: campo.obligatorio !== false,
+      opciones: Array.isArray(campo.opciones) ? campo.opciones.map(String) : [],
+    }));
+  } catch {
+    return [];
+  }
+}
+
+function generarFormularioJson(camposFormulario) {
+  if (camposFormulario.length === 0) return null;
+  const campos = camposFormulario.map((campo, indice) => {
+    const normalizado = {
+      id: campo.id || `campo_${indice + 1}`,
+      etiqueta: campo.etiqueta.trim(),
+      tipo: campo.tipo,
+      obligatorio: Boolean(campo.obligatorio),
+    };
+    if (campo.tipo === "SELECCION_UNICA") {
+      normalizado.opciones = campo.opciones.map((opcion) => opcion.trim()).filter(Boolean);
+    }
+    return normalizado;
+  });
+  return JSON.stringify({ campos });
+}
+
 const eventoVacio = {
   idEvento: null,
   titulo: "",
@@ -28,6 +94,7 @@ const eventoVacio = {
   cantidadOcupada: 0,
   estado: "BORRADOR",
   esquemaFormularioJson: "",
+  camposFormulario: [],
   requisitos: [],
   tieneImagen: false,
   urlImagen: null,
@@ -54,8 +121,26 @@ function prepararEdicion(evento) {
     inscripcionAbreEn: aFechaLocal(evento.inscripcionAbreEn),
     inscripcionCierraEn: aFechaLocal(evento.inscripcionCierraEn),
     esquemaFormularioJson: evento.esquemaFormularioJson || "",
+    camposFormulario: interpretarFormularioJson(evento.esquemaFormularioJson),
     requisitos: evento.requisitos || [],
   };
+}
+
+function respuestasInscripcion(inscripcion, camposFormulario) {
+  if (!inscripcion.respuestasFormularioJson) return [];
+  try {
+    const respuestas = JSON.parse(inscripcion.respuestasFormularioJson);
+    return camposFormulario
+      .filter((campo) => campo.id && respuestas[campo.id] !== undefined)
+      .map((campo) => ({
+        etiqueta: campo.etiqueta,
+        valor: typeof respuestas[campo.id] === "boolean"
+          ? (respuestas[campo.id] ? "Sí" : "No")
+          : String(respuestas[campo.id]),
+      }));
+  } catch {
+    return [];
+  }
 }
 
 export function PaginaAdministracionEventos() {
@@ -63,7 +148,9 @@ export function PaginaAdministracionEventos() {
   const [pagina, establecerPagina] = useState(paginaVacia);
   const [filtros, establecerFiltros] = useState({ busqueda: "", estado: "", orden: "ACTUALIZACION" });
   const [eventoEdicion, establecerEventoEdicion] = useState(null);
+  const [mostrarListado, establecerMostrarListado] = useState(false);
   const [inscripciones, establecerInscripciones] = useState(paginaVacia);
+  const [imagenesSecundarias, establecerImagenesSecundarias] = useState([]);
   const [filtrosInscripcion, establecerFiltrosInscripcion] = useState({ busqueda: "", estado: "" });
   const [estado, establecerEstado] = useState({ cargando: true, guardando: false, error: "", mensaje: "" });
 
@@ -109,52 +196,105 @@ export function PaginaAdministracionEventos() {
   }
 
   function nuevoEvento() {
-    establecerEventoEdicion((actual) => (actual ? null : { ...eventoVacio, requisitos: [] }));
+    if (eventoEdicion && !eventoEdicion.idEvento) return;
+    establecerMostrarListado(false);
+    establecerEventoEdicion({ ...eventoVacio, camposFormulario: [], requisitos: [] });
     establecerInscripciones(paginaVacia);
+    establecerImagenesSecundarias([]);
   }
 
   async function seleccionarEvento(evento) {
+    establecerMostrarListado(true);
     establecerEventoEdicion(prepararEdicion(evento));
     establecerEstado((actual) => ({ ...actual, error: "", mensaje: "" }));
-    if (!puedeGestionarInscripciones) return;
     try {
-      establecerInscripciones(await listarInscripcionesAdministradas(evento.idEvento));
+      const solicitudes = [listarImagenesSecundariasEvento(evento.idEvento)];
+      if (puedeGestionarInscripciones) {
+        solicitudes.push(listarInscripcionesAdministradas(evento.idEvento));
+      }
+      const resultados = await Promise.all(solicitudes);
+      establecerImagenesSecundarias(resultados[0]);
+      if (puedeGestionarInscripciones) establecerInscripciones(resultados[1]);
     } catch (error) {
       establecerEstado((actual) => ({ ...actual, error: error.message }));
     }
+  }
+
+  function alternarListado() {
+    if (mostrarListado) return;
+    establecerEventoEdicion(null);
+    establecerInscripciones(paginaVacia);
+    establecerImagenesSecundarias([]);
+    establecerMostrarListado(true);
   }
 
   function actualizarCampo(nombre, valor) {
     establecerEventoEdicion((actual) => ({ ...actual, [nombre]: valor }));
   }
 
-  function agregarRequisito() {
-    establecerEventoEdicion((actual) => ({
-      ...actual,
-      requisitos: [...actual.requisitos, { descripcion: "", obligatorio: true, ordenVisualizacion: actual.requisitos.length }],
-    }));
+  function agregarCampoFormulario() {
+    establecerEventoEdicion((actual) => {
+      const camposFormulario = actual.camposFormulario || [];
+      return {
+        ...actual,
+        camposFormulario: camposFormulario.length >= 30
+          ? camposFormulario
+          : [...camposFormulario, campoFormularioVacio()],
+      };
+    });
   }
 
-  function actualizarRequisito(indice, cambios) {
+  function actualizarCampoFormulario(indice, cambios) {
     establecerEventoEdicion((actual) => ({
       ...actual,
-      requisitos: actual.requisitos.map((requisito, posicion) => (
-        posicion === indice ? { ...requisito, ...cambios } : requisito
+      camposFormulario: (actual.camposFormulario || []).map((campo, posicion) => (
+        posicion === indice ? { ...campo, ...cambios } : campo
       )),
     }));
   }
 
-  function eliminarRequisito(indice) {
+  function eliminarCampoFormulario(indice) {
     establecerEventoEdicion((actual) => ({
       ...actual,
-      requisitos: actual.requisitos
-        .filter((_, posicion) => posicion !== indice)
-        .map((requisito, posicion) => ({ ...requisito, ordenVisualizacion: posicion })),
+      camposFormulario: (actual.camposFormulario || []).filter((_, posicion) => posicion !== indice),
     }));
+  }
+
+  function moverCampoFormulario(indice, desplazamiento) {
+    establecerEventoEdicion((actual) => {
+      const camposActuales = actual.camposFormulario || [];
+      const destino = indice + desplazamiento;
+      if (destino < 0 || destino >= camposActuales.length) return actual;
+      const camposFormulario = [...camposActuales];
+      [camposFormulario[indice], camposFormulario[destino]] = [camposFormulario[destino], camposFormulario[indice]];
+      return { ...actual, camposFormulario };
+    });
   }
 
   async function guardarEvento(eventoFormulario) {
     eventoFormulario.preventDefault();
+    const camposFormulario = eventoEdicion.camposFormulario || [];
+    const seleccionSinOpciones = camposFormulario.findIndex((campo) => (
+      campo.tipo === "SELECCION_UNICA"
+      && campo.opciones.map((opcion) => opcion.trim()).filter(Boolean).length < 2
+    ));
+    if (seleccionSinOpciones >= 0) {
+      establecerEstado((actual) => ({
+        ...actual,
+        error: `El requisito ${seleccionSinOpciones + 1} necesita al menos dos opciones.`,
+        mensaje: "",
+      }));
+      return;
+    }
+    const esquemaFormularioJson = generarFormularioJson(camposFormulario);
+    if (esquemaFormularioJson && esquemaFormularioJson.length > 10000) {
+      establecerEstado((actual) => ({
+        ...actual,
+        error: "El formulario adicional es demasiado extenso.",
+        mensaje: "",
+      }));
+      return;
+    }
     establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
     const datos = {
       titulo: eventoEdicion.titulo,
@@ -165,12 +305,8 @@ export function PaginaAdministracionEventos() {
       inscripcionAbreEn: aInstant(eventoEdicion.inscripcionAbreEn),
       inscripcionCierraEn: aInstant(eventoEdicion.inscripcionCierraEn),
       capacidadTotal: Number(eventoEdicion.capacidadTotal),
-      esquemaFormularioJson: eventoEdicion.esquemaFormularioJson || null,
-      requisitos: eventoEdicion.requisitos.map((requisito, indice) => ({
-        descripcion: requisito.descripcion,
-        obligatorio: requisito.obligatorio,
-        ordenVisualizacion: indice,
-      })),
+      esquemaFormularioJson,
+      requisitos: [],
       version: eventoEdicion.version,
     };
     try {
@@ -223,6 +359,34 @@ export function PaginaAdministracionEventos() {
     }
   }
 
+  async function subirImagenSecundaria(eventoFormulario) {
+    eventoFormulario.preventDefault();
+    const formulario = eventoFormulario.currentTarget;
+    const archivo = new window.FormData(formulario).get("archivoSecundario");
+    establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
+    try {
+      const agregada = await agregarImagenSecundariaEvento(eventoEdicion.idEvento, archivo);
+      establecerImagenesSecundarias((actuales) => [...actuales, agregada]);
+      formulario.reset();
+      establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Imagen secundaria agregada." });
+    } catch (error) {
+      establecerEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
+    }
+  }
+
+  async function quitarImagenSecundaria(idImagenEvento) {
+    establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
+    try {
+      await eliminarImagenSecundariaEvento(eventoEdicion.idEvento, idImagenEvento);
+      establecerImagenesSecundarias((actuales) => (
+        actuales.filter((imagen) => imagen.idImagenEvento !== idImagenEvento)
+      ));
+      establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Imagen secundaria eliminada." });
+    } catch (error) {
+      establecerEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
+    }
+  }
+
   async function buscarInscripciones(eventoFormulario, numeroPagina = 0) {
     if (eventoFormulario) eventoFormulario.preventDefault();
     try {
@@ -235,6 +399,9 @@ export function PaginaAdministracionEventos() {
     }
   }
 
+  const eventoExistenteSeleccionado = Boolean(mostrarListado && eventoEdicion?.idEvento);
+  const camposFormularioEvento = eventoEdicion?.camposFormulario || [];
+
   return (
     <main className="pagina-administracion pagina-administracion-eventos">
       <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
@@ -242,12 +409,21 @@ export function PaginaAdministracionEventos() {
       <h1>Eventos y cursos</h1>
       <p>Gestiona actividades, periodos de inscripción, requisitos y cupos.</p>
 
+      <div className="disposicion-modulo-administracion">
+        <aside className="menu-lateral-administracion">
+          <details open>
+            <summary>Eventos y cursos</summary>
+      <div className="acciones-superiores-administracion">
+        {puedeCrear && <button className={eventoEdicion && !eventoEdicion.idEvento ? "boton-gestion-activo" : ""} type="button" aria-expanded={Boolean(eventoEdicion && !eventoEdicion.idEvento)} onClick={nuevoEvento}>Nuevo evento</button>}
+        <button className={mostrarListado ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarListado} onClick={alternarListado}>Listado de eventos</button>
+      </div>
+          </details>
+        </aside>
+        <div className="contenido-modulo-administracion">
       {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
       {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
 
-      {puedeCrear && <div className="acciones-superiores-administracion"><button className={eventoEdicion ? "boton-gestion-activo" : ""} type="button" aria-expanded={Boolean(eventoEdicion)} onClick={nuevoEvento}>{eventoEdicion ? "Ocultar Evento" : "Nuevo evento"}</button></div>}
-
-      <section className="panel-edicion" aria-labelledby="titulo-listado-eventos">
+      {mostrarListado && <section className="panel-edicion panel-listado-administracion" aria-labelledby="titulo-listado-eventos">
         <div className="cabecera-panel-administracion">
           <div>
             <h2 id="titulo-listado-eventos">Actividades registradas</h2>
@@ -260,10 +436,21 @@ export function PaginaAdministracionEventos() {
           <label>Orden<select value={filtros.orden} onChange={(evento) => establecerFiltros({ ...filtros, orden: evento.target.value })}><option value="ACTUALIZACION">Actualización</option><option value="FECHA">Fecha</option><option value="TITULO">Título</option><option value="ESTADO">Estado</option></select></label>
           <button type="submit" disabled={estado.cargando}>Aplicar</button>
         </form>
-        <div className="lista-elementos-administracion lista-eventos-administracion">
+        <div className="cabecera-listado-administracion" aria-hidden="true">
+          <span>Actividad</span><span>Lugar</span><span>Estado y cupos</span>
+        </div>
+        <div className="lista-elementos-administracion lista-eventos-administracion lista-tabular-administracion">
           {pagina.contenido.map((evento) => (
-            <button type="button" key={evento.idEvento} className={eventoEdicion?.idEvento === evento.idEvento ? "seleccionado" : ""} onClick={() => seleccionarEvento(evento)}>
-              <span><strong>{evento.titulo}</strong><small>{evento.lugar || "Lugar pendiente"}</small></span>
+            <button
+              type="button"
+              key={evento.idEvento}
+              className={eventoEdicion?.idEvento === evento.idEvento ? "seleccionado" : ""}
+              aria-expanded={eventoEdicion?.idEvento === evento.idEvento}
+              aria-controls={eventoEdicion?.idEvento === evento.idEvento ? "detalle-evento-seleccionado" : undefined}
+              onClick={() => seleccionarEvento(evento)}
+            >
+              <span><strong>{evento.titulo}</strong></span>
+              <span>{evento.lugar || "Lugar pendiente"}</span>
               <span><strong>{evento.estado}</strong><small>{evento.cantidadOcupada} de {evento.capacidadTotal} cupos</small></span>
             </button>
           ))}
@@ -274,10 +461,14 @@ export function PaginaAdministracionEventos() {
           <span>Página {pagina.totalPaginas === 0 ? 0 : pagina.pagina + 1} de {pagina.totalPaginas}</span>
           <button type="button" disabled={pagina.pagina + 1 >= pagina.totalPaginas} onClick={() => recargarEventos(pagina.pagina + 1)}>Siguiente</button>
         </div>
-      </section>
+      </section>}
 
       {eventoEdicion && (
-        <section className="panel-edicion" aria-labelledby="titulo-edicion-evento">
+        <section
+          id={eventoExistenteSeleccionado ? "detalle-evento-seleccionado" : undefined}
+          className={`panel-edicion${eventoExistenteSeleccionado ? " panel-detalle-administracion" : ""}`}
+          aria-labelledby="titulo-edicion-evento"
+        >
           <div className="cabecera-panel-administracion">
             <div><h2 id="titulo-edicion-evento">{eventoEdicion.idEvento ? "Editar evento" : "Nuevo evento"}</h2><p>Estado actual: {eventoEdicion.estado}</p></div>
             {eventoEdicion.idEvento && <span>{eventoEdicion.cantidadOcupada} ocupados · {eventoEdicion.capacidadTotal - eventoEdicion.cantidadOcupada} disponibles</span>}
@@ -291,17 +482,78 @@ export function PaginaAdministracionEventos() {
             <label>Inscripción abre<input type="datetime-local" disabled={!puedeEditarFormulario} value={eventoEdicion.inscripcionAbreEn} onChange={(evento) => actualizarCampo("inscripcionAbreEn", evento.target.value)} /></label>
             <label>Inscripción cierra<input type="datetime-local" disabled={!puedeEditarFormulario} value={eventoEdicion.inscripcionCierraEn} onChange={(evento) => actualizarCampo("inscripcionCierraEn", evento.target.value)} /></label>
             <label>Capacidad total<input type="number" min={eventoEdicion.cantidadOcupada || 0} required disabled={!puedeEditarFormulario} value={eventoEdicion.capacidadTotal} onChange={(evento) => actualizarCampo("capacidadTotal", evento.target.value)} /></label>
-            <label className="campo-ancho">Formulario aplicable en JSON<textarea maxLength="10000" rows="4" placeholder='{"campos": []}' disabled={!puedeEditarFormulario} value={eventoEdicion.esquemaFormularioJson} onChange={(evento) => actualizarCampo("esquemaFormularioJson", evento.target.value)} /></label>
-            <div className="campo-ancho requisitos-administracion">
-              <div className="cabecera-panel-administracion"><h3>Requisitos</h3>{puedeEditarFormulario && <button type="button" onClick={agregarRequisito}>Agregar requisito</button>}</div>
-              {eventoEdicion.requisitos.map((requisito, indice) => (
-                <div className="fila-requisito" key={`${requisito.idRequisitoEvento || "nuevo"}-${indice}`}>
-                  <input aria-label={`Requisito ${indice + 1}`} maxLength="500" required disabled={!puedeEditarFormulario} value={requisito.descripcion} onChange={(evento) => actualizarRequisito(indice, { descripcion: evento.target.value })} />
-                  <label><input type="checkbox" disabled={!puedeEditarFormulario} checked={requisito.obligatorio} onChange={(evento) => actualizarRequisito(indice, { obligatorio: evento.target.checked })} /> Obligatorio</label>
-                  {puedeEditarFormulario && <button type="button" onClick={() => eliminarRequisito(indice)}>Quitar</button>}
+            <div className="campo-ancho constructor-formulario-evento">
+              <div className="cabecera-panel-administracion">
+                <div>
+                  <h3>Requisitos para la inscripción</h3>
+                  <p>Crea los campos que deberá completar cada persona, como fecha, DPI/CUI o número.</p>
                 </div>
-              ))}
-              {eventoEdicion.requisitos.length === 0 && <p>No hay requisitos configurados.</p>}
+                {puedeEditarFormulario && (
+                  <button type="button" disabled={camposFormularioEvento.length >= 30} onClick={agregarCampoFormulario}>Crear requisito</button>
+                )}
+              </div>
+              <div className="lista-campos-formulario-evento">
+                {camposFormularioEvento.map((campo, indice) => (
+                  <fieldset className="campo-formulario-evento" key={campo.clave}>
+                    <legend>Requisito {indice + 1}</legend>
+                    <label className="campo-formulario-etiqueta">
+                      Nombre del requisito
+                      <input
+                        aria-label={`Nombre del requisito ${indice + 1}`}
+                        required
+                        maxLength="180"
+                        disabled={!puedeEditarFormulario}
+                        placeholder="Ejemplo: DPI/CUI del participante"
+                        value={campo.etiqueta}
+                        onChange={(evento) => actualizarCampoFormulario(indice, { etiqueta: evento.target.value })}
+                      />
+                    </label>
+                    <label>
+                      Tipo de campo
+                      <select
+                        aria-label={`Tipo de campo del requisito ${indice + 1}`}
+                        disabled={!puedeEditarFormulario}
+                        value={campo.tipo}
+                        onChange={(evento) => actualizarCampoFormulario(indice, { tipo: evento.target.value })}
+                      >
+                        {tiposCampoFormulario.map((tipo) => <option key={tipo.valor} value={tipo.valor}>{tipo.etiqueta}</option>)}
+                      </select>
+                    </label>
+                    <label className="campo-formulario-obligatorio">
+                      <input
+                        type="checkbox"
+                        disabled={!puedeEditarFormulario}
+                        checked={campo.obligatorio}
+                        onChange={(evento) => actualizarCampoFormulario(indice, { obligatorio: evento.target.checked })}
+                      />
+                      Respuesta obligatoria
+                    </label>
+                    {campo.tipo === "SELECCION_UNICA" && (
+                      <label className="campo-formulario-opciones">
+                        Opciones, una por línea
+                        <textarea
+                          aria-label={`Opciones del requisito ${indice + 1}`}
+                          required
+                          rows="3"
+                          maxLength="3000"
+                          disabled={!puedeEditarFormulario}
+                          placeholder={`Primera opción\nSegunda opción`}
+                          value={campo.opciones.join("\n")}
+                          onChange={(evento) => actualizarCampoFormulario(indice, { opciones: evento.target.value.split("\n") })}
+                        />
+                      </label>
+                    )}
+                    {puedeEditarFormulario && (
+                      <div className="acciones-campo-formulario-evento">
+                        <button type="button" disabled={indice === 0} onClick={() => moverCampoFormulario(indice, -1)}>Subir</button>
+                        <button type="button" disabled={indice + 1 === camposFormularioEvento.length} onClick={() => moverCampoFormulario(indice, 1)}>Bajar</button>
+                        <button className="boton-peligro" type="button" onClick={() => eliminarCampoFormulario(indice)}>Quitar</button>
+                      </div>
+                    )}
+                  </fieldset>
+                ))}
+                {camposFormularioEvento.length === 0 && <p>No hay requisitos configurados para la inscripción.</p>}
+              </div>
             </div>
             {puedeEditarFormulario && <button className="campo-ancho" type="submit" disabled={estado.guardando}>Guardar evento</button>}
           </form>
@@ -317,10 +569,53 @@ export function PaginaAdministracionEventos() {
 
           {eventoEdicion.idEvento && puedeActualizar && eventoEditable && (
             <div className="gestion-imagen-evento">
-              <h3>Imagen</h3>
-              {eventoEdicion.tieneImagen && <img src={`${eventoEdicion.urlImagen}?version=${eventoEdicion.version}`} alt={eventoEdicion.titulo} />}
-              <form onSubmit={subirImagen}><input name="archivo" type="file" accept="image/png,image/jpeg" required /><button type="submit" disabled={estado.guardando}>Cargar o reemplazar imagen</button></form>
-              {eventoEdicion.tieneImagen && <button type="button" onClick={quitarImagen}>Eliminar imagen</button>}
+              <section className="bloque-imagen-evento" aria-labelledby="titulo-imagen-principal-evento">
+                <div>
+                  <h3 id="titulo-imagen-principal-evento">Imagen principal</h3>
+                  <p>Es el póster o portada que identifica el evento.</p>
+                </div>
+                {eventoEdicion.tieneImagen && <img className="imagen-principal-evento" src={`${eventoEdicion.urlImagen}?version=${eventoEdicion.version}`} alt={`Póster de ${eventoEdicion.titulo}`} />}
+                <form onSubmit={subirImagen}><input aria-label="Archivo de imagen principal" name="archivo" type="file" accept="image/png,image/jpeg" required /><button type="submit" disabled={estado.guardando}>Cargar o reemplazar póster</button></form>
+                {eventoEdicion.tieneImagen && <button className="boton-peligro" type="button" onClick={quitarImagen}>Eliminar póster</button>}
+              </section>
+              <section className="bloque-imagen-evento" aria-labelledby="titulo-imagenes-secundarias-evento">
+                <div>
+                  <h3 id="titulo-imagenes-secundarias-evento">Imágenes secundarias</h3>
+                  <p>Complementan el contenido del evento. Puedes agregar hasta 8 imágenes.</p>
+                </div>
+                <div className="galeria-imagenes-evento-administracion">
+                  {imagenesSecundarias.map((imagen, indice) => (
+                    <article key={imagen.idImagenEvento}>
+                      <img src={imagen.url} alt={`${eventoEdicion.titulo}, imagen secundaria ${indice + 1}`} />
+                      <span>{imagen.nombreArchivoOriginal}</span>
+                      <button className="boton-peligro" type="button" disabled={estado.guardando} onClick={() => quitarImagenSecundaria(imagen.idImagenEvento)}>Eliminar</button>
+                    </article>
+                  ))}
+                </div>
+                {imagenesSecundarias.length === 0 && <p>No hay imágenes secundarias agregadas.</p>}
+                <form onSubmit={subirImagenSecundaria}>
+                  <input aria-label="Archivo de imagen secundaria" name="archivoSecundario" type="file" accept="image/png,image/jpeg" required />
+                  <button type="submit" disabled={estado.guardando || imagenesSecundarias.length >= 8}>Agregar imagen secundaria</button>
+                </form>
+              </section>
+            </div>
+          )}
+          {!eventoEdicion.idEvento && puedeCrear && (
+            <div className="gestion-imagen-evento gestion-imagen-evento-pendiente">
+              <section className="bloque-imagen-evento">
+                <div>
+                  <h3>Imagen principal</h3>
+                  <p>Será el póster o portada que identifica el evento.</p>
+                </div>
+                <p>Guarda primero el evento para habilitar la carga del póster.</p>
+              </section>
+              <section className="bloque-imagen-evento">
+                <div>
+                  <h3>Imágenes secundarias</h3>
+                  <p>Complementarán el contenido del evento; podrás agregar hasta 8.</p>
+                </div>
+                <p>Guarda primero el evento para habilitar la galería.</p>
+              </section>
             </div>
           )}
         </section>
@@ -335,12 +630,17 @@ export function PaginaAdministracionEventos() {
             <button type="submit">Aplicar</button>
           </form>
           <div className="tabla-administracion tabla-inscripciones">
-            <table><thead><tr><th>Persona</th><th>Correo</th><th>Estado</th><th>Confirmación</th></tr></thead><tbody>{inscripciones.contenido.map((inscripcion) => <tr key={inscripcion.idInscripcionEvento}><td>{inscripcion.nombre} {inscripcion.apellido}</td><td>{inscripcion.correo}</td><td>{inscripcion.estado}</td><td>{inscripcion.confirmadaEn ? new Date(inscripcion.confirmadaEn).toLocaleString("es-GT") : "—"}</td></tr>)}</tbody></table>
+            <table><thead><tr><th>Persona</th><th>Correo</th><th>Estado</th><th>Requisitos enviados</th><th>Confirmación</th></tr></thead><tbody>{inscripciones.contenido.map((inscripcion) => {
+              const respuestas = respuestasInscripcion(inscripcion, camposFormularioEvento);
+              return <tr key={inscripcion.idInscripcionEvento}><td>{inscripcion.nombre} {inscripcion.apellido}</td><td>{inscripcion.correo}</td><td>{inscripcion.estado}</td><td>{respuestas.length > 0 ? <details><summary>Ver respuestas</summary><dl className="respuestas-requisitos-evento">{respuestas.map((respuesta) => <div key={respuesta.etiqueta}><dt>{respuesta.etiqueta}</dt><dd>{respuesta.valor}</dd></div>)}</dl></details> : "—"}</td><td>{inscripcion.confirmadaEn ? new Date(inscripcion.confirmadaEn).toLocaleString("es-GT") : "—"}</td></tr>;
+            })}</tbody></table>
             {inscripciones.contenido.length === 0 && <p>No hay inscripciones para mostrar.</p>}
           </div>
           <div className="acciones-paginacion"><button type="button" disabled={inscripciones.pagina <= 0} onClick={() => buscarInscripciones(null, inscripciones.pagina - 1)}>Anterior</button><span>Página {inscripciones.totalPaginas === 0 ? 0 : inscripciones.pagina + 1} de {inscripciones.totalPaginas}</span><button type="button" disabled={inscripciones.pagina + 1 >= inscripciones.totalPaginas} onClick={() => buscarInscripciones(null, inscripciones.pagina + 1)}>Siguiente</button></div>
         </section>
       )}
+        </div>
+      </div>
     </main>
   );
 }

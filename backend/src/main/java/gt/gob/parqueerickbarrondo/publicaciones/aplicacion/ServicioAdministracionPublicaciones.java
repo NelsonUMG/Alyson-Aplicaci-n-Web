@@ -2,6 +2,7 @@ package gt.gob.parqueerickbarrondo.publicaciones.aplicacion;
 
 import java.text.Normalizer;
 import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -30,6 +31,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -71,17 +73,17 @@ public class ServicioAdministracionPublicaciones {
     }
 
     @PreAuthorize("hasAuthority('PUBLICACIONCREAR')")
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public RespuestaCategoriaAdministrada crearCategoria(
             SolicitudCategoriaPublicacion solicitud,
             UsuarioSesion actor) {
-        var codigo = normalizarCodigo(solicitud.codigo());
-        validarCodigoCategoriaDisponible(codigo, null);
+        var orden = (short) solicitud.ordenVisualizacion();
+        validarOrdenCategoriaDisponible(orden, null);
         var categoria = new CategoriaPublicacion(
-                codigo,
+                generarCodigoCategoria(),
                 solicitud.nombre().strip(),
                 normalizarOpcional(solicitud.descripcion()),
-                (short) solicitud.ordenVisualizacion(),
+                orden,
                 solicitud.activa());
         categoria = repositorioCategoria.saveAndFlush(categoria);
         auditar(actor, "CATEGORIAPUBLICACIONCREADA", "CATEGORIAPUBLICACION", categoria.obtenerIdCategoriaPublicacion());
@@ -96,17 +98,31 @@ public class ServicioAdministracionPublicaciones {
             UsuarioSesion actor) {
         var categoria = buscarCategoria(idCategoria);
         validarVersion(categoria.obtenerVersion(), solicitud.version(), "La categoría");
-        var codigo = normalizarCodigo(solicitud.codigo());
-        validarCodigoCategoriaDisponible(codigo, idCategoria);
+        var orden = (short) solicitud.ordenVisualizacion();
+        validarOrdenCategoriaDisponible(orden, idCategoria);
         categoria.actualizar(
-                codigo,
+                categoria.obtenerCodigo(),
                 solicitud.nombre().strip(),
                 normalizarOpcional(solicitud.descripcion()),
-                (short) solicitud.ordenVisualizacion(),
+                orden,
                 solicitud.activa());
         repositorioCategoria.saveAndFlush(categoria);
         auditar(actor, "CATEGORIAPUBLICACIONACTUALIZADA", "CATEGORIAPUBLICACION", idCategoria);
         return convertirCategoria(categoria);
+    }
+
+    @PreAuthorize("hasAuthority('PUBLICACIONELIMINAR')")
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void eliminarCategoria(Long idCategoria, Long version, UsuarioSesion actor) {
+        var categoria = buscarCategoria(idCategoria);
+        validarVersion(categoria.obtenerVersion(), version, "La categoría");
+        if (repositorioPublicacion.existsByCategoria_IdCategoriaPublicacion(idCategoria)) {
+            throw new ConflictoDatosException(
+                    "No se puede eliminar la categoría porque tiene publicaciones asociadas.");
+        }
+        repositorioCategoria.delete(categoria);
+        repositorioCategoria.flush();
+        auditar(actor, "CATEGORIAPUBLICACIONELIMINADA", "CATEGORIAPUBLICACION", idCategoria);
     }
 
     @PreAuthorize("hasAuthority('PUBLICACIONLEER')")
@@ -151,6 +167,17 @@ public class ServicioAdministracionPublicaciones {
                 .stream()
                 .map(this::convertirImagen)
                 .toList();
+    }
+
+    @PreAuthorize("hasAuthority('PUBLICACIONLEER')")
+    @Transactional(readOnly = true)
+    public ArchivoImagenPublica cargarImagen(Long idPublicacion, Long idImagen) {
+        buscarPublicacion(idPublicacion);
+        var imagen = repositorioImagen
+                .findByIdImagenPublicacionAndPublicacion_IdPublicacion(idImagen, idPublicacion)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la imagen solicitada."));
+        var recurso = servicioAlmacenamiento.cargar(imagen.obtenerClaveAlmacenamiento());
+        return new ArchivoImagenPublica(recurso, imagen.obtenerTipoMedio(), imagen.obtenerTamanoBytes());
     }
 
     @PreAuthorize("hasAuthority('PUBLICACIONCREAR')")
@@ -333,13 +360,34 @@ public class ServicioAdministracionPublicaciones {
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la publicación solicitada."));
     }
 
-    private void validarCodigoCategoriaDisponible(String codigo, Long idCategoriaActual) {
+    private void validarOrdenCategoriaDisponible(short orden, Long idCategoriaActual) {
         var existe = idCategoriaActual == null
-                ? repositorioCategoria.existsByCodigoIgnoreCase(codigo)
-                : repositorioCategoria.existsByCodigoIgnoreCaseAndIdCategoriaPublicacionNot(codigo, idCategoriaActual);
+                ? repositorioCategoria.existsByOrdenVisualizacion(orden)
+                : repositorioCategoria.existsByOrdenVisualizacionAndIdCategoriaPublicacionNot(
+                        orden, idCategoriaActual);
         if (existe) {
-            throw new ConflictoDatosException("Ya existe una categoría con ese código.");
+            throw new ConflictoDatosException("El orden " + orden + " ya está asignado a otra categoría.");
         }
+    }
+
+    private String generarCodigoCategoria() {
+        var codigosOcupados = new HashSet<Long>();
+        for (var codigo : repositorioCategoria.findAllCodigos()) {
+            try {
+                var numero = Long.parseLong(codigo);
+                if (numero > 0) {
+                    codigosOcupados.add(numero);
+                }
+            }
+            catch (NumberFormatException ignorada) {
+                // Los códigos anteriores no numéricos no ocupan un número automático.
+            }
+        }
+        long candidato = 1;
+        while (codigosOcupados.contains(candidato)) {
+            candidato++;
+        }
+        return Long.toString(candidato);
     }
 
     private String generarIdentificadorUrl(String titulo) {
@@ -356,10 +404,6 @@ public class ServicioAdministracionPublicaciones {
             return base;
         }
         return base + "-" + UUID.randomUUID().toString().substring(0, 8);
-    }
-
-    private String normalizarCodigo(String codigo) {
-        return codigo.strip().toUpperCase(Locale.ROOT);
     }
 
     private String normalizarEstado(String estado) {

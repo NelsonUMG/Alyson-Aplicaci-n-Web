@@ -49,6 +49,18 @@ const estadosArea = [
   "CERRADA",
   "FUERADESERVICIO",
 ];
+const etiquetasEstadoArea = {
+  PENDIENTECONFIRMACION: "Pendiente de confirmación",
+  DISPONIBLE: "Disponible",
+  ENUSO: "En uso",
+  ENMANTENIMIENTO: "En mantenimiento",
+  CERRADA: "Cerrada",
+  FUERADESERVICIO: "Fuera de servicio",
+};
+
+function etiquetaEstadoArea(estado) {
+  return etiquetasEstadoArea[estado] || estado;
+}
 
 function prepararArea(area) {
   const horario = prepararHorario(area.horarioJson);
@@ -120,6 +132,7 @@ export function PaginaAdministracionAreas() {
   const [categoriaEdicion, establecerCategoriaEdicion] = useState(categoriaVacia);
   const [mostrarCategorias, establecerMostrarCategorias] = useState(false);
   const [areaEdicion, establecerAreaEdicion] = useState(null);
+  const [mostrarListado, establecerMostrarListado] = useState(false);
   const [filtros, establecerFiltros] = useState({ busqueda: "", estado: "", idCategoria: "" });
   const [estado, establecerEstado] = useState({ cargando: true, guardando: false, error: "", mensaje: "" });
 
@@ -162,6 +175,7 @@ export function PaginaAdministracionAreas() {
 
   function seleccionarArea(area) {
     establecerMostrarCategorias(false);
+    establecerMostrarListado(true);
     establecerAreaEdicion(prepararArea(area));
     establecerEstado((actual) => ({ ...actual, error: "", mensaje: "" }));
   }
@@ -262,19 +276,14 @@ export function PaginaAdministracionAreas() {
   }
 
   function alternarCategorias() {
-    if (mostrarCategorias) {
-      establecerMostrarCategorias(false);
-      return;
-    }
+    if (mostrarCategorias) return;
     establecerAreaEdicion(null);
+    establecerMostrarListado(false);
     establecerMostrarCategorias(true);
   }
 
   function alternarArea() {
-    if (areaEdicion) {
-      establecerAreaEdicion(null);
-      return;
-    }
+    if (areaEdicion && !areaEdicion.idArea) return;
     const primeraCategoria = categorias.find((categoria) => categoria.activa);
     if (!primeraCategoria) {
       establecerEstado((actual) => ({
@@ -285,11 +294,21 @@ export function PaginaAdministracionAreas() {
       return;
     }
     establecerMostrarCategorias(false);
+    establecerMostrarListado(false);
     establecerAreaEdicion({ ...areaVacia, idCategoriaArea: primeraCategoria.idCategoriaArea });
+  }
+
+  function alternarListado() {
+    if (mostrarListado) return;
+    establecerMostrarCategorias(false);
+    establecerAreaEdicion(null);
+    establecerMostrarListado(true);
   }
 
   const categoriasActivas = categorias.filter((categoria) => categoria.activa);
   const nuevaAreaNoDisponible = estado.cargando || categoriasActivas.length === 0;
+  const nuevaAreaActiva = Boolean(areaEdicion && !areaEdicion.idArea);
+  const areaExistenteSeleccionada = Boolean(mostrarListado && areaEdicion?.idArea);
 
   return (
     <main className="pagina-administracion pagina-administracion-areas">
@@ -298,9 +317,11 @@ export function PaginaAdministracionAreas() {
       <div className="encabezado-gestion-areas">
         <h1>Áreas del parque</h1>
         <p>Gestiona las categorías, las áreas y su información para el mapa público.</p>
-        {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
-        {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
-
+      </div>
+      <div className="disposicion-modulo-administracion">
+        <aside className="menu-lateral-administracion">
+          <details open>
+            <summary>Áreas del parque</summary>
         <div className="acciones-superiores-areas">
           <button
             className={mostrarCategorias ? "boton-gestion-activo" : "boton-secundario"}
@@ -308,29 +329,41 @@ export function PaginaAdministracionAreas() {
             aria-expanded={mostrarCategorias}
             onClick={alternarCategorias}
           >
-            {mostrarCategorias ? "Ocultar Categorías" : "Categorías"}
+            Categorías
           </button>
           {puedeActualizar && (
             <button
-              className={areaEdicion ? "boton-gestion-activo" : ""}
+              className={nuevaAreaActiva ? "boton-gestion-activo" : ""}
               type="button"
-              aria-expanded={Boolean(areaEdicion)}
+              aria-expanded={nuevaAreaActiva}
               aria-describedby={categoriasActivas.length === 0 ? "aviso-sin-categorias-area" : undefined}
               disabled={nuevaAreaNoDisponible}
               onClick={alternarArea}
             >
-              {areaEdicion ? "Ocultar Área" : "Nueva área"}
+              Nueva área
             </button>
           )}
+          <button
+            className={mostrarListado ? "boton-gestion-activo" : "boton-secundario"}
+            type="button"
+            aria-expanded={mostrarListado}
+            onClick={alternarListado}
+          >
+            Listado de áreas
+          </button>
         </div>
+          </details>
+        </aside>
+        <div className="contenido-modulo-administracion">
+        {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
+        {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
         {!estado.cargando && categoriasActivas.length === 0 && (
           <p id="aviso-sin-categorias-area" className="nota-formulario-administracion" role="status">
             Primero crea al menos una categoría activa para poder registrar áreas.
           </p>
         )}
-      </div>
 
-      {(mostrarCategorias || areaEdicion) && <div className={`disposicion-principal-areas${mostrarCategorias && areaEdicion ? "" : " un-panel"}`}>
+      {(mostrarCategorias || areaEdicion) && <div className={`disposicion-principal-areas${mostrarCategorias && areaEdicion ? "" : " un-panel"}${areaExistenteSeleccionada ? " detalle-area-seleccionada" : ""}`}>
       {mostrarCategorias && (
         <section className="panel-edicion panel-categorias-area" aria-labelledby="titulo-categorias-area">
           <div className="cabecera-panel-administracion"><div><h2 id="titulo-categorias-area">Categorías de áreas</h2><p>Clasificación usada en la información pública.</p></div></div>
@@ -351,14 +384,18 @@ export function PaginaAdministracionAreas() {
       )}
 
       {areaEdicion && (
-        <section className="panel-edicion panel-editor-area" aria-labelledby="titulo-editar-area">
+        <section
+          id={areaExistenteSeleccionada ? "detalle-area-seleccionada" : undefined}
+          className={`panel-edicion panel-editor-area${areaExistenteSeleccionada ? " panel-detalle-area" : ""}`}
+          aria-labelledby="titulo-editar-area"
+        >
           <h2 id="titulo-editar-area">{areaEdicion.idArea ? "Actualizar área" : "Registrar área"}</h2>
           <form className="formulario-administracion formulario-area" onSubmit={guardarArea}>
             <label>Categoría<select required value={areaEdicion.idCategoriaArea} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, idCategoriaArea: evento.target.value })}><option value="">Selecciona una categoría</option>{categorias.filter((categoria) => categoria.activa || categoria.idCategoriaArea === Number(areaEdicion.idCategoriaArea)).map((categoria) => <option key={categoria.idCategoriaArea} value={categoria.idCategoriaArea}>{categoria.nombre}</option>)}</select></label>
             <label>Código<input required maxLength="64" value={areaEdicion.codigo} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, codigo: evento.target.value })} /></label>
             <label>Número visible del mapa<input type="number" min="1" max="9999" value={areaEdicion.numeroVisibleMapa} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, numeroVisibleMapa: evento.target.value })} /></label>
             <label>Nombre<input required maxLength="150" value={areaEdicion.nombre} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, nombre: evento.target.value })} /></label>
-            <label>Estado<select value={areaEdicion.estado} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, estado: evento.target.value })}>{estadosArea.map((valor) => <option key={valor}>{valor}</option>)}</select></label>
+            <label>Estado<select value={areaEdicion.estado} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, estado: evento.target.value })}>{estadosArea.map((valor) => <option key={valor} value={valor}>{etiquetaEstadoArea(valor)}</option>)}</select></label>
             <label>Disponibilidad<input maxLength="300" value={areaEdicion.notaDisponibilidad} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, notaDisponibilidad: evento.target.value })} /></label>
             <label>Latitud<input type="number" step="0.00000001" min="-90" max="90" value={areaEdicion.latitud} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, latitud: evento.target.value })} /></label>
             <label>Longitud<input type="number" step="0.00000001" min="-180" max="180" value={areaEdicion.longitud} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, longitud: evento.target.value })} /></label>
@@ -436,7 +473,7 @@ export function PaginaAdministracionAreas() {
       )}
       </div>}
 
-      <section className="panel-edicion panel-listado-areas" aria-labelledby="titulo-areas-administradas">
+      {mostrarListado && <section className="panel-edicion panel-listado-areas" aria-labelledby="titulo-areas-administradas">
         <div className="cabecera-panel-administracion">
           <div>
             <h2 id="titulo-areas-administradas">Áreas registradas</h2>
@@ -445,25 +482,35 @@ export function PaginaAdministracionAreas() {
         </div>
         <form className="filtros-administracion" onSubmit={aplicarFiltros}>
           <label>Buscar<input value={filtros.busqueda} onChange={(evento) => establecerFiltros({ ...filtros, busqueda: evento.target.value })} /></label>
-          <label>Estado<select value={filtros.estado} onChange={(evento) => establecerFiltros({ ...filtros, estado: evento.target.value })}><option value="">Todos</option>{estadosArea.map((valor) => <option key={valor}>{valor}</option>)}</select></label>
+          <label>Estado<select value={filtros.estado} onChange={(evento) => establecerFiltros({ ...filtros, estado: evento.target.value })}><option value="">Todos</option>{estadosArea.map((valor) => <option key={valor} value={valor}>{etiquetaEstadoArea(valor)}</option>)}</select></label>
           <label>Categoría<select value={filtros.idCategoria} onChange={(evento) => establecerFiltros({ ...filtros, idCategoria: evento.target.value })}><option value="">Todas</option>{categorias.map((categoria) => <option key={categoria.idCategoriaArea} value={categoria.idCategoriaArea}>{categoria.nombre}</option>)}</select></label>
           <button type="submit" disabled={estado.cargando}>Aplicar</button>
         </form>
+        <div className="cabecera-listado-areas" aria-hidden="true">
+          <span>Área</span>
+          <span>Código y categoría</span>
+          <span>Estado</span>
+        </div>
         <div className="lista-elementos-administracion lista-areas-administracion">
           {pagina.contenido.map((area) => (
             <button
               className={`elemento-administracion tarjeta-area${areaEdicion?.idArea === area.idArea ? " seleccionado" : ""}`}
               type="button"
               key={area.idArea}
+              aria-expanded={areaEdicion?.idArea === area.idArea}
+              aria-controls={areaEdicion?.idArea === area.idArea ? "detalle-area-seleccionada" : undefined}
               onClick={() => seleccionarArea(area)}
             >
-              <span><strong>{area.nombre}</strong><small>{area.codigo} · {area.nombreCategoria}</small></span>
-              <span className="etiqueta-estado">{area.estado}</span>
+              <span><strong>{area.nombre}</strong></span>
+              <span><strong>{area.codigo}</strong><small>{area.nombreCategoria}</small></span>
+              <span className="etiqueta-estado">{etiquetaEstadoArea(area.estado)}</span>
             </button>
           ))}
         </div>
-      </section>
+      </section>}
 
+        </div>
+      </div>
     </main>
   );
 }

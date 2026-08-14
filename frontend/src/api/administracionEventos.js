@@ -79,6 +79,28 @@ export async function eliminarImagenEvento(idEvento) {
   });
 }
 
+export function listarImagenesSecundariasEvento(idEvento) {
+  return solicitarApi(`/administracion/eventos/${idEvento}/imagenes-secundarias`);
+}
+
+export async function agregarImagenSecundariaEvento(idEvento, archivo) {
+  await prepararCsrf();
+  const formulario = new window.FormData();
+  formulario.append("archivo", archivo);
+  return solicitarApi(`/administracion/eventos/${idEvento}/imagenes-secundarias`, {
+    method: "POST",
+    body: formulario,
+  });
+}
+
+export async function eliminarImagenSecundariaEvento(idEvento, idImagenEvento) {
+  await prepararCsrf();
+  return solicitarApi(
+    `/administracion/eventos/${idEvento}/imagenes-secundarias/${idImagenEvento}`,
+    { method: "DELETE" },
+  );
+}
+
 export function listarInscripcionesAdministradas(idEvento, {
   busqueda = "",
   estado = "",

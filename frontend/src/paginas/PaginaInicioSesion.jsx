@@ -6,12 +6,12 @@ export function PaginaInicioSesion() {
   const { iniciar } = usarSesion();
   const navegacion = useNavigate();
   const ubicacion = useLocation();
-  const [datos, setDatos] = useState({ correo: "", contrasena: "" });
+  const [datos, setDatos] = useState({ correo: "", contrasena: "", mantenerSesionActiva: false });
   const [estado, setEstado] = useState({ enviando: false, error: "" });
 
   function actualizarCampo(evento) {
-    const { name, value } = evento.target;
-    setDatos((actuales) => ({ ...actuales, [name]: value }));
+    const { name, type, value, checked } = evento.target;
+    setDatos((actuales) => ({ ...actuales, [name]: type === "checkbox" ? checked : value }));
   }
 
   async function enviar(evento) {
@@ -59,6 +59,16 @@ export function PaginaInicioSesion() {
             value={datos.contrasena}
             onChange={actualizarCampo}
           />
+          <label className="opcion-mantener-sesion" htmlFor="mantenerSesionActiva">
+            <input
+              id="mantenerSesionActiva"
+              name="mantenerSesionActiva"
+              type="checkbox"
+              checked={datos.mantenerSesionActiva}
+              onChange={actualizarCampo}
+            />
+            <span>Mantener sesión activa por 1 semana<small>No marques esta opción en un equipo compartido.</small></span>
+          </label>
           <button type="submit" disabled={estado.enviando}>
             {estado.enviando ? "Comprobando…" : "Ingresar"}
           </button>

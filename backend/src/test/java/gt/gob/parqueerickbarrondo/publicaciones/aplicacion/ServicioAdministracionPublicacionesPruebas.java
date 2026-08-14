@@ -23,9 +23,11 @@ import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.Rep
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioImagenPublicacion;
 import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioPublicacion;
 import gt.gob.parqueerickbarrondo.publicaciones.api.modelo.RespuestaPublicacionAdministrada;
+import gt.gob.parqueerickbarrondo.publicaciones.api.modelo.SolicitudCategoriaPublicacion;
 import gt.gob.parqueerickbarrondo.publicaciones.api.modelo.SolicitudPublicacion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -53,6 +55,94 @@ class ServicioAdministracionPublicacionesPruebas {
 
     @InjectMocks
     private ServicioAdministracionPublicaciones servicioAdministracion;
+
+    @Test
+    void generaElMenorCodigoNumericoDisponibleParaUnaCategoria() {
+        when(repositorioCategoria.findAllCodigos()).thenReturn(List.of("1", "3", "NOTICIAS"));
+        when(repositorioCategoria.saveAndFlush(any(CategoriaPublicacion.class))).thenAnswer(invocacion -> {
+            var categoria = invocacion.getArgument(0, CategoriaPublicacion.class);
+            ReflectionTestUtils.setField(categoria, "idCategoriaPublicacion", 10L);
+            ReflectionTestUtils.setField(categoria, "version", 0L);
+            return categoria;
+        });
+        var actor = org.mockito.Mockito.mock(UsuarioSesion.class);
+        when(actor.obtenerIdUsuario()).thenReturn(7L);
+        var solicitud = new SolicitudCategoriaPublicacion(
+                "Canchas", "Espacios deportivos", 2, true, null);
+
+        var respuesta = servicioAdministracion.crearCategoria(solicitud, actor);
+
+        assertThat(respuesta.codigo()).isEqualTo("2");
+        assertThat(respuesta.ordenVisualizacion()).isEqualTo((short) 2);
+    }
+
+    @Test
+    void rechazaUnOrdenDeCategoriaRepetido() {
+        when(repositorioCategoria.existsByOrdenVisualizacion((short) 1)).thenReturn(true);
+        var solicitud = new SolicitudCategoriaPublicacion(
+                "Canchas", null, 1, true, null);
+
+        assertThatThrownBy(() -> servicioAdministracion.crearCategoria(
+                solicitud, org.mockito.Mockito.mock(UsuarioSesion.class)))
+                .isInstanceOf(ConflictoDatosException.class)
+                .hasMessageContaining("orden 1");
+
+        verify(repositorioCategoria, never()).findAllCodigos();
+        verify(repositorioCategoria, never()).saveAndFlush(any(CategoriaPublicacion.class));
+    }
+
+    @Test
+    void conservaElCodigoInternoAlActualizarUnaCategoria() {
+        var categoria = new CategoriaPublicacion("7", "Canchas", null, (short) 1, true);
+        ReflectionTestUtils.setField(categoria, "idCategoriaPublicacion", 10L);
+        ReflectionTestUtils.setField(categoria, "version", 0L);
+        when(repositorioCategoria.findByIdCategoriaPublicacion(10L)).thenReturn(Optional.of(categoria));
+        when(repositorioCategoria.saveAndFlush(categoria)).thenReturn(categoria);
+        var actor = org.mockito.Mockito.mock(UsuarioSesion.class);
+        when(actor.obtenerIdUsuario()).thenReturn(7L);
+        var solicitud = new SolicitudCategoriaPublicacion(
+                "Canchas deportivas", null, 2, true, 0L);
+
+        var respuesta = servicioAdministracion.actualizarCategoria(10L, solicitud, actor);
+
+        assertThat(respuesta.codigo()).isEqualTo("7");
+        assertThat(respuesta.nombre()).isEqualTo("Canchas deportivas");
+        assertThat(respuesta.ordenVisualizacion()).isEqualTo((short) 2);
+    }
+
+    @Test
+    void eliminaUnaCategoriaSinPublicacionesYRegistraAuditoria() {
+        var categoria = new CategoriaPublicacion("1", "Noticias", null, (short) 1, true);
+        ReflectionTestUtils.setField(categoria, "idCategoriaPublicacion", 10L);
+        ReflectionTestUtils.setField(categoria, "version", 2L);
+        when(repositorioCategoria.findByIdCategoriaPublicacion(10L)).thenReturn(Optional.of(categoria));
+        var actor = org.mockito.Mockito.mock(UsuarioSesion.class);
+        when(actor.obtenerIdUsuario()).thenReturn(7L);
+
+        servicioAdministracion.eliminarCategoria(10L, 2L, actor);
+
+        verify(repositorioCategoria).delete(categoria);
+        verify(repositorioCategoria).flush();
+        verify(servicioAuditoria).registrar(
+                eq(7L), eq("CATEGORIAPUBLICACIONELIMINADA"),
+                eq("CATEGORIAPUBLICACION"), eq("10"), eq("EXITOSO"), anyString());
+    }
+
+    @Test
+    void rechazaEliminarUnaCategoriaConPublicacionesAsociadas() {
+        var categoria = new CategoriaPublicacion("1", "Noticias", null, (short) 1, true);
+        ReflectionTestUtils.setField(categoria, "idCategoriaPublicacion", 10L);
+        ReflectionTestUtils.setField(categoria, "version", 2L);
+        when(repositorioCategoria.findByIdCategoriaPublicacion(10L)).thenReturn(Optional.of(categoria));
+        when(repositorioPublicacion.existsByCategoria_IdCategoriaPublicacion(10L)).thenReturn(true);
+
+        assertThatThrownBy(() -> servicioAdministracion.eliminarCategoria(
+                10L, 2L, org.mockito.Mockito.mock(UsuarioSesion.class)))
+                .isInstanceOf(ConflictoDatosException.class)
+                .hasMessageContaining("publicaciones asociadas");
+
+        verify(repositorioCategoria, never()).delete(categoria);
+    }
 
     @Test
     void devuelveLaMismaRespuestaCuandoSeRepiteUnaCreacionCompletada() {

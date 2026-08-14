@@ -6,5 +6,6 @@ import jakarta.validation.constraints.Size;
 
 public record SolicitudInicioSesion(
         @NotBlank @Email @Size(max = 254) String correo,
-        @NotBlank @Size(max = 128) String contrasena) {
+        @NotBlank @Size(max = 128) String contrasena,
+        boolean mantenerSesionActiva) {
 }

@@ -30,7 +30,7 @@ describe("Administración de contenido institucional", () => {
     render(<MemoryRouter><PaginaAdministracionInstitucional /></MemoryRouter>);
 
     fireEvent.click(await screen.findByRole("button", { name: "Editar contenido" }));
-    expect(screen.getByRole("button", { name: "Ocultar Contenido" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Editar contenido" }).getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByDisplayValue("Misión original.")).toBeTruthy();
     fireEvent.change(screen.getByLabelText("Resumen institucional"), { target: { value: "Resumen actualizado." } });
     fireEvent.click(screen.getByRole("button", { name: "Guardar contenido institucional" }));

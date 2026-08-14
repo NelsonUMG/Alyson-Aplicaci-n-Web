@@ -68,13 +68,15 @@ const etiquetasResultados = {
 
 function etiquetaLegible(codigo, etiquetas) {
   if (!codigo) return "";
-  return etiquetas[codigo] ?? codigo.charAt(0).toUpperCase() + codigo.slice(1).toLowerCase();
+  const clave = codigo.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, "").toUpperCase();
+  return etiquetas[clave] ?? codigo.charAt(0).toUpperCase() + codigo.slice(1).toLowerCase();
 }
 
 function etiquetaAccion(codigo) {
-  if (accionesCrear.has(codigo)) return "Crear";
-  if (accionesEliminar.has(codigo)) return "Eliminar";
-  return etiquetasAccionesEspeciales[codigo] ?? "Modificar";
+  const clave = codigo.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, "").toUpperCase();
+  if (accionesCrear.has(clave)) return "Crear";
+  if (accionesEliminar.has(clave)) return "Eliminar";
+  return etiquetasAccionesEspeciales[clave] ?? "Modificar";
 }
 
 function formatearFecha(fecha) {
@@ -89,6 +91,7 @@ export function PaginaAuditoria() {
   const [filtros, establecerFiltros] = useState(filtrosVacios);
   const [filtrosAplicados, establecerFiltrosAplicados] = useState(filtrosVacios);
   const [estado, establecerEstado] = useState({ cargando: true, error: "" });
+  const [mostrarListado, establecerMostrarListado] = useState(false);
 
   async function cargar(parametros, numeroPagina = 0) {
     establecerEstado({ cargando: true, error: "" });
@@ -130,9 +133,21 @@ export function PaginaAuditoria() {
       <p className="etiqueta-fase">Consulta autorizada</p>
       <h1>Auditoría del sistema</h1>
       <p>Consulta operaciones sensibles registradas por el servidor. Los eventos son de solo lectura.</p>
+      <div className="disposicion-modulo-administracion">
+        <aside className="menu-lateral-administracion">
+          <details open>
+            <summary>Auditoría del sistema</summary>
+      <div className="acciones-superiores-administracion">
+        <button className={mostrarListado ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarListado} onClick={() => establecerMostrarListado(true)}>
+          Listado de auditoría
+        </button>
+      </div>
+          </details>
+        </aside>
+        <div className="contenido-modulo-administracion">
       {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
 
-      <section className="panel-edicion" aria-labelledby="titulo-eventos-auditoria">
+      {mostrarListado && <section className="panel-edicion" aria-labelledby="titulo-eventos-auditoria">
         <div className="cabecera-panel-administracion">
           <div>
             <h2 id="titulo-eventos-auditoria">Eventos registrados</h2>
@@ -171,7 +186,9 @@ export function PaginaAuditoria() {
           <span>Página {pagina.totalPaginas === 0 ? 0 : pagina.pagina + 1} de {pagina.totalPaginas}</span>
           <button type="button" disabled={estado.cargando || pagina.pagina + 1 >= pagina.totalPaginas} onClick={() => cargar(filtrosAplicados, pagina.pagina + 1)}>Siguiente</button>
         </div>
-      </section>
+      </section>}
+        </div>
+      </div>
     </main>
   );
 }

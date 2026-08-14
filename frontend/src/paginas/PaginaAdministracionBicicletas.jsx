@@ -65,6 +65,7 @@ export function PaginaAdministracionBicicletas() {
   const [pagina, establecerPagina] = useState(paginaVacia);
   const [filtros, establecerFiltros] = useState({ busqueda: "", estado: "" });
   const [bicicletaEdicion, establecerBicicletaEdicion] = useState(null);
+  const [mostrarListado, establecerMostrarListado] = useState(false);
   const [historial, establecerHistorial] = useState([]);
   const [cambioEstado, establecerCambioEstado] = useState({ estado: "", motivo: "" });
   const [estadoPagina, establecerEstadoPagina] = useState({
@@ -111,6 +112,7 @@ export function PaginaAdministracionBicicletas() {
   }
 
   async function seleccionarBicicleta(bicicleta) {
+    establecerMostrarListado(true);
     establecerEstadoPagina((actual) => ({ ...actual, cargando: true, error: "", mensaje: "" }));
     try {
       const [detalle, cambios] = await Promise.all([
@@ -127,10 +129,20 @@ export function PaginaAdministracionBicicletas() {
   }
 
   function nuevaBicicleta() {
-    establecerBicicletaEdicion((actual) => (actual ? null : { ...bicicletaVacia }));
+    if (bicicletaEdicion && !bicicletaEdicion.idBicicleta) return;
+    establecerMostrarListado(false);
+    establecerBicicletaEdicion({ ...bicicletaVacia });
     establecerHistorial([]);
     establecerCambioEstado({ estado: "", motivo: "" });
     claveCreacion.current = null;
+  }
+
+  function alternarListado() {
+    if (mostrarListado) return;
+    establecerBicicletaEdicion(null);
+    establecerHistorial([]);
+    establecerCambioEstado({ estado: "", motivo: "" });
+    establecerMostrarListado(true);
   }
 
   async function guardarInventario(evento) {
@@ -188,18 +200,31 @@ export function PaginaAdministracionBicicletas() {
     ? transicionesPorEstado[bicicletaEdicion.estado] || []
     : [];
 
+  const bicicletaExistenteSeleccionada = Boolean(
+    mostrarListado && bicicletaEdicion?.idBicicleta,
+  );
+
   return (
     <main className="pagina-administracion pagina-administracion-bicicletas">
       <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
       <p className="etiqueta-fase">Administración</p>
       <h1>Inventario de bicicletas</h1>
       <p>Registra bicicletas y conserva el historial de cada cambio de estado.</p>
+      <div className="disposicion-modulo-administracion">
+        <aside className="menu-lateral-administracion">
+          <details open>
+            <summary>Inventario de bicicletas</summary>
+      <div className="acciones-superiores-administracion">
+        {puedeCrear && <button className={bicicletaEdicion && !bicicletaEdicion.idBicicleta ? "boton-gestion-activo" : ""} type="button" aria-expanded={Boolean(bicicletaEdicion && !bicicletaEdicion.idBicicleta)} onClick={nuevaBicicleta}>Nueva bicicleta</button>}
+        <button className={mostrarListado ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarListado} onClick={alternarListado}>Listado de bicicletas</button>
+      </div>
+          </details>
+        </aside>
+        <div className="contenido-modulo-administracion">
       {estadoPagina.error && <p className="mensaje-error" role="alert">{estadoPagina.error}</p>}
       {estadoPagina.mensaje && <p className="mensaje-exito" role="status">{estadoPagina.mensaje}</p>}
 
-      {puedeCrear && <div className="acciones-superiores-administracion"><button className={bicicletaEdicion ? "boton-gestion-activo" : ""} type="button" aria-expanded={Boolean(bicicletaEdicion)} onClick={nuevaBicicleta}>{bicicletaEdicion ? "Ocultar Bicicleta" : "Nueva bicicleta"}</button></div>}
-
-      <section className="panel-edicion" aria-labelledby="titulo-inventario-bicicletas">
+      {mostrarListado && <section className="panel-edicion panel-listado-administracion" aria-labelledby="titulo-inventario-bicicletas">
         <div className="cabecera-panel-administracion">
           <div>
             <h2 id="titulo-inventario-bicicletas">Bicicletas registradas</h2>
@@ -211,24 +236,34 @@ export function PaginaAdministracionBicicletas() {
           <label>Estado<select value={filtros.estado} onChange={(evento) => establecerFiltros({ ...filtros, estado: evento.target.value })}><option value="">Todos</option>{estadosBicicleta.map((valor) => <option key={valor}>{valor}</option>)}</select></label>
           <button type="submit" disabled={estadoPagina.cargando}>Aplicar</button>
         </form>
-        <div className="lista-elementos-administracion">
+        <div className="cabecera-listado-administracion" aria-hidden="true">
+          <span>Código</span><span>Estado</span><span>Actualización</span>
+        </div>
+        <div className="lista-elementos-administracion lista-bicicletas-administracion lista-tabular-administracion">
           {pagina.contenido.map((bicicleta) => (
             <button
               className={bicicletaEdicion?.idBicicleta === bicicleta.idBicicleta ? "seleccionado" : ""}
               type="button"
               key={bicicleta.idBicicleta}
+              aria-expanded={bicicletaEdicion?.idBicicleta === bicicleta.idBicicleta}
+              aria-controls={bicicletaEdicion?.idBicicleta === bicicleta.idBicicleta ? "detalle-bicicleta-seleccionada" : undefined}
               onClick={() => seleccionarBicicleta(bicicleta)}
             >
-              <span><strong>{bicicleta.codigo}</strong><small>Actualizada por {bicicleta.nombreActualizadoPor}</small></span>
+              <span><strong>{bicicleta.codigo}</strong></span>
               <span><strong className="etiqueta-estado">{bicicleta.estado}</strong>{bicicleta.tienePrestamoActivo && <small>Préstamo activo</small>}</span>
+              <span><small>Actualizada por {bicicleta.nombreActualizadoPor}</small></span>
             </button>
           ))}
           {!estadoPagina.cargando && pagina.contenido.length === 0 && <p>No hay bicicletas que coincidan con la consulta.</p>}
         </div>
-      </section>
+      </section>}
 
       {bicicletaEdicion && (
-        <section className="panel-edicion" aria-labelledby="titulo-edicion-bicicleta">
+        <section
+          id={bicicletaExistenteSeleccionada ? "detalle-bicicleta-seleccionada" : undefined}
+          className={`panel-edicion${bicicletaExistenteSeleccionada ? " panel-detalle-administracion" : ""}`}
+          aria-labelledby="titulo-edicion-bicicleta"
+        >
           <h2 id="titulo-edicion-bicicleta">{bicicletaEdicion.idBicicleta ? "Actualizar bicicleta" : "Registrar bicicleta"}</h2>
           {bicicletaEdicion.tienePrestamoActivo && (
             <p className="mensaje-advertencia">Esta bicicleta tiene un préstamo activo. Su estado se mantiene sujeto al flujo de devolución correspondiente.</p>
@@ -268,6 +303,8 @@ export function PaginaAdministracionBicicletas() {
           )}
         </section>
       )}
+        </div>
+      </div>
     </main>
   );
 }

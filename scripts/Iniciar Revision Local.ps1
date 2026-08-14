@@ -1,5 +1,7 @@
 [CmdletBinding()]
-param()
+param(
+    [switch]$OmitirVerificacionAdministrador
+)
 
 $ErrorActionPreference = 'Stop'
 $raizRepositorio = Split-Path -Parent $PSScriptRoot
@@ -9,18 +11,30 @@ $rutaFrontend = Join-Path $raizRepositorio 'frontend'
 $rutaDatos = 'C:\Users\Nelson\Desktop\Proyecto de Alyson Vannesa\Datos Revision Parque'
 $rutaRegistro = Join-Path $env:TEMP 'parque-erick-barrondo-ejecucion.json'
 $marcaTiempo = Get-Date -Format 'yyyyMMddHHmmss'
-$sufijo = [Guid]::NewGuid().ToString('N').Substring(0, 8)
-$nombreBaseDatos = "RevisionParque$marcaTiempo"
-$nombreLoginSql = "revisionparque$sufijo"
+$nombreBaseDatos = 'RevisionParqueLocal'
+$nombreLoginSql = 'revisionparquelocal'
 $correoAdministrador = 'administrador.revision@parque.local'
-$contrasenaAdministrador = "Revision-$([Guid]::NewGuid().ToString('N').Substring(0, 16))Aa9!"
+$contrasenaAdministrador = if (Test-Path -LiteralPath $rutaRegistro -PathType Leaf) {
+    try {
+        $registroAnterior = Get-Content -Raw -LiteralPath $rutaRegistro | ConvertFrom-Json
+        if ([string]::IsNullOrWhiteSpace($registroAnterior.contrasenaAdministrador)) {
+            throw 'El registro anterior no contiene la contraseña administrativa.'
+        }
+        $registroAnterior.contrasenaAdministrador
+    }
+    catch {
+        "Revision-$([Guid]::NewGuid().ToString('N').Substring(0, 16))Aa9!"
+    }
+}
+else {
+    "Revision-$([Guid]::NewGuid().ToString('N').Substring(0, 16))Aa9!"
+}
 $archivoBackendSalida = Join-Path $env:TEMP "parque-backend-$marcaTiempo.log"
 $archivoBackendErrores = Join-Path $env:TEMP "parque-backend-$marcaTiempo.err.log"
 $archivoFrontendSalida = Join-Path $env:TEMP "parque-frontend-$marcaTiempo.log"
 $archivoFrontendErrores = Join-Path $env:TEMP "parque-frontend-$marcaTiempo.err.log"
 $procesoBackend = $null
 $procesoFrontend = $null
-$objetosSqlCreados = $false
 
 function NuevaContrasenaSql {
     $bytes = New-Object byte[] 24
@@ -77,17 +91,23 @@ try {
     $conexionPrincipal.Open()
     $crearObjetos = $conexionPrincipal.CreateCommand()
     $crearObjetos.CommandText = @"
-CREATE DATABASE [$nombreBaseDatos];
-CREATE LOGIN [$nombreLoginSql] WITH PASSWORD = N'$contrasenaSql', CHECK_POLICY = OFF;
+IF DB_ID('$nombreBaseDatos') IS NULL CREATE DATABASE [$nombreBaseDatos];
+IF SUSER_ID('$nombreLoginSql') IS NULL
+    CREATE LOGIN [$nombreLoginSql] WITH PASSWORD = N'$contrasenaSql', CHECK_POLICY = OFF;
+ELSE
+    ALTER LOGIN [$nombreLoginSql] WITH PASSWORD = N'$contrasenaSql';
 "@
     [void]$crearObjetos.ExecuteNonQuery()
-    $objetosSqlCreados = $true
 
     $conexionPrincipal.ChangeDatabase($nombreBaseDatos)
     $crearUsuario = $conexionPrincipal.CreateCommand()
     $crearUsuario.CommandText = @"
-CREATE USER [$nombreLoginSql] FOR LOGIN [$nombreLoginSql] WITH DEFAULT_SCHEMA = dbo;
-ALTER ROLE db_owner ADD MEMBER [$nombreLoginSql];
+IF USER_ID('$nombreLoginSql') IS NULL
+    CREATE USER [$nombreLoginSql] FOR LOGIN [$nombreLoginSql] WITH DEFAULT_SCHEMA = dbo;
+ELSE
+    ALTER USER [$nombreLoginSql] WITH LOGIN = [$nombreLoginSql];
+IF IS_ROLEMEMBER('db_owner', '$nombreLoginSql') <> 1
+    ALTER ROLE db_owner ADD MEMBER [$nombreLoginSql];
 "@
     [void]$crearUsuario.ExecuteNonQuery()
 
@@ -102,8 +122,9 @@ ALTER ROLE db_owner ADD MEMBER [$nombreLoginSql];
     $env:BDCIFRAR = 'true'
     $env:BDCONFIARCERTIFICADOSERVIDOR = 'true'
     $env:PUERTOSERVIDOR = '8080'
+    $env:SERVER_ADDRESS = '127.0.0.1'
     $env:SEGURIDADCLAVEHUELLAS = [Guid]::NewGuid().ToString('N') + [Guid]::NewGuid().ToString('N')
-    $env:ADMININICIALHABILITADO = 'true'
+    $env:ADMININICIALHABILITADO = if ($OmitirVerificacionAdministrador) { 'false' } else { 'true' }
     $env:ADMININICIALCORREO = $correoAdministrador
     $env:ADMININICIALNOMBRE = 'Administrador'
     $env:ADMININICIALAPELLIDO = 'Revision'
@@ -146,8 +167,9 @@ ALTER ROLE db_owner ADD MEMBER [$nombreLoginSql];
         throw 'El backend no inició correctamente.'
     }
 
-    $inicioSesionVerificado = $false
-    for ($intento = 1; $intento -le 20; $intento++) {
+    $inicioSesionVerificado = [bool]$OmitirVerificacionAdministrador
+    $detalleErrorInicioSesion = $null
+    for ($intento = 1; $intento -le 20 -and -not $inicioSesionVerificado; $intento++) {
         try {
             $sesionWeb = [Microsoft.PowerShell.Commands.WebRequestSession]::new()
             $csrf = Invoke-RestMethod `
@@ -159,6 +181,7 @@ ALTER ROLE db_owner ADD MEMBER [$nombreLoginSql];
             $datosSesion = @{
                 correo = $correoAdministrador
                 contrasena = $contrasenaAdministrador
+                mantenerSesionActiva = $false
             } | ConvertTo-Json
             [void](Invoke-RestMethod `
                 -Uri 'http://127.0.0.1:8080/api/v1/autenticacion/iniciar-sesion' `
@@ -172,11 +195,15 @@ ALTER ROLE db_owner ADD MEMBER [$nombreLoginSql];
             break
         }
         catch {
+            $detalleErrorInicioSesion = $_.Exception.Message
+            if ($_.ErrorDetails.Message) {
+                $detalleErrorInicioSesion = $_.ErrorDetails.Message
+            }
             Start-Sleep -Milliseconds 500
         }
     }
     if (-not $inicioSesionVerificado) {
-        throw 'No fue posible verificar el administrador de revisión.'
+        throw "No fue posible verificar el administrador de revisión. $detalleErrorInicioSesion"
     }
 
     $procesoFrontend = Start-Process `
@@ -217,8 +244,8 @@ ALTER ROLE db_owner ADD MEMBER [$nombreLoginSql];
         frontendPid = $procesoFrontend.Id
         baseDatos = $nombreBaseDatos
         loginSql = $nombreLoginSql
-        correoAdministrador = $correoAdministrador
-        contrasenaAdministrador = $contrasenaAdministrador
+        correoAdministrador = if ($OmitirVerificacionAdministrador) { $null } else { $correoAdministrador }
+        contrasenaAdministrador = if ($OmitirVerificacionAdministrador) { $null } else { $contrasenaAdministrador }
         backendLog = $archivoBackendSalida
         backendErrorLog = $archivoBackendErrores
         frontendLog = $archivoFrontendSalida
@@ -230,8 +257,10 @@ ALTER ROLE db_owner ADD MEMBER [$nombreLoginSql];
     Write-Host 'Sistema local listo para revisión.'
     Write-Host 'Interfaz: http://127.0.0.1:5173'
     Write-Host 'API: http://127.0.0.1:8080'
-    Write-Host "Correo: $correoAdministrador"
-    Write-Host "Contraseña: $contrasenaAdministrador"
+    if (-not $OmitirVerificacionAdministrador) {
+        Write-Host "Correo: $correoAdministrador"
+        Write-Host "Contraseña: $contrasenaAdministrador"
+    }
     Write-Host "Backend PID: $($procesoBackend.Id)"
     Write-Host "Frontend PID: $($procesoFrontend.Id)"
 }
@@ -242,27 +271,6 @@ catch {
     if ($null -ne $procesoBackend -and -not $procesoBackend.HasExited) {
         Stop-Process -Id $procesoBackend.Id -Force -ErrorAction SilentlyContinue
         Start-Sleep -Milliseconds 500
-    }
-    if ($objetosSqlCreados) {
-        try {
-            if ($conexionPrincipal.State -ne [System.Data.ConnectionState]::Open) {
-                $conexionPrincipal.Open()
-            }
-            $conexionPrincipal.ChangeDatabase('master')
-            $limpiar = $conexionPrincipal.CreateCommand()
-            $limpiar.CommandText = @"
-IF DB_ID('$nombreBaseDatos') IS NOT NULL
-BEGIN
-    ALTER DATABASE [$nombreBaseDatos] SET SINGLE_USER WITH ROLLBACK IMMEDIATE;
-    DROP DATABASE [$nombreBaseDatos];
-END;
-IF SUSER_ID('$nombreLoginSql') IS NOT NULL DROP LOGIN [$nombreLoginSql];
-"@
-            [void]$limpiar.ExecuteNonQuery()
-        }
-        catch {
-            Write-Warning 'No fue posible limpiar todos los objetos temporales de SQL Server.'
-        }
     }
     Write-Host 'Salida reciente del backend:'
     MostrarUltimasLineas -Ruta $archivoBackendSalida

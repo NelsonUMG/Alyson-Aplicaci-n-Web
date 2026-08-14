@@ -1,6 +1,6 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const apiBicicletas = vi.hoisted(() => ({
   actualizarBicicleta: vi.fn(),
@@ -35,6 +35,8 @@ const bicicleta = {
 };
 
 describe("Administración de bicicletas", () => {
+  afterEach(cleanup);
+
   beforeEach(() => {
     Object.values(apiBicicletas).forEach((funcion) => funcion.mockReset());
     apiBicicletas.listarBicicletasAdministradas.mockResolvedValue({
@@ -59,7 +61,7 @@ describe("Administración de bicicletas", () => {
 
     fireEvent.click(await screen.findByRole("button", { name: "Nueva bicicleta" }));
 
-    expect(screen.getByRole("button", { name: "Ocultar Bicicleta" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Nueva bicicleta" }).getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByRole("heading", { name: "Registrar bicicleta" })).toBeTruthy();
     expect(screen.getByLabelText("Estado inicial").textContent).not.toContain("PRESTADA");
     expect(screen.getByLabelText("Motivo del estado inicial")).toBeTruthy();
@@ -68,9 +70,13 @@ describe("Administración de bicicletas", () => {
   it("señala un préstamo activo y presenta el historial sin datos de la persona usuaria", async () => {
     render(<MemoryRouter><PaginaAdministracionBicicletas /></MemoryRouter>);
 
-    fireEvent.click(await screen.findByRole("button", { name: /BIC007/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Listado de bicicletas" }));
+    const filaBicicleta = await screen.findByRole("button", { name: /BIC007/ });
+    fireEvent.click(filaBicicleta);
 
+    expect(screen.getByRole("heading", { name: "Bicicletas registradas" })).toBeTruthy();
     expect(await screen.findByText(/tiene un préstamo activo/i)).toBeTruthy();
+    expect(filaBicicleta.getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByText("DISPONIBLE → PRESTADA")).toBeTruthy();
     expect(screen.queryByText(/correo/i)).toBeNull();
   });

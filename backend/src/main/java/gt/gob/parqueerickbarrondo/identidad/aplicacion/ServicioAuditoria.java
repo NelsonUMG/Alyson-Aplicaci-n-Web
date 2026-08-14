@@ -28,10 +28,10 @@ public class ServicioAuditoria {
                 : idCorrelacion;
         repositorioEventoAuditoria.save(new EventoAuditoria(
                 idUsuarioActor,
-                codigoAccion,
-                tipoRecurso,
+                FormatoAuditoria.accion(codigoAccion),
+                FormatoAuditoria.recurso(tipoRecurso),
                 idRecurso,
-                resultado,
+                FormatoAuditoria.resultado(resultado),
                 correlacion));
     }
 }

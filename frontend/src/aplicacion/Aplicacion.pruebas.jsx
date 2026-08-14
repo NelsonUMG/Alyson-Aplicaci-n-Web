@@ -23,7 +23,10 @@ describe("Aplicacion", () => {
 
     expect(await screen.findByRole("heading", { name: "Parque Erick Barrondo" })).toBeTruthy();
     expect(screen.getByRole("navigation", { name: "Navegación principal" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Bicicletas" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Últimas publicaciones" })).toBeTruthy();
+    expect(screen.queryByLabelText("Accesos rápidos")).toBeNull();
+    expect(screen.queryByRole("heading", { name: "Instituciones aliadas" })).toBeNull();
     expect(screen.queryByRole("heading", { name: "Mapa del parque" })).toBeNull();
   });
 
@@ -54,6 +57,7 @@ describe("Aplicacion", () => {
     expect(await screen.findByRole("heading", { name: "Iniciar sesión" })).toBeTruthy();
     expect(screen.getByLabelText("Correo electrónico")).toBeTruthy();
     expect(screen.getByLabelText("Contraseña")).toBeTruthy();
+    expect(screen.getByRole("checkbox", { name: /Mantener sesión activa por 1 semana/ })).toBeTruthy();
   });
 
   it("redirige al acceso cuando el perfil no tiene sesión", async () => {

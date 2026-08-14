@@ -11,6 +11,7 @@ import gt.gob.parqueerickbarrondo.identidad.seguridad.UsuarioSesion;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.Cookie;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
@@ -23,6 +24,8 @@ import org.springframework.transaction.support.TransactionTemplate;
 
 @Service
 public class ServicioAutenticacion {
+
+    static final int DURACION_SESION_EXTENDIDA_SEGUNDOS = 7 * 24 * 60 * 60;
 
     private final AuthenticationManager administradorAutenticacion;
     private final SecurityContextRepository repositorioContextoSeguridad;
@@ -94,7 +97,11 @@ public class ServicioAutenticacion {
             contexto.setAuthentication(autenticacion);
             SecurityContextHolder.setContext(contexto);
             repositorioContextoSeguridad.saveContext(contexto, peticion, respuesta);
-            registroSesiones.registerNewSession(peticion.getSession().getId(), usuarioSesion);
+            var sesion = peticion.getSession();
+            if (solicitud.mantenerSesionActiva()) {
+                configurarSesionExtendida(sesion, peticion, respuesta);
+            }
+            registroSesiones.registerNewSession(sesion.getId(), usuarioSesion);
             return convertirPerfil(usuarioSesion);
         }
         catch (AuthenticationException excepcion) {
@@ -143,6 +150,20 @@ public class ServicioAutenticacion {
             sesionAnterior.invalidate();
         }
         peticion.getSession(true);
+    }
+
+    static void configurarSesionExtendida(
+            HttpSession sesion,
+            HttpServletRequest peticion,
+            HttpServletResponse respuesta) {
+        sesion.setMaxInactiveInterval(DURACION_SESION_EXTENDIDA_SEGUNDOS);
+        var cookie = new Cookie("JSESSIONID", sesion.getId());
+        cookie.setHttpOnly(true);
+        cookie.setSecure(peticion.isSecure());
+        cookie.setPath(peticion.getContextPath().isBlank() ? "/" : peticion.getContextPath());
+        cookie.setMaxAge(DURACION_SESION_EXTENDIDA_SEGUNDOS);
+        cookie.setAttribute("SameSite", "Lax");
+        respuesta.addCookie(cookie);
     }
 
     private void invalidarOtrasSesiones(UsuarioSesion usuarioSesion, String idSesionActual) {

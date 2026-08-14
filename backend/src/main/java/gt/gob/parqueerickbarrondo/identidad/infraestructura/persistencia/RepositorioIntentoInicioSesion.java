@@ -13,7 +13,7 @@ public interface RepositorioIntentoInicioSesion extends JpaRepository<IntentoIni
             select count(i) from IntentoInicioSesion i
             where i.intentadoEn >= :desde
               and (i.huellaCorreo = :huellaCorreo or i.huellaIp = :huellaIp)
-              and i.resultado in ('FALLIDO', 'LIMITADO', 'BLOQUEADO')
+              and i.resultado in ('Fallido', 'Limitado', 'Bloqueado')
             """)
     long contarFallosRecientes(
             @Param("huellaCorreo") byte[] huellaCorreo,

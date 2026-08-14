@@ -19,10 +19,10 @@ describe("Consulta de auditoría", () => {
         idEventoAuditoria: 12,
         idUsuarioActor: 5,
         nombreActor: "Nelson Prueba",
-        codigoAccion: "ESTADOBICICLETAACTUALIZADO",
-        tipoRecurso: "BICICLETA",
+        codigoAccion: "Estado de bicicleta actualizado",
+        tipoRecurso: "Bicicleta",
         idRecurso: "7",
-        resultado: "EXITOSO",
+        resultado: "Exitoso",
         idCorrelacion: "38572cf8-c15e-4e1c-a52f-416b046e3b41",
         ocurridoEn: "2026-08-03T18:00:00Z",
       }],
@@ -36,6 +36,7 @@ describe("Consulta de auditoría", () => {
   it("presenta eventos de solo lectura sin exponer la correlación", async () => {
     render(<MemoryRouter><PaginaAuditoria /></MemoryRouter>);
 
+    fireEvent.click(screen.getByRole("button", { name: "Listado de auditoría" }));
     expect(await screen.findByText("Modificar")).toBeTruthy();
     expect(screen.getByText("Bicicletas")).toBeTruthy();
     expect(screen.getAllByText("Exitoso").some((elemento) => elemento.tagName === "SPAN")).toBe(true);
@@ -49,6 +50,7 @@ describe("Consulta de auditoría", () => {
 
   it("envía filtros autorizados a la API", async () => {
     render(<MemoryRouter><PaginaAuditoria /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "Listado de auditoría" }));
     await screen.findByText("Modificar");
 
     fireEvent.change(screen.getByLabelText("Acción"), { target: { value: "INICIOSESION" } });
@@ -80,6 +82,7 @@ describe("Consulta de auditoría", () => {
 
     render(<MemoryRouter><PaginaAuditoria /></MemoryRouter>);
 
+    fireEvent.click(screen.getByRole("button", { name: "Listado de auditoría" }));
     expect(await screen.findByText("Modificar")).toBeTruthy();
     expect(screen.getByText("Publicaciones")).toBeTruthy();
     expect(screen.getByText("Registro 2")).toBeTruthy();
