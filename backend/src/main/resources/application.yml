@@ -38,6 +38,24 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 6MB
+  mail:
+    host: ${CORREOSMTPHOST:smtp.gmail.com}
+    port: ${CORREOSMTPPUERTO:587}
+    username: ${CORREONOREPLY:}
+    password: ${CORREOCLAVEAPLICACION:}
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.starttls.required: true
+    test-connection: false
+
+correo:
+  verificacion:
+    duracion-horas: ${CORREOVERIFICACIONDURACIONHORAS:24}
+    reenvio-espera-minutos: ${CORREOVERIFICACIONREENVIOESPERAMINUTOS:5}
+    envio-habilitado: ${CORREOENVIOHABILITADO:false}
+    remitente: ${CORREONOREPLY:noreply@parqueerickbarrondo.gob.gt}
+    url-publica: ${URLPUBLICAFRONTEND:http://127.0.0.1:5173}
 
 almacenamiento:
   publicaciones:
@@ -46,6 +64,8 @@ almacenamiento:
     ruta: ${ALMACENAMIENTORUTAEVENTOS:../datos/eventos}
   areas:
     ruta: ${ALMACENAMIENTORUTAAREAS:../datos/areas}
+  solicitudes:
+    ruta: ${ALMACENAMIENTORUTASOLICITUDES:../datos/solicitudes}
 
 server:
   port: ${PUERTOSERVIDOR:8080}
@@ -56,6 +76,9 @@ server:
         same-site: lax
 
 management:
+  health:
+    mail:
+      enabled: ${CORREOENVIOHABILITADO:false}
   endpoints:
     web:
       exposure:

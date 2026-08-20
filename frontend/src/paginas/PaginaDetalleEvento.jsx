@@ -26,6 +26,19 @@ function interpretarRequisitos(esquemaFormularioJson) {
   }
 }
 
+function interpretarGrupos(configuracionGruposJson) {
+  if (!configuracionGruposJson) return [];
+  try {
+    const configuracion = JSON.parse(configuracionGruposJson);
+    return Array.isArray(configuracion.grupos) ? configuracion.grupos : [];
+  } catch { return []; }
+}
+
+const nombresDias = {
+  LUNES: "Lunes", MARTES: "Martes", MIERCOLES: "Miércoles", JUEVES: "Jueves",
+  VIERNES: "Viernes", SABADO: "Sábado", DOMINGO: "Domingo",
+};
+
 function CampoRequisito({ campo, valor, alCambiar }) {
   const propiedades = {
     id: `requisito-${campo.id}`,
@@ -54,6 +67,7 @@ export function PaginaDetalleEvento() {
   const [evento, establecerEvento] = useState(null);
   const [inscripcion, establecerInscripcion] = useState(null);
   const [respuestasRequisitos, establecerRespuestasRequisitos] = useState({});
+  const [codigoGrupo, establecerCodigoGrupo] = useState("");
   const [motivoCancelacion, establecerMotivoCancelacion] = useState("");
   const [claveIdempotencia, establecerClaveIdempotencia] = useState(() => window.crypto.randomUUID());
   const [operacion, establecerOperacion] = useState({ procesando: false, error: "", mensaje: "" });
@@ -105,11 +119,14 @@ export function PaginaDetalleEvento() {
     eventoFormulario.preventDefault();
     establecerOperacion({ procesando: true, error: "", mensaje: "" });
     try {
-      const confirmada = await inscribirEnEvento(evento.idEvento, claveIdempotencia, respuestasRequisitos);
+      const confirmada = gruposEvento.length > 0
+        ? await inscribirEnEvento(evento.idEvento, claveIdempotencia, respuestasRequisitos, codigoGrupo)
+        : await inscribirEnEvento(evento.idEvento, claveIdempotencia, respuestasRequisitos);
       establecerInscripcion(confirmada);
       establecerEvento((actual) => ({ ...actual, cuposDisponibles: confirmada.cuposDisponibles }));
       establecerClaveIdempotencia(window.crypto.randomUUID());
       establecerRespuestasRequisitos({});
+      establecerCodigoGrupo("");
       establecerOperacion({ procesando: false, error: "", mensaje: "Tu inscripción quedó confirmada." });
     } catch (errorOperacion) {
       establecerOperacion({ procesando: false, error: errorOperacion.message, mensaje: "" });
@@ -136,6 +153,7 @@ export function PaginaDetalleEvento() {
   }
 
   const requisitosFormulario = interpretarRequisitos(evento?.esquemaFormularioJson);
+  const gruposEvento = interpretarGrupos(evento?.configuracionGruposJson);
 
   return (
     <>
@@ -156,6 +174,14 @@ export function PaginaDetalleEvento() {
                 <div><dt>Lugar</dt><dd>{evento.lugar || "Información pendiente de actualización"}</dd></div>
                 <div><dt>Cupos disponibles</dt><dd>{evento.cuposDisponibles} de {evento.capacidadTotal}</dd></div>
               </dl>
+              {gruposEvento.length > 0 && (
+                <section className="portal-grupos-evento" aria-labelledby="titulo-grupos-evento">
+                  <h2 id="titulo-grupos-evento">Grupos y horarios</h2>
+                  <div className="portal-lista-grupos-evento">
+                    {gruposEvento.map((grupo) => <article key={grupo.codigo}><h3>{grupo.nombre}</h3><p>{grupo.categoriaEdad}</p><ul>{grupo.horarios.map((horario, indice) => <li key={`${grupo.codigo}-${indice}`}><strong>{nombresDias[horario.dia] || horario.dia}</strong>: {horario.horaInicio} a {horario.horaFin}{horario.lugar ? ` · ${horario.lugar}` : ""}</li>)}</ul></article>)}
+                  </div>
+                </section>
+              )}
               {evento.imagenesSecundarias?.length > 0 && (
                 <section className="portal-galeria-evento" aria-labelledby="titulo-galeria-evento">
                   <h2 id="titulo-galeria-evento">Galería del evento</h2>
@@ -181,6 +207,7 @@ export function PaginaDetalleEvento() {
                   <div className="portal-confirmacion-inscripcion">
                     <p><strong>Inscripción confirmada</strong></p>
                     <p>Tu cupo está reservado para esta actividad.</p>
+                    {inscripcion.nombreGrupo && <p>Grupo: <strong>{inscripcion.nombreGrupo}</strong></p>}
                     <form onSubmit={cancelarInscripcion}>
                       <label htmlFor="motivoCancelacion">Motivo de cancelación (opcional)</label>
                       <input id="motivoCancelacion" maxLength="300" value={motivoCancelacion} onChange={(eventoCampo) => establecerMotivoCancelacion(eventoCampo.target.value)} />
@@ -193,6 +220,7 @@ export function PaginaDetalleEvento() {
                 )}
                 {usuario && inscripcion?.estado !== "CONFIRMADA" && inscripcionAbierta && (
                   <form className="portal-formulario-inscripcion" onSubmit={confirmarInscripcion}>
+                    {gruposEvento.length > 0 && <label htmlFor="grupoEvento">Grupo o categoría *<select id="grupoEvento" required value={codigoGrupo} onChange={(eventoCampo) => establecerCodigoGrupo(eventoCampo.target.value)}><option value="">Selecciona un grupo</option>{gruposEvento.map((grupo) => <option key={grupo.codigo} value={grupo.codigo}>{grupo.nombre} · {grupo.categoriaEdad}</option>)}</select></label>}
                     {requisitosFormulario.length > 0 && <h3>Requisitos para la inscripción</h3>}
                     {requisitosFormulario.map((campo) => (
                       <label key={campo.id} htmlFor={`requisito-${campo.id}`}>

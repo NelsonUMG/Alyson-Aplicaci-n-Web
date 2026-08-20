@@ -118,7 +118,7 @@ a {
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.14em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .introduccion,
@@ -152,7 +152,7 @@ a {
   font-size: 0.78rem;
   font-weight: 800;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .base-sistema dd {
@@ -205,6 +205,179 @@ a {
   color: #315849;
   font-weight: 700;
   text-underline-offset: 0.25rem;
+}
+
+.procedimiento-solicitud,
+.formulario-solicitud-instalacion {
+  margin-bottom: 1.5rem;
+}
+
+.datos-procedimiento,
+.revision-solicitud dl,
+.detalle-solicitud-administrada dl,
+.resumen-datos-cuenta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin: 1.2rem 0;
+}
+
+.datos-procedimiento > div,
+.revision-solicitud dl > div,
+.detalle-solicitud-administrada dl > div,
+.resumen-datos-cuenta > div {
+  padding: 0.9rem 1rem;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.75rem;
+  background: #f8faf9;
+}
+
+.datos-procedimiento dt,
+.revision-solicitud dt,
+.detalle-solicitud-administrada dt,
+.resumen-datos-cuenta dt {
+  margin-bottom: 0.35rem;
+  color: #53635b;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.datos-procedimiento dd,
+.revision-solicitud dd,
+.detalle-solicitud-administrada dd,
+.resumen-datos-cuenta dd {
+  margin: 0;
+}
+
+.advertencia-solicitud,
+.comprobacion-disponibilidad,
+.nota-disponibilidad-area {
+  padding: 1rem 1.1rem;
+  border-left: 4px solid #d49b22;
+  border-radius: 0.45rem;
+  background: #fff8e7;
+}
+
+.pasos-solicitud {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  padding: 0;
+  margin: 1.5rem 0;
+  list-style: none;
+}
+
+.pasos-solicitud li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.75rem;
+  color: #647169;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.7rem;
+}
+
+.pasos-solicitud li span {
+  display: grid;
+  width: 1.7rem;
+  height: 1.7rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #e7ece9;
+  font-weight: 700;
+}
+
+.pasos-solicitud li.activo,
+.pasos-solicitud li.completado {
+  color: #174d37;
+  border-color: #4f8a6e;
+  background: #eff7f2;
+}
+
+.pasos-solicitud li.activo span,
+.pasos-solicitud li.completado span {
+  color: #fff;
+  background: #246846;
+}
+
+.cuadricula-formulario-solicitud {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.cuadricula-formulario-solicitud label,
+.formulario-documento-solicitud label,
+.formulario-resolucion-solicitud label {
+  display: grid;
+  gap: 0.4rem;
+  font-weight: 650;
+}
+
+.cuadricula-formulario-solicitud .campo-ancho {
+  grid-column: 1 / -1;
+}
+
+.acciones-formulario-solicitud,
+.formulario-documento-solicitud {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+  margin-top: 1.2rem;
+}
+
+.lista-documentos-solicitud {
+  display: grid;
+  gap: 0.65rem;
+  padding: 0;
+  margin: 1rem 0;
+  list-style: none;
+}
+
+.lista-documentos-solicitud li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem 1rem;
+  padding: 0.8rem 1rem;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.65rem;
+}
+
+.lista-documentos-solicitud li span {
+  margin-right: auto;
+  color: #5e6b65;
+  font-size: 0.88rem;
+}
+
+.pagina-administracion-solicitudes > .panel-edicion {
+  margin-top: 1.25rem;
+}
+
+.cabecera-detalle-solicitud {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: start;
+}
+
+.formulario-resolucion-solicitud {
+  display: grid;
+  gap: 1rem;
+  max-width: 48rem;
+  margin-top: 1.5rem;
+}
+
+@media (max-width: 700px) {
+  .datos-procedimiento,
+  .revision-solicitud dl,
+  .detalle-solicitud-administrada dl,
+  .resumen-datos-cuenta,
+  .cuadricula-formulario-solicitud,
+  .pasos-solicitud {
+    grid-template-columns: 1fr;
+  }
 }
 
 .pagina-administracion > .enlace-regreso {
@@ -304,6 +477,156 @@ button:disabled {
   margin: 1.5rem 0 0;
 }
 
+.pagina-registro {
+  width: 100%;
+  max-width: none;
+  gap: 1.25rem;
+  padding-block: clamp(1.25rem, 3vw, 2rem);
+  background:
+    linear-gradient(105deg, rgb(8 35 30 / 90%), rgb(13 54 66 / 76%)),
+    url("/imagenes/portada-parque-provisional.webp") center / cover fixed;
+}
+
+.pagina-inicio-sesion {
+  width: 100%;
+  max-width: none;
+  gap: 1.25rem;
+  padding-block: clamp(1.25rem, 3vw, 2rem);
+  background:
+    linear-gradient(105deg, rgb(8 35 30 / 90%), rgb(13 54 66 / 76%)),
+    url("/imagenes/portada-parque-provisional.webp") center / cover fixed;
+}
+
+.enlace-regreso-inicio-sesion {
+  width: min(32rem, 100%);
+  color: #fff;
+}
+
+.marca-identidad-acceso {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+  text-align: left;
+}
+
+.marca-identidad-inicio-sesion {
+  justify-content: flex-start;
+}
+
+.tarjeta-formulario.tarjeta-registro {
+  width: min(40rem, 100%);
+  padding: clamp(1.25rem, 3vw, 2rem);
+  border: 0;
+  border-top: 0.45rem solid #59b7df;
+  border-radius: 0;
+  box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 28%);
+}
+
+.cabecera-registro {
+  text-align: center;
+}
+
+.cabecera-registro > p:not(.etiqueta-fase) {
+  max-width: 31rem;
+  margin-inline: auto;
+  line-height: 1.55;
+}
+
+.tarjeta-registro h1 {
+  font-size: clamp(2.2rem, 4vw, 3rem);
+}
+
+.indicador-etapas-registro {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 31rem;
+  margin: 1rem auto 0;
+  padding: 0;
+  list-style: none;
+}
+
+.indicador-etapas-registro li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.45rem;
+  align-items: center;
+  padding: 0.65rem 0.8rem;
+  border-bottom: 0.25rem solid #ccd7d1;
+  color: #587067;
+  font-weight: 700;
+}
+
+.indicador-etapas-registro li.activo,
+.indicador-etapas-registro li.completado {
+  border-color: #2da7da;
+  color: #153c2e;
+}
+
+.indicador-etapas-registro span {
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.tarjeta-registro form {
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  margin-inline: auto;
+}
+
+.tarjeta-registro .campos-en-linea label {
+  display: block;
+  margin-bottom: 0.65rem;
+}
+
+.tarjeta-registro input,
+.tarjeta-registro button,
+.tarjeta-registro .mensaje-error,
+.tarjeta-registro .mensaje-exito {
+  border-radius: 0;
+}
+
+.ayuda-campo-registro {
+  color: #4c645b;
+}
+
+.acciones-registro {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.8rem;
+}
+
+.tarjeta-registro .boton-registro-secundario {
+  border: 1px solid #315849;
+  background: #fff;
+  color: #153c2e;
+}
+
+.registro-completado {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  text-align: center;
+}
+
+.mensaje-confirmacion-correo {
+  margin: 0;
+  color: #29483e;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.boton-enlace-registro {
+  display: inline-grid;
+  min-height: 2.8rem;
+  place-items: center;
+  padding: 0.65rem 1rem;
+  background: #153c2e;
+  color: #fff;
+  font-weight: 750;
+  text-decoration: none;
+}
+
 .mensaje-error,
 .mensaje-exito {
   padding: 0.8rem 1rem;
@@ -372,19 +695,233 @@ button:disabled {
   font-weight: 750;
 }
 
-.acciones-perfil {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
-  gap: 0.85rem;
-  margin-top: 2rem;
+.cabecera-mis-solicitudes > div {
+  max-width: 52rem;
 }
 
-.acciones-perfil .enlace-principal {
-  width: 100%;
-  min-height: 3.15rem;
-  margin-top: 0;
-  padding-inline: 1rem;
+.cabecera-mis-solicitudes p:last-child {
+  max-width: 62ch;
+  color: #51645d;
+  line-height: 1.6;
+}
+
+.catalogo-solicitudes {
+  display: grid;
+  gap: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.cabecera-catalogo-solicitudes {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+}
+
+.cabecera-catalogo-solicitudes h2,
+.tarjeta-catalogo-solicitud h3 {
+  margin: 0;
+}
+
+.cabecera-catalogo-solicitudes > p {
+  max-width: 34rem;
+  margin: 0;
+  color: #53655e;
+  line-height: 1.55;
+}
+
+.tarjeta-catalogo-solicitud {
+  max-width: 48rem;
+  padding: 1.25rem;
+  border: 1px solid #b9cac1;
+  border-left: 0.3rem solid #1c7255;
+  background: #f8fbf9;
+}
+
+.tarjeta-catalogo-solicitud .etiqueta-estado {
+  display: inline-block;
+  margin-bottom: 0.75rem;
+}
+
+.tarjeta-catalogo-solicitud > p {
+  line-height: 1.6;
+}
+
+.nota-catalogo-solicitud {
+  margin-bottom: 0;
+  color: #52645c;
+}
+
+.filtros-mis-solicitudes {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.65rem;
+  margin: 1.5rem 0;
+}
+
+.filtros-mis-solicitudes button {
+  display: flex;
+  min-height: 3.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid #b8c7c0;
+  background: #fff;
+  color: #26483b;
+  font-weight: 750;
+  cursor: pointer;
+}
+
+.filtros-mis-solicitudes button.activo {
+  border-color: #153c2e;
+  background: #153c2e;
+  color: #fff;
+}
+
+.filtros-mis-solicitudes strong {
+  display: inline-grid;
+  min-width: 1.8rem;
+  min-height: 1.8rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #e4eee9;
+  color: #153c2e;
+  font-size: 0.85rem;
+}
+
+.lista-mis-solicitudes {
+  display: grid;
+  gap: 1rem;
+}
+
+.estado-carga-solicitudes,
+.estado-vacio-solicitudes {
+  padding: clamp(2rem, 6vw, 4rem) 1rem;
   text-align: center;
+}
+
+.estado-vacio-solicitudes span {
+  display: inline-grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  place-items: center;
+  border-radius: 50%;
+  background: #dcece4;
+  color: #12644f;
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.estado-vacio-solicitudes h2 {
+  margin-bottom: 0.35rem;
+}
+
+.estado-vacio-solicitudes p {
+  margin: 0;
+  color: #56635e;
+}
+
+.tarjeta-solicitud-usuario {
+  padding: 1.25rem;
+  border: 1px solid #ccd6d0;
+  background: #fff;
+}
+
+.cabecera-solicitud-usuario {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.referencia-solicitud {
+  margin: 0 0 0.25rem;
+  color: #5c6f67;
+  font-size: 0.82rem;
+  font-weight: 750;
+  letter-spacing: 0.04em;
+  text-transform: none;
+}
+
+.tarjeta-solicitud-usuario h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.estado-solicitud {
+  flex: 0 0 auto;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid #9fb3aa;
+  background: #eef4f1;
+  color: #315849;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.estado-aprobada {
+  border-color: #568b6d;
+  background: #edf8f1;
+  color: #174c2d;
+}
+
+.estado-rechazada {
+  border-color: #b6594f;
+  background: #fff2f0;
+  color: #7b241b;
+}
+
+.tarjeta-solicitud-usuario dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 1rem 0 0;
+}
+
+.tarjeta-solicitud-usuario dl div {
+  padding-top: 0.75rem;
+  border-top: 1px solid #e0e6e2;
+}
+
+.tarjeta-solicitud-usuario dt {
+  color: #64756e;
+  font-size: 0.78rem;
+  font-weight: 750;
+  text-transform: none;
+}
+
+.tarjeta-solicitud-usuario dd {
+  margin: 0.3rem 0 0;
+}
+
+.respuesta-solicitud {
+  margin-top: 1rem;
+  padding: 0.9rem;
+  border-left: 0.25rem solid #2da7da;
+  background: #f1f8fb;
+}
+
+.respuesta-solicitud p {
+  margin: 0.35rem 0 0;
+  line-height: 1.55;
+}
+
+@media (max-width: 700px) {
+  .cabecera-catalogo-solicitudes {
+    display: grid;
+  }
+
+  .filtros-mis-solicitudes {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .cabecera-solicitud-usuario {
+    display: grid;
+  }
+
+  .tarjeta-solicitud-usuario dl {
+    grid-template-columns: 1fr;
+  }
 }
 
 .panel-modulos {
@@ -562,7 +1099,7 @@ button:disabled {
   color: #315849;
   font-size: 0.88rem;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .lista-seleccion-administracion label {
@@ -2283,7 +2820,7 @@ th {
   background: #e9ede9;
   font-size: 0.8rem;
   letter-spacing: 0.04em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .boton-tabla {
@@ -2446,6 +2983,28 @@ th {
 .pagina-auditoria .filtros-auditoria > button {
   width: 100%;
   justify-self: stretch;
+}
+
+.busqueda-reporte {
+  max-width: 28rem;
+  margin: 0.8rem 0;
+}
+
+.busqueda-reporte input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.detalle-horario-reporte {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 12rem;
+}
+
+.detalle-horario-reporte small,
+.tabla-reporte-inscripciones td > small {
+  display: block;
+  color: #52645c;
 }
 
 .pagina-administracion .busqueda-usuarios {
@@ -2721,7 +3280,7 @@ th {
   color: var(--tinta-suave);
   font-size: 0.68rem;
   letter-spacing: 0.085em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .emblema-portal {
@@ -2753,7 +3312,7 @@ th {
   font-weight: 850;
   letter-spacing: 0.045em;
   text-decoration: none;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .navegacion-principal a:hover {
@@ -2816,7 +3375,7 @@ th {
   font-size: 0.75rem;
   font-weight: 900;
   letter-spacing: 0.15em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .portada-portal .sobrelinea {
@@ -2965,7 +3524,7 @@ th {
   font-size: 0.67rem;
   font-weight: 800;
   letter-spacing: 0.15em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .seccion-portal {
@@ -3168,7 +3727,7 @@ th {
   font-size: 0.75rem;
   font-weight: 900;
   letter-spacing: 0.14em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .tarjeta-agenda strong {
@@ -3343,7 +3902,7 @@ th {
   color: var(--blanco);
   font-size: 0.82rem;
   letter-spacing: 0.1em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .contenido-pie > div:not(.identidad-pie) a {
@@ -3515,5 +4074,60 @@ th {
 
   .tarjeta-agenda {
     margin-right: 0.65rem;
+  }
+}
+
+.constructor-grupos-evento {
+  padding: 1rem;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.8rem;
+  background: #f8faf9;
+}
+
+.lista-grupos-evento,
+.lista-horarios-grupo {
+  display: grid;
+  gap: 1rem;
+}
+
+.grupo-evento {
+  padding: 1rem;
+  border: 1px solid #cbd8d1;
+  border-radius: 0.7rem;
+}
+
+.datos-grupo-evento,
+.horario-grupo-evento {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.cabecera-horarios-grupo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  margin: 1rem 0 0.65rem;
+}
+
+.horario-grupo-evento {
+  align-items: end;
+  padding: 0.75rem;
+  background: #eef3f0;
+  border-radius: 0.6rem;
+}
+
+@media (max-width: 900px) {
+  .datos-grupo-evento,
+  .horario-grupo-evento {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .datos-grupo-evento,
+  .horario-grupo-evento {
+    grid-template-columns: 1fr;
   }
 }

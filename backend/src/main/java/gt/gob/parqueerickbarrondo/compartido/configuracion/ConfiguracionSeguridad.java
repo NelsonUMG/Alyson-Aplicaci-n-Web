@@ -100,12 +100,15 @@ public class ConfiguracionSeguridad {
                         .permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/api/v1/autenticacion/registro",
-                                "/api/v1/autenticacion/iniciar-sesion")
+                                "/api/v1/autenticacion/iniciar-sesion",
+                                "/api/v1/autenticacion/confirmar-correo",
+                                "/api/v1/autenticacion/reenviar-verificacion")
                         .permitAll()
                         .requestMatchers(
                                 "/api/v1/autenticacion/**",
                                 "/api/v1/administracion/**",
-                                "/api/v1/eventos/**")
+                                "/api/v1/eventos/**",
+                                "/api/v1/solicitudes/**")
                         .authenticated()
                         .anyRequest().denyAll())
                 .logout(cierre -> cierre

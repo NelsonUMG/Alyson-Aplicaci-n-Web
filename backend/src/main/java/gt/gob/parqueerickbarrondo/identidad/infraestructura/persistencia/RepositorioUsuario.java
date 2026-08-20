@@ -10,14 +10,22 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.repository.query.Param;
+import jakarta.persistence.LockModeType;
 
 public interface RepositorioUsuario extends JpaRepository<Usuario, Long> {
 
     boolean existsByCorreoNormalizado(String correoNormalizado);
 
+    boolean existsByDpi(String dpi);
+
     @EntityGraph(attributePaths = {"roles", "roles.permisos"})
     Optional<Usuario> findByCorreoNormalizado(String correoNormalizado);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select u from Usuario u where u.correoNormalizado = :correo")
+    Optional<Usuario> buscarPorCorreoParaVerificacion(@Param("correo") String correo);
 
     @Query("select u from Usuario u where u.idUsuario = :idUsuario")
     @EntityGraph(attributePaths = {"roles", "roles.permisos"})

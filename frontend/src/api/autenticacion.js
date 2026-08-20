@@ -14,6 +14,22 @@ export async function registrarCuenta(datos) {
   });
 }
 
+export async function confirmarCorreo(token) {
+  await prepararCsrf();
+  return solicitarApi("/autenticacion/confirmar-correo", {
+    method: "POST",
+    body: JSON.stringify({ token }),
+  });
+}
+
+export async function reenviarVerificacion(correo) {
+  await prepararCsrf();
+  return solicitarApi("/autenticacion/reenviar-verificacion", {
+    method: "POST",
+    body: JSON.stringify({ correo }),
+  });
+}
+
 export async function iniciarSesion(datos) {
   await prepararCsrf();
   return solicitarApi("/autenticacion/iniciar-sesion", {

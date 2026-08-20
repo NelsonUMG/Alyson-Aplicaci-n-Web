@@ -4,6 +4,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import trabajadorMapLibre from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
 import { calcularRecorridoPeatonal, consultarMapa } from "../api/portalPublico";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
+import { formatearTextoTecnico } from "../utilidades/formatoTexto";
 
 const mapaVacio = { nodos: [], conexiones: [], areas: [], actualizadoEn: null };
 maplibregl.setWorkerUrl(trabajadorMapLibre);
@@ -273,7 +274,7 @@ function MapaInteractivo({
       const titulo = document.createElement("strong");
       titulo.textContent = caracteristica.properties.nombre;
       const estado = document.createElement("p");
-      estado.textContent = caracteristica.properties.estado;
+      estado.textContent = formatearTextoTecnico(caracteristica.properties.estado);
       contenido.append(titulo, estado);
       new maplibregl.Popup({ closeButton: true })
         .setLngLat(evento.lngLat)
@@ -425,7 +426,7 @@ function MapaInteractivo({
       const titulo = document.createElement("strong");
       titulo.textContent = nodo.nombreArea || nodo.nombre;
       const estado = document.createElement("p");
-      estado.textContent = obtenerEstadoNodo(nodo);
+      estado.textContent = formatearTextoTecnico(obtenerEstadoNodo(nodo));
       popup.append(titulo, estado);
       return new maplibregl.Marker({ element: elemento, anchor: "center" })
         .setLngLat([Number(nodo.longitud), Number(nodo.latitud)])
@@ -812,7 +813,7 @@ export function PaginaMapa() {
                       <small>{textoReloj(elemento, momentoActual) || elemento.notaDisponibilidad || elemento.nombre}</small>
                     </span>
                     <span className="mapa-estado-disponibilidad" style={{ "--color-estado": colorEstadoNodo(elemento) }}>
-                      {obtenerEstadoNodo(elemento)}
+                      {formatearTextoTecnico(obtenerEstadoNodo(elemento))}
                     </span>
                   </button>
                 ))}
@@ -862,7 +863,7 @@ export function PaginaMapa() {
               <option value="">Selecciona una cancha o área</option>
               {areasConDisponibilidad.map((area) => (
                 <option key={area.idArea} value={area.idArea}>
-                  {area.nombreArea} — {obtenerEstadoNodo(area)}
+                  {area.nombreArea} — {formatearTextoTecnico(obtenerEstadoNodo(area))}
                 </option>
               ))}
             </select>

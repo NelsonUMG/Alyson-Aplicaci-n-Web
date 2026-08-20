@@ -227,6 +227,7 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
     $datosInicioSesion = @{
         correo = $correoAdministrador
         contrasena = $contrasenaAdministrador
+        mantenerSesionActiva = $false
     } | ConvertTo-Json
     [void](Invoke-RestMethod `
         -Uri "$urlAutenticacion/iniciar-sesion" `
@@ -335,7 +336,7 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         codigo = 'NOTICIAS'
         nombre = 'Noticias'
         descripcion = 'Categoría para la prueba de integración.'
-        ordenVisualizacion = 0
+        ordenVisualizacion = 1
         activa = $true
         version = $null
     } | ConvertTo-Json
@@ -396,16 +397,18 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         throw 'La publicación confirmada no apareció en el portal público.'
     }
     $fechaPublicacion = ([DateTime]$publicacionPublicada.publicadoEn).ToString('yyyy-MM-dd')
+    $codigoCategoriaFiltro = [Uri]::EscapeDataString($categoriaCreada.codigo)
     $publicacionesFiltradas = Invoke-RestMethod `
-        -Uri "$urlApiPublica/publicaciones?categoria=NOTICIAS&fechaDesde=$fechaPublicacion&fechaHasta=$fechaPublicacion" `
+        -Uri "$urlApiPublica/publicaciones?categoria=$codigoCategoriaFiltro&fechaDesde=$fechaPublicacion&fechaHasta=$fechaPublicacion" `
         -TimeoutSec 5
     if ($publicacionesFiltradas.totalElementos -ne 1 -or
         $publicacionesFiltradas.contenido[0].identificadorUrl -ne $publicacionCreada.identificadorUrl) {
-        throw 'El filtro público por fecha y tipo de actividad no devolvió la publicación esperada.'
+        $detalleFiltro = $publicacionesFiltradas | ConvertTo-Json -Depth 8 -Compress
+        throw "El filtro público por fecha y tipo de actividad no devolvió la publicación esperada. PublicadoEn: $($publicacionPublicada.publicadoEn). Fecha: $fechaPublicacion. Respuesta: $detalleFiltro"
     }
     $cambioEstado = @{ version = $publicacionPublicada.version } | ConvertTo-Json
     [void](Invoke-RestMethod `
-        -Uri "$urlAdministracion/publicaciones/$($publicacionCreada.idPublicacion)/despublicar" `
+        -Uri "$urlAdministracion/publicaciones/$($publicacionCreada.idPublicacion)/archivar" `
         -Method Post `
         -ContentType 'application/json' `
         -Headers $encabezadosCsrf `
@@ -414,7 +417,7 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         -TimeoutSec 5)
     $publicacionesDespues = Invoke-RestMethod -Uri "$urlApiPublica/publicaciones" -TimeoutSec 5
     if ($publicacionesDespues.totalElementos -ne 0) {
-        throw 'La publicación despublicada continuó visible en el portal público.'
+        throw 'La publicación archivada continuó visible en el portal público.'
     }
 
     $ahoraUtc = [DateTime]::UtcNow
@@ -538,6 +541,8 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         latitud = 14.60000000
         longitud = -90.55000000
         coordenadasConfirmadas = $true
+        perimetro = @()
+        perimetroConfirmado = $false
         horarioJson = '{"lunes":"08:00-17:00"}'
         observacionesInternas = 'Registro temporal.'
         motivoCambioEstado = 'Registro inicial confirmado.'
@@ -751,6 +756,8 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         latitud = $areaCreada.latitud
         longitud = $areaCreada.longitud
         coordenadasConfirmadas = $areaCreada.coordenadasConfirmadas
+        perimetro = @($areaCreada.perimetro)
+        perimetroConfirmado = $areaCreada.perimetroConfirmado
         horarioJson = $areaCreada.horarioJson
         observacionesInternas = 'Mantenimiento de integración.'
         motivoCambioEstado = 'Mantenimiento programado de integración.'
@@ -913,7 +920,7 @@ SELECT
         [void]$lector.Read()
         Write-Host "API: $($respuesta.estado), servicio $($respuesta.servicio), versión $($respuesta.versionApi)"
         Write-Host "Portal público: $($publicacionesPublicas.totalElementos) publicaciones, $($eventosPublicos.totalElementos) eventos, $($areasPublicas.Count) áreas, $($bicicletasPublicas.total) bicicletas"
-        Write-Host "CMS: borrador, idempotencia, publicación, filtro por fecha y tipo de actividad, y despublicación verificados; $($lector['Auditorias']) eventos de auditoría"
+        Write-Host "CMS: borrador, idempotencia, publicación, filtro por fecha y tipo de actividad, y archivado verificados; $($lector['Auditorias']) eventos de auditoría"
         Write-Host "Eventos: publicación, cupo, idempotencia y cancelación verificadas; $($lector['Inscripciones']) inscripción y $($lector['Notificaciones']) notificaciones persistidas"
         Write-Host "Áreas y mapa: $($lector['Areas']) área, $($lector['HistorialAreas']) estados históricos, $($lector['ReservasAreas']) reserva, $($lector['NodosMapa']) nodos y $($lector['ConexionesMapa']) conexiones; rutas, reloj y cierre verificados"
         Write-Host "Bicicletas: $($lector['Bicicletas']) registro, $($lector['HistorialBicicletas']) estados históricos; creación, cambio de estado, idempotencia y resumen público verificados"

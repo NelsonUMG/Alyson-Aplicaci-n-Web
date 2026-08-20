@@ -1,9 +1,13 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param(
-    [switch]$OmitirVerificacionAdministrador
+    [switch]$OmitirVerificacionAdministrador,
+    [switch]$HabilitarCorreoGmail,
+    [switch]$GuardarCredencialCorreoGmail,
+    [switch]$DeshabilitarCorreoGmail
 )
 
 $ErrorActionPreference = 'Stop'
+Add-Type -AssemblyName System.Security -ErrorAction Stop
 $raizRepositorio = Split-Path -Parent $PSScriptRoot
 $rutaJar = Join-Path $raizRepositorio 'backend\target\servidor-0.0.1-SNAPSHOT.jar'
 $rutaBackend = Join-Path $raizRepositorio 'backend'
@@ -14,6 +18,11 @@ $marcaTiempo = Get-Date -Format 'yyyyMMddHHmmss'
 $nombreBaseDatos = 'RevisionParqueLocal'
 $nombreLoginSql = 'revisionparquelocal'
 $correoAdministrador = 'administrador.revision@parque.local'
+$correoNoReply = 'notific.parqueerickbarrondo@gmail.com'
+$directorioCredencialCorreo = Join-Path $env:LOCALAPPDATA 'ParqueErickBarrondo'
+$rutaCredencialCorreo = Join-Path $directorioCredencialCorreo 'correo-gmail.dpapi'
+$entropiaCredencialCorreo = [Text.Encoding]::UTF8.GetBytes('ParqueErickBarrondo.CorreoGmail.v1')
+$contrasenaAplicacionCorreo = $null
 $contrasenaAdministrador = if (Test-Path -LiteralPath $rutaRegistro -PathType Leaf) {
     try {
         $registroAnterior = Get-Content -Raw -LiteralPath $rutaRegistro | ConvertFrom-Json
@@ -48,6 +57,81 @@ function NuevaContrasenaSql {
     }
 }
 
+function ConvertirContrasenaSeguraEnTexto {
+    param([Security.SecureString]$ClaveSegura)
+
+    $punteroClave = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($ClaveSegura)
+    try {
+        return [Runtime.InteropServices.Marshal]::PtrToStringBSTR($punteroClave).Replace(' ', '')
+    }
+    finally {
+        [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($punteroClave)
+    }
+}
+
+function GuardarContrasenaAplicacionCorreo {
+    $claveSegura = Read-Host 'Ingresa la contraseña de aplicación de Gmail (no se mostrará)' -AsSecureString
+    try {
+        $clave = ConvertirContrasenaSeguraEnTexto -ClaveSegura $claveSegura
+        if ($clave.Length -ne 16) {
+            throw 'La contraseña de aplicación de Gmail debe contener exactamente 16 caracteres.'
+        }
+        [void](New-Item -ItemType Directory -Path $directorioCredencialCorreo -Force)
+        $bytesClave = [Text.Encoding]::UTF8.GetBytes($clave)
+        $bytesProtegidos = $null
+        try {
+            $bytesProtegidos = [Security.Cryptography.ProtectedData]::Protect(
+                $bytesClave,
+                $entropiaCredencialCorreo,
+                [Security.Cryptography.DataProtectionScope]::CurrentUser)
+            [Convert]::ToBase64String($bytesProtegidos) |
+                Set-Content -LiteralPath $rutaCredencialCorreo -Encoding UTF8
+        }
+        finally {
+            [Array]::Clear($bytesClave, 0, $bytesClave.Length)
+            if ($null -ne $bytesProtegidos) {
+                [Array]::Clear($bytesProtegidos, 0, $bytesProtegidos.Length)
+            }
+        }
+        return $clave
+    }
+    finally {
+        $claveSegura.Dispose()
+    }
+}
+
+function ObtenerContrasenaAplicacionCorreo {
+    if (-not (Test-Path -LiteralPath $rutaCredencialCorreo -PathType Leaf)) {
+        return GuardarContrasenaAplicacionCorreo
+    }
+
+    try {
+        $bytesProtegidos = [Convert]::FromBase64String(
+            (Get-Content -Raw -LiteralPath $rutaCredencialCorreo).Trim())
+        $bytesClave = $null
+        try {
+            $bytesClave = [Security.Cryptography.ProtectedData]::Unprotect(
+                $bytesProtegidos,
+                $entropiaCredencialCorreo,
+                [Security.Cryptography.DataProtectionScope]::CurrentUser)
+            $clave = [Text.Encoding]::UTF8.GetString($bytesClave).Replace(' ', '')
+            if ($clave.Length -ne 16) {
+                throw 'La credencial guardada no contiene una contraseña de aplicación válida.'
+            }
+            return $clave
+        }
+        finally {
+            [Array]::Clear($bytesProtegidos, 0, $bytesProtegidos.Length)
+            if ($null -ne $bytesClave) {
+                [Array]::Clear($bytesClave, 0, $bytesClave.Length)
+            }
+        }
+    }
+    catch {
+        throw 'No fue posible descifrar la credencial de Gmail. Ejecute el script con -GuardarCredencialCorreoGmail para reemplazarla.'
+    }
+}
+
 function ProbarPuertoLibre {
     param([int]$Puerto)
 
@@ -66,6 +150,30 @@ function MostrarUltimasLineas {
     }
 }
 
+if ($HabilitarCorreoGmail -and $DeshabilitarCorreoGmail) {
+    throw 'No puedes habilitar y deshabilitar Gmail al mismo tiempo.'
+}
+
+if ($GuardarCredencialCorreoGmail) {
+    try {
+        $contrasenaAplicacionCorreo = GuardarContrasenaAplicacionCorreo
+        $contrasenaVerificadaCorreo = ObtenerContrasenaAplicacionCorreo
+        if ($contrasenaVerificadaCorreo -cne $contrasenaAplicacionCorreo) {
+            throw 'La comprobación de la credencial cifrada no coincidió con la contraseña ingresada.'
+        }
+        Write-Host 'Credencial de Gmail guardada y cifrada para el usuario actual de Windows.'
+        Write-Host 'Los próximos arranques habilitarán Gmail automáticamente.'
+    }
+    finally {
+        $contrasenaAplicacionCorreo = $null
+        $contrasenaVerificadaCorreo = $null
+    }
+    return
+}
+
+$usarCorreoGmail = -not $DeshabilitarCorreoGmail -and
+    ($HabilitarCorreoGmail -or (Test-Path -LiteralPath $rutaCredencialCorreo -PathType Leaf))
+
 if (-not (Test-Path -LiteralPath $rutaJar -PathType Leaf)) {
     throw "No se encontró el servidor compilado en: $rutaJar"
 }
@@ -83,6 +191,9 @@ if (Test-Path -LiteralPath $rutaRegistro -PathType Leaf) {
 
 ProbarPuertoLibre -Puerto 8080
 ProbarPuertoLibre -Puerto 5173
+if ($usarCorreoGmail) {
+    $contrasenaAplicacionCorreo = ObtenerContrasenaAplicacionCorreo
+}
 $contrasenaSql = NuevaContrasenaSql
 $conexionPrincipal = [System.Data.SqlClient.SqlConnection]::new(
     'Server=localhost;Database=master;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;')
@@ -132,6 +243,18 @@ IF IS_ROLEMEMBER('db_owner', '$nombreLoginSql') <> 1
     $env:ALMACENAMIENTORUTAPUBLICACIONES = Join-Path $rutaDatos 'publicaciones'
     $env:ALMACENAMIENTORUTAEVENTOS = Join-Path $rutaDatos 'eventos'
     $env:ALMACENAMIENTORUTAAREAS = Join-Path $rutaDatos 'areas'
+    $env:ALMACENAMIENTORUTASOLICITUDES = Join-Path $rutaDatos 'solicitudes'
+    $env:CORREOENVIOHABILITADO = if ($usarCorreoGmail) { 'true' } else { 'false' }
+    if ($usarCorreoGmail) {
+        $env:CORREOSMTPHOST = 'smtp.gmail.com'
+        $env:CORREOSMTPPUERTO = '587'
+        $env:CORREONOREPLY = $correoNoReply
+        $env:CORREOCLAVEAPLICACION = $contrasenaAplicacionCorreo
+        $env:URLPUBLICAFRONTEND = 'http://127.0.0.1:5173'
+    }
+    else {
+        Remove-Item Env:CORREOCLAVEAPLICACION -ErrorAction SilentlyContinue
+    }
 
     $rutaJava = if ($env:JAVA_HOME) {
         Join-Path $env:JAVA_HOME 'bin\java.exe'
@@ -165,6 +288,20 @@ IF IS_ROLEMEMBER('db_owner', '$nombreLoginSql') <> 1
     }
     if (-not $apiDisponible) {
         throw 'El backend no inició correctamente.'
+    }
+
+    if ($usarCorreoGmail) {
+        try {
+            $saludServicios = Invoke-RestMethod `
+                -Uri 'http://127.0.0.1:8080/actuator/health' `
+                -TimeoutSec 20
+            if ($saludServicios.status -ne 'UP') {
+                throw "El estado de los servicios es $($saludServicios.status)."
+            }
+        }
+        catch {
+            throw 'Gmail SMTP rechazó la conexión. Verifica el correo y utiliza una contraseña de aplicación nueva de 16 caracteres.'
+        }
     }
 
     $inicioSesionVerificado = [bool]$OmitirVerificacionAdministrador
@@ -263,6 +400,10 @@ IF IS_ROLEMEMBER('db_owner', '$nombreLoginSql') <> 1
     }
     Write-Host "Backend PID: $($procesoBackend.Id)"
     Write-Host "Frontend PID: $($procesoFrontend.Id)"
+    Write-Host "Correo real: $(if ($usarCorreoGmail) { 'habilitado con Gmail SMTP' } else { 'deshabilitado (modo local)' })"
+    if ($usarCorreoGmail) {
+        Write-Host 'Credencial Gmail: protegida con Windows DPAPI.'
+    }
 }
 catch {
     if ($null -ne $procesoFrontend -and -not $procesoFrontend.HasExited) {
@@ -285,5 +426,7 @@ finally {
         $conexionPrincipal.Close()
     }
     $conexionPrincipal.Dispose()
+    Remove-Item Env:CORREOCLAVEAPLICACION -ErrorAction SilentlyContinue
+    $contrasenaAplicacionCorreo = $null
     $contrasenaSql = $null
 }

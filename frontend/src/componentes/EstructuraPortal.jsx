@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { usarSesion } from "../autenticacion/ContextoSesion";
+import { esUsuarioComun } from "../autenticacion/clasificacionUsuario";
+import { MODULO_BICICLETAS_VISIBLE } from "../configuracion/modulos";
 
 const enlacesNavegacion = [
   { destino: "/", texto: "Inicio" },
@@ -8,17 +10,17 @@ const enlacesNavegacion = [
   { destino: "/areas-servicios", texto: "Áreas y servicios" },
   { destino: "/noticias", texto: "Noticias" },
   { destino: "/eventos", texto: "Eventos" },
-  { destino: "/bicicletas", texto: "Bicicletas" },
+  ...(MODULO_BICICLETAS_VISIBLE ? [{ destino: "/bicicletas", texto: "Bicicletas" }] : []),
   { destino: "/mapa", texto: "Mapa" },
 ];
 
-function MarcaPortal() {
+export function MarcaPortal({ mostrarDerechos = true }) {
   return (
     <span className="portal-marca">
       <img className="portal-emblema" src="/imagenes/escudo-guatemala.png" alt="" aria-hidden="true" />
       <span className="portal-nombre">
         <strong>Parque Erick Barrondo</strong>
-        <small>Derechos Reservados</small>
+        {mostrarDerechos && <small>Derechos reservados</small>}
       </span>
     </span>
   );
@@ -28,6 +30,7 @@ export function EstructuraPortal() {
   const { cargando, usuario } = usarSesion();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const ubicacion = useLocation();
+  const mostrarNavegacionPersonal = !cargando && esUsuarioComun(usuario);
 
   useEffect(() => {
     setMenuAbierto(false);
@@ -79,6 +82,22 @@ export function EstructuraPortal() {
                 {enlace.texto}
               </NavLink>
             ))}
+            {mostrarNavegacionPersonal && (
+              <>
+                <NavLink
+                  to="/mis-inscripciones"
+                  className={({ isActive }) => (isActive ? "portal-enlace-activo" : undefined)}
+                >
+                  Mis inscripciones
+                </NavLink>
+                <NavLink
+                  to="/mis-solicitudes"
+                  className={({ isActive }) => (isActive ? "portal-enlace-activo" : undefined)}
+                >
+                  Mis solicitudes
+                </NavLink>
+              </>
+            )}
             {!cargando && (
               <Link className="portal-enlace-cuenta" to={usuario ? "/perfil" : "/iniciar-sesion"}>
                 {usuario ? "Mi perfil" : "Iniciar sesión"}
@@ -96,7 +115,7 @@ export function EstructuraPortal() {
         <div className="portal-contenedor portal-pie-columnas">
           <div className="portal-pie-identidad">
             <MarcaPortal />
-            <p>Información y activadades de Parque de Erick Barrondo.</p>
+            <p>Información y actividades del Parque Erick Barrondo.</p>
           </div>
           <div>
             <h2>Secciones</h2>

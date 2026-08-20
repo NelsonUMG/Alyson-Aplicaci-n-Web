@@ -10,6 +10,8 @@ import jakarta.validation.constraints.Size;
 public record SolicitudInscripcionEvento(
         @AssertTrue(message = "Debes aceptar los requisitos antes de confirmar la inscripción.")
         boolean aceptaRequisitos,
+        @Size(max = 64, message = "El grupo seleccionado no es válido.")
+        String codigoGrupo,
         @Size(max = 30, message = "No se pueden enviar más de 30 requisitos.")
         Map<String, Object> respuestas) {
 
@@ -20,6 +22,10 @@ public record SolicitudInscripcionEvento(
     }
 
     public SolicitudInscripcionEvento(boolean aceptaRequisitos) {
-        this(aceptaRequisitos, Map.of());
+        this(aceptaRequisitos, null, Map.of());
+    }
+
+    public SolicitudInscripcionEvento(boolean aceptaRequisitos, Map<String, Object> respuestas) {
+        this(aceptaRequisitos, null, respuestas);
     }
 }

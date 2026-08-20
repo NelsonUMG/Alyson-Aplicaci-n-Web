@@ -8,6 +8,8 @@ public record RespuestaInscripcionAdministrada(
         String nombre,
         String apellido,
         String correo,
+        String codigoGrupo,
+        String nombreGrupo,
         String estado,
         Instant requisitosAceptadosEn,
         Instant confirmadaEn,

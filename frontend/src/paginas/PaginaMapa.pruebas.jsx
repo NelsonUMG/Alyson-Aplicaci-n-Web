@@ -189,7 +189,7 @@ describe("Mapa público con OpenFreeMap y MapLibre", () => {
   it("inicia en el parque, usa GPS real y dibuja el recorrido hacia el área seleccionada", async () => {
     render(<PaginaMapa />);
 
-    expect(await screen.findByRole("option", { name: "Cancha — ENUSO" })).toBeTruthy();
+    expect(await screen.findByRole("option", { name: "Cancha — En uso" })).toBeTruthy();
     await waitFor(() => expect(simuladorMapLibre.Map).toHaveBeenCalledOnce());
     expect(simuladorMapLibre.opcionesMapa).toEqual(expect.objectContaining({
       style: "https://tiles.openfreemap.org/styles/liberty",
@@ -239,7 +239,7 @@ describe("Mapa público con OpenFreeMap y MapLibre", () => {
     expect(screen.getByRole("heading", { name: "Mapa estándar" })).toBeTruthy();
     expect(screen.getByText("OpenFreeMap")).toBeTruthy();
 
-    expect(await screen.findByText("ENUSO")).toBeTruthy();
+    expect(await screen.findByText("En uso", { selector: ".mapa-estado-disponibilidad" })).toBeTruthy();
     expect(screen.getByText("Entrenamiento")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Usar mi ubicación" }));
     expect(await screen.findByText(/precisión aproximada de 7 metros/)).toBeTruthy();

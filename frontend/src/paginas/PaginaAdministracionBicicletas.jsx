@@ -9,6 +9,7 @@ import {
   listarHistorialBicicleta,
 } from "../api/administracionBicicletas";
 import { usarSesion } from "../autenticacion/ContextoSesion";
+import { formatearTextoTecnico } from "../utilidades/formatoTexto";
 
 const paginaVacia = { contenido: [], pagina: 0, totalPaginas: 0, totalElementos: 0 };
 const bicicletaVacia = {
@@ -233,7 +234,7 @@ export function PaginaAdministracionBicicletas() {
         </div>
         <form className="filtros-administracion filtros-bicicletas" onSubmit={aplicarFiltros}>
           <label>Buscar<input maxLength="100" value={filtros.busqueda} onChange={(evento) => establecerFiltros({ ...filtros, busqueda: evento.target.value })} /></label>
-          <label>Estado<select value={filtros.estado} onChange={(evento) => establecerFiltros({ ...filtros, estado: evento.target.value })}><option value="">Todos</option>{estadosBicicleta.map((valor) => <option key={valor}>{valor}</option>)}</select></label>
+          <label>Estado<select value={filtros.estado} onChange={(evento) => establecerFiltros({ ...filtros, estado: evento.target.value })}><option value="">Todos</option>{estadosBicicleta.map((valor) => <option key={valor} value={valor}>{formatearTextoTecnico(valor)}</option>)}</select></label>
           <button type="submit" disabled={estadoPagina.cargando}>Aplicar</button>
         </form>
         <div className="cabecera-listado-administracion" aria-hidden="true">
@@ -250,7 +251,7 @@ export function PaginaAdministracionBicicletas() {
               onClick={() => seleccionarBicicleta(bicicleta)}
             >
               <span><strong>{bicicleta.codigo}</strong></span>
-              <span><strong className="etiqueta-estado">{bicicleta.estado}</strong>{bicicleta.tienePrestamoActivo && <small>Préstamo activo</small>}</span>
+              <span><strong className="etiqueta-estado">{formatearTextoTecnico(bicicleta.estado)}</strong>{bicicleta.tienePrestamoActivo && <small>Préstamo activo</small>}</span>
               <span><small>Actualizada por {bicicleta.nombreActualizadoPor}</small></span>
             </button>
           ))}
@@ -270,7 +271,7 @@ export function PaginaAdministracionBicicletas() {
           )}
           <form className="formulario-administracion formulario-bicicleta" onSubmit={guardarInventario}>
             <label>Código<input required maxLength="64" pattern="[A-Za-z0-9_-]+" value={bicicletaEdicion.codigo} onChange={(evento) => establecerBicicletaEdicion({ ...bicicletaEdicion, codigo: evento.target.value })} /></label>
-            {!bicicletaEdicion.idBicicleta && <label>Estado inicial<select value={bicicletaEdicion.estado} onChange={(evento) => establecerBicicletaEdicion({ ...bicicletaEdicion, estado: evento.target.value })}>{estadosIniciales.map((valor) => <option key={valor}>{valor}</option>)}</select></label>}
+            {!bicicletaEdicion.idBicicleta && <label>Estado inicial<select value={bicicletaEdicion.estado} onChange={(evento) => establecerBicicletaEdicion({ ...bicicletaEdicion, estado: evento.target.value })}>{estadosIniciales.map((valor) => <option key={valor} value={valor}>{formatearTextoTecnico(valor)}</option>)}</select></label>}
             <label className="campo-ancho-completo">Observaciones del inventario<textarea maxLength="500" value={bicicletaEdicion.observacionesInventario} onChange={(evento) => establecerBicicletaEdicion({ ...bicicletaEdicion, observacionesInventario: evento.target.value })} /></label>
             {!bicicletaEdicion.idBicicleta && <label className="campo-ancho-completo">Motivo del estado inicial<textarea required maxLength="500" value={bicicletaEdicion.motivoEstadoInicial} onChange={(evento) => establecerBicicletaEdicion({ ...bicicletaEdicion, motivoEstadoInicial: evento.target.value })} /></label>}
             {((bicicletaEdicion.idBicicleta && puedeActualizar) || (!bicicletaEdicion.idBicicleta && puedeCrear)) && <button type="submit" disabled={estadoPagina.guardando}>Guardar bicicleta</button>}
@@ -279,8 +280,8 @@ export function PaginaAdministracionBicicletas() {
           {bicicletaEdicion.idBicicleta && puedeActualizar && transicionesDisponibles.length > 0 && (
             <form className="formulario-administracion formulario-cambio-estado" onSubmit={guardarCambioEstado}>
               <h3>Cambiar estado</h3>
-              <p>Estado actual: <strong>{bicicletaEdicion.estado}</strong></p>
-              <label>Nuevo estado<select required value={cambioEstado.estado} onChange={(evento) => { establecerCambioEstado({ ...cambioEstado, estado: evento.target.value }); claveCambioEstado.current = null; }}><option value="">Selecciona un estado</option>{transicionesDisponibles.map((valor) => <option key={valor}>{valor}</option>)}</select></label>
+              <p>Estado actual: <strong>{formatearTextoTecnico(bicicletaEdicion.estado)}</strong></p>
+              <label>Nuevo estado<select required value={cambioEstado.estado} onChange={(evento) => { establecerCambioEstado({ ...cambioEstado, estado: evento.target.value }); claveCambioEstado.current = null; }}><option value="">Selecciona un estado</option>{transicionesDisponibles.map((valor) => <option key={valor} value={valor}>{formatearTextoTecnico(valor)}</option>)}</select></label>
               <label>Motivo<textarea required maxLength="500" value={cambioEstado.motivo} onChange={(evento) => { establecerCambioEstado({ ...cambioEstado, motivo: evento.target.value }); claveCambioEstado.current = null; }} /></label>
               <button type="submit" disabled={estadoPagina.guardando}>Guardar cambio de estado</button>
             </form>
@@ -293,7 +294,7 @@ export function PaginaAdministracionBicicletas() {
                 <ol>
                   {historial.map((cambio) => (
                     <li key={cambio.idHistorialEstadoBicicleta}>
-                      <strong>{cambio.estadoAnterior || "INICIAL"} → {cambio.estadoNuevo}</strong>
+                      <strong>{formatearTextoTecnico(cambio.estadoAnterior || "INICIAL")} → {formatearTextoTecnico(cambio.estadoNuevo)}</strong>
                       <span>{cambio.motivo} · {cambio.nombreCambiadoPor} · {formatearFecha(cambio.cambiadoEn)}</span>
                     </li>
                   ))}

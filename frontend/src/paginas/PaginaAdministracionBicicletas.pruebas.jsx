@@ -77,7 +77,7 @@ describe("Administración de bicicletas", () => {
     expect(screen.getByRole("heading", { name: "Bicicletas registradas" })).toBeTruthy();
     expect(await screen.findByText(/tiene un préstamo activo/i)).toBeTruthy();
     expect(filaBicicleta.getAttribute("aria-expanded")).toBe("true");
-    expect(screen.getByText("DISPONIBLE → PRESTADA")).toBeTruthy();
+    expect(screen.getByText("Disponible → Prestada")).toBeTruthy();
     expect(screen.queryByText(/correo/i)).toBeNull();
   });
 });

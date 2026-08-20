@@ -8,10 +8,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import gt.gob.parqueerickbarrondo.compartido.api.ManejadorErroresApi;
 import gt.gob.parqueerickbarrondo.compartido.api.ManejadorErroresSeguridad;
 import gt.gob.parqueerickbarrondo.identidad.api.ControladorAutenticacion;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioAutenticacion;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioRegistroCuenta;
+import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioVerificacionCorreo;
 import gt.gob.parqueerickbarrondo.identidad.seguridad.ManejadorCierreSesion;
 import gt.gob.parqueerickbarrondo.identidad.seguridad.ServicioDetallesUsuario;
 import org.junit.jupiter.api.Test;
@@ -24,7 +26,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(ControladorAutenticacion.class)
-@Import({ConfiguracionSeguridad.class, ManejadorErroresSeguridad.class})
+@Import({ConfiguracionSeguridad.class, ManejadorErroresApi.class, ManejadorErroresSeguridad.class})
 class SeguridadApiPruebas {
 
     @Autowired
@@ -35,6 +37,9 @@ class SeguridadApiPruebas {
 
     @MockitoBean
     private ServicioAutenticacion servicioAutenticacion;
+
+    @MockitoBean
+    private ServicioVerificacionCorreo servicioVerificacionCorreo;
 
     @MockitoBean
     private ServicioDetallesUsuario servicioDetallesUsuario;
@@ -70,8 +75,30 @@ class SeguridadApiPruebas {
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(solicitudRegistroValida()))
-                .andExpect(status().isAccepted())
+                .andExpect(status().isCreated())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    void aceptaLaConfirmacionDeCorreoPublicaConCsrf() throws Exception {
+        clienteApi.perform(post("/api/v1/autenticacion/confirmar-correo")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"token\":\"token-seguro\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.mensaje").value("Confirmado, ya puedes iniciar sesión."));
+    }
+
+    @Test
+    void explicaElFormatoInvalidoDelDpi() throws Exception {
+        clienteApi.perform(post("/api/v1/autenticacion/registro")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(solicitudRegistroValida().replace("1234567890101", "123456789012")))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.codigo").value("SOLICITUDINVALIDA"))
+                .andExpect(jsonPath("$.detail").value("El DPI o CUI debe contener exactamente 13 números."));
     }
 
     @Test
@@ -91,11 +118,14 @@ class SeguridadApiPruebas {
     private String solicitudRegistroValida() {
         return """
                 {
+                  "dpi": "1234567890101",
                   "nombre": "Persona",
                   "apellido": "Prueba",
+                  "celular": "55551234",
+                  "fechaNacimiento": "1995-04-10",
                   "correo": "persona@ejemplo.com",
                   "contrasena": "Contrasena larga de prueba",
-                  "aceptaTerminos": true
+                  "confirmarContrasena": "Contrasena larga de prueba"
                 }
                 """;
     }

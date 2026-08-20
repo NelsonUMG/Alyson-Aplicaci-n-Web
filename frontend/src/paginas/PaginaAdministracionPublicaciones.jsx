@@ -17,6 +17,7 @@ import {
   publicarPublicacion,
 } from "../api/administracionPublicaciones";
 import { usarSesion } from "../autenticacion/ContextoSesion";
+import { formatearTextoTecnico } from "../utilidades/formatoTexto";
 
 const categoriaInicial = {
   idCategoriaPublicacion: null,
@@ -574,7 +575,7 @@ export function PaginaAdministracionPublicaciones() {
               <tbody>
                 {pagina.contenido.map((publicacion) => (
                   <tr className={publicacionEdicion?.idPublicacion === publicacion.idPublicacion ? "fila-seleccionada" : ""} key={publicacion.idPublicacion}>
-                    <td>{publicacion.titulo}</td><td>{publicacion.nombreCategoria}</td><td>{publicacion.estado}</td><td>{publicacion.version}</td>
+                    <td>{publicacion.titulo}</td><td>{publicacion.nombreCategoria}</td><td>{formatearTextoTecnico(publicacion.estado)}</td><td>{publicacion.version}</td>
                     <td><button
                       className="boton-tabla"
                       type="button"

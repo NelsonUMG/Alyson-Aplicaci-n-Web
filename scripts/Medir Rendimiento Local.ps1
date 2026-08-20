@@ -19,7 +19,7 @@ if ($uri.Scheme -notin @('http', 'https')) {
 }
 
 if (-not ('ParqueErickBarrondo.MedidorHttp' -as [type])) {
-    Add-Type -Language CSharp -ReferencedAssemblies 'System.Net.Http.dll' -TypeDefinition @'
+    Add-Type -Language CSharp -TypeDefinition @'
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;

@@ -50,6 +50,9 @@ public class InscripcionEvento {
     @Column(name = "RespuestasFormularioJson")
     private String respuestasFormularioJson;
 
+    @Column(name = "GrupoSeleccionadoCodigo", length = 64)
+    private String grupoSeleccionadoCodigo;
+
     @Column(name = "CreadoEn", nullable = false)
     private Instant creadoEn;
 
@@ -64,16 +67,26 @@ public class InscripcionEvento {
     }
 
     public InscripcionEvento(Evento evento, Usuario usuario, Instant ahora) {
-        this(evento, usuario, ahora, null);
+        this(evento, usuario, ahora, null, null);
     }
 
     public InscripcionEvento(Evento evento, Usuario usuario, Instant ahora, String respuestasFormularioJson) {
+        this(evento, usuario, ahora, respuestasFormularioJson, null);
+    }
+
+    public InscripcionEvento(
+            Evento evento,
+            Usuario usuario,
+            Instant ahora,
+            String respuestasFormularioJson,
+            String grupoSeleccionadoCodigo) {
         this.evento = evento;
         this.usuario = usuario;
         this.estado = "CONFIRMADA";
         this.requisitosAceptadosEn = ahora;
         this.confirmadaEn = ahora;
         this.respuestasFormularioJson = respuestasFormularioJson;
+        this.grupoSeleccionadoCodigo = grupoSeleccionadoCodigo;
         this.creadoEn = ahora;
         this.actualizadoEn = ahora;
         this.version = null;
@@ -115,6 +128,10 @@ public class InscripcionEvento {
         return respuestasFormularioJson;
     }
 
+    public String obtenerGrupoSeleccionadoCodigo() {
+        return grupoSeleccionadoCodigo;
+    }
+
     public Instant obtenerCreadoEn() {
         return creadoEn;
     }
@@ -136,12 +153,18 @@ public class InscripcionEvento {
     }
 
     public void confirmarNuevamente(Instant ahora, String respuestasFormularioJson) {
+        confirmarNuevamente(ahora, respuestasFormularioJson, null);
+    }
+
+    public void confirmarNuevamente(
+            Instant ahora, String respuestasFormularioJson, String grupoSeleccionadoCodigo) {
         estado = "CONFIRMADA";
         requisitosAceptadosEn = ahora;
         confirmadaEn = ahora;
         canceladaEn = null;
         motivoCancelacion = null;
         this.respuestasFormularioJson = respuestasFormularioJson;
+        this.grupoSeleccionadoCodigo = grupoSeleccionadoCodigo;
         actualizadoEn = ahora;
     }
 

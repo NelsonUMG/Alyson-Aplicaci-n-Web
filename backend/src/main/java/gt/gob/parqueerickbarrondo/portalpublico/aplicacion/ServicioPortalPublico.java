@@ -171,9 +171,10 @@ public class ServicioPortalPublico {
                 evento.obtenerCapacidadTotal(),
                 calcularCuposDisponibles(evento),
                 evento.obtenerEstado(),
-                requisitos,
-                evento.obtenerEsquemaFormularioJson(),
-                obtenerUrlImagenEvento(evento),
+                  requisitos,
+                  evento.obtenerEsquemaFormularioJson(),
+                  evento.obtenerConfiguracionGruposJson(),
+                  obtenerUrlImagenEvento(evento),
                 repositorioImagenEvento
                         .findAllByEvento_IdEventoOrderByOrdenVisualizacionAscIdImagenEventoAsc(
                                 evento.obtenerIdEvento())

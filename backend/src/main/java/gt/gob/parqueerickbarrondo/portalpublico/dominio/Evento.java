@@ -71,6 +71,9 @@ public class Evento {
     @Column(name = "EsquemaFormularioJson")
     private String esquemaFormularioJson;
 
+    @Column(name = "ConfiguracionGruposJson")
+    private String configuracionGruposJson;
+
     @Column(name = "CreadoEn", nullable = false)
     private Instant creadoEn;
 
@@ -100,6 +103,23 @@ public class Evento {
             Instant inscripcionCierraEn,
             int capacidadTotal,
             String esquemaFormularioJson) {
+        this(creadoPor, titulo, identificadorUrl, descripcion, lugar, iniciaEn, finalizaEn,
+                inscripcionAbreEn, inscripcionCierraEn, capacidadTotal, esquemaFormularioJson, null);
+    }
+
+    public Evento(
+            Usuario creadoPor,
+            String titulo,
+            String identificadorUrl,
+            String descripcion,
+            String lugar,
+            Instant iniciaEn,
+            Instant finalizaEn,
+            Instant inscripcionAbreEn,
+            Instant inscripcionCierraEn,
+            int capacidadTotal,
+            String esquemaFormularioJson,
+            String configuracionGruposJson) {
         var ahora = Instant.now();
         this.creadoPor = creadoPor;
         this.titulo = titulo;
@@ -114,6 +134,7 @@ public class Evento {
         this.cantidadOcupada = 0;
         this.estado = "BORRADOR";
         this.esquemaFormularioJson = esquemaFormularioJson;
+        this.configuracionGruposJson = configuracionGruposJson;
         this.creadoEn = ahora;
         this.actualizadoEn = ahora;
         this.version = null;
@@ -175,6 +196,10 @@ public class Evento {
         return esquemaFormularioJson;
     }
 
+    public String obtenerConfiguracionGruposJson() {
+        return configuracionGruposJson;
+    }
+
     public Instant obtenerCreadoEn() {
         return creadoEn;
     }
@@ -200,7 +225,8 @@ public class Evento {
             Instant inscripcionAbreEn,
             Instant inscripcionCierraEn,
             int capacidadTotal,
-            String esquemaFormularioJson) {
+            String esquemaFormularioJson,
+            String configuracionGruposJson) {
         this.titulo = titulo;
         this.descripcion = descripcion;
         this.lugar = lugar;
@@ -210,7 +236,22 @@ public class Evento {
         this.inscripcionCierraEn = inscripcionCierraEn;
         this.capacidadTotal = capacidadTotal;
         this.esquemaFormularioJson = esquemaFormularioJson;
+        this.configuracionGruposJson = configuracionGruposJson;
         this.actualizadoEn = Instant.now();
+    }
+
+    public void actualizar(
+            String titulo,
+            String descripcion,
+            String lugar,
+            Instant iniciaEn,
+            Instant finalizaEn,
+            Instant inscripcionAbreEn,
+            Instant inscripcionCierraEn,
+            int capacidadTotal,
+            String esquemaFormularioJson) {
+        actualizar(titulo, descripcion, lugar, iniciaEn, finalizaEn, inscripcionAbreEn,
+                inscripcionCierraEn, capacidadTotal, esquemaFormularioJson, configuracionGruposJson);
     }
 
     public void reemplazarRequisitos(List<RequisitoEvento> nuevosRequisitos) {

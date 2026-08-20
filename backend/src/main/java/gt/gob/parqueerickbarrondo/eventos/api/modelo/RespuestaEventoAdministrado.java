@@ -18,6 +18,7 @@ public record RespuestaEventoAdministrado(
         int cuposDisponibles,
         String estado,
         String esquemaFormularioJson,
+        String configuracionGruposJson,
         List<RespuestaRequisitoEventoAdministrado> requisitos,
         boolean tieneImagen,
         String urlImagen,

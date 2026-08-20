@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarMisInscripciones } from "../api/inscripcionesEventos";
+import { formatearTextoEditorial, formatearTextoTecnico } from "../utilidades/formatoTexto";
 
 const formatoFecha = new Intl.DateTimeFormat("es-GT", {
   dateStyle: "long",
@@ -40,7 +41,7 @@ export function PaginaMisInscripciones() {
         {!estado.cargando && pagina.contenido.length === 0 && <p>No tienes inscripciones registradas.</p>}
         {pagina.contenido.map((inscripcion) => (
           <article key={inscripcion.idInscripcionEvento}>
-            <div><p className="etiqueta-fase">{inscripcion.estado}</p><h2>{inscripcion.tituloEvento}</h2><p>{formatoFecha.format(new Date(inscripcion.iniciaEn))}{inscripcion.lugar ? ` · ${inscripcion.lugar}` : ""}</p></div>
+            <div><p className="etiqueta-fase">{formatearTextoTecnico(inscripcion.estado)}</p><h2>{formatearTextoEditorial(inscripcion.tituloEvento)}</h2><p>{formatoFecha.format(new Date(inscripcion.iniciaEn))}{inscripcion.lugar ? ` · ${inscripcion.lugar}` : ""}</p>{inscripcion.nombreGrupo && <p>Grupo: <strong>{inscripcion.nombreGrupo}</strong></p>}</div>
             <Link className="enlace-principal" to={`/eventos/${inscripcion.identificadorUrl}`}>Consultar actividad</Link>
           </article>
         ))}

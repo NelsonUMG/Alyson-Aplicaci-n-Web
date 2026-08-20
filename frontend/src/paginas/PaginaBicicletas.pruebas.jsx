@@ -29,7 +29,7 @@ describe("Disponibilidad pública de bicicletas", () => {
     expect(await screen.findByRole("heading", { name: "Disponibilidad de bicicletas" })).toBeTruthy();
     expect(screen.getByText("Total registradas").nextElementSibling.textContent).toBe("4");
     expect(screen.getByText("Disponibles").nextElementSibling.textContent).toBe("2");
-    expect(screen.getByText("ENMANTENIMIENTO").previousElementSibling.textContent).toBe("1");
+    expect(screen.getByText("En mantenimiento").previousElementSibling.textContent).toBe("1");
     expect(screen.queryByText(/préstamo de/i)).toBeNull();
   });
 

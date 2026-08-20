@@ -10,12 +10,12 @@ export function listarMisInscripciones({ pagina = 0, tamano = 20 } = {}) {
   return solicitarApi(`/eventos/inscripciones/mias?${parametros}`);
 }
 
-export async function inscribirEnEvento(idEvento, claveIdempotencia, respuestas = {}) {
+export async function inscribirEnEvento(idEvento, claveIdempotencia, respuestas = {}, codigoGrupo = null) {
   await prepararCsrf();
   return solicitarApi(`/eventos/${idEvento}/inscripciones`, {
     method: "POST",
     headers: { "Idempotency-Key": claveIdempotencia },
-    body: JSON.stringify({ aceptaRequisitos: true, respuestas }),
+    body: JSON.stringify({ aceptaRequisitos: true, codigoGrupo, respuestas }),
   });
 }
 

@@ -118,6 +118,36 @@ describe("Inscripciones de eventos", () => {
     expect(await screen.findByRole("heading", { name: "Galería del evento" })).toBeTruthy();
     expect(screen.getByAltText("Curso de atletismo, imagen secundaria 1")).toBeTruthy();
   });
+
+  it("muestra varios horarios y solicita el grupo antes de inscribir", async () => {
+    apiPortal.consultarEvento.mockResolvedValue({
+      ...eventoPublico,
+      configuracionGruposJson: JSON.stringify({ grupos: [{
+        codigo: "adolescentes", nombre: "Adolescentes", categoriaEdad: "13 a 17 años",
+        edadMinima: 13, edadMaxima: 17,
+        horarios: [
+          { dia: "MARTES", horaInicio: "14:00", horaFin: "16:00", lugar: "Pista" },
+          { dia: "JUEVES", horaInicio: "14:00", horaFin: "16:00", lugar: "Pista" },
+        ],
+      }] }),
+    });
+    render(
+      <MemoryRouter initialEntries={["/eventos/curso-atletismo"]}>
+        <Routes><Route path="/eventos/:identificadorUrl" element={<PaginaDetalleEvento />} /></Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByRole("heading", { name: "Grupos y horarios" })).toBeTruthy();
+    expect(screen.getByText(/Martes/)).toBeTruthy();
+    expect(screen.getByText(/Jueves/)).toBeTruthy();
+    fireEvent.change(screen.getByLabelText("Grupo o categoría *"), { target: { value: "adolescentes" } });
+    fireEvent.change(screen.getByLabelText("DPI/CUI del participante *"), { target: { value: "1234567890101" } });
+    fireEvent.click(screen.getByRole("button", { name: "Confirmar inscripción" }));
+
+    await waitFor(() => expect(apiInscripciones.inscribirEnEvento).toHaveBeenCalledWith(
+      7, expect.any(String), { campo_1: "1234567890101" }, "adolescentes",
+    ));
+  });
 });
 
 describe("Administración de eventos", () => {

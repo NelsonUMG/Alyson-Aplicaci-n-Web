@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Map;
 import java.util.Optional;
 
@@ -170,6 +171,43 @@ class ServicioInscripcionesEventoPruebas {
         assertThatThrownBy(() -> servicioInscripciones.inscribir(7L, solicitud, "clave-nueva", actor))
                 .isInstanceOf(SolicitudInvalidaException.class)
                 .hasMessageContaining("13 números");
+
+        verify(repositorioEvento, never()).reservarCupo(any(), any());
+    }
+
+    @Test
+    void validaLaCategoriaDeEdadDelGrupoAntesDeReservarCupo() throws Exception {
+        var solicitud = new SolicitudInscripcionEvento(true, "adolescentes", Map.of());
+        var actor = org.mockito.Mockito.mock(UsuarioSesion.class);
+        when(actor.obtenerIdUsuario()).thenReturn(5L);
+        var evento = org.mockito.Mockito.mock(Evento.class);
+        when(evento.obtenerEstado()).thenReturn("PUBLICADO");
+        when(evento.obtenerIniciaEn()).thenReturn(Instant.parse("2030-08-05T15:00:00Z"));
+        when(evento.obtenerCapacidadTotal()).thenReturn(20);
+        when(evento.obtenerCantidadOcupada()).thenReturn(0);
+        var configuracion = """
+                {"grupos":[{"codigo":"adolescentes","nombre":"Adolescentes",
+                "categoriaEdad":"13 a 17 años","edadMinima":13,"edadMaxima":17,
+                "horarios":[{"dia":"MARTES","horaInicio":"14:00","horaFin":"16:00"}]}]}
+                """;
+        when(evento.obtenerConfiguracionGruposJson()).thenReturn(configuracion);
+        when(repositorioEvento.findById(7L)).thenReturn(Optional.of(evento));
+        var usuario = org.mockito.Mockito.mock(Usuario.class);
+        when(usuario.estaActivo()).thenReturn(true);
+        when(usuario.obtenerFechaNacimiento()).thenReturn(LocalDate.of(2000, 1, 1));
+        when(repositorioUsuario.findById(5L)).thenReturn(Optional.of(usuario));
+        when(serializadorJson.readTree(configuracion))
+                .thenReturn(new ObjectMapper().readTree(configuracion));
+        when(servicioIdempotencia.preparar(
+                eq("clave-grupo"), eq(5L), eq("INSCRIBIREVENTO:7"), eq(solicitud),
+                eq(RespuestaInscripcionEvento.class)))
+                .thenReturn(ServicioIdempotencia.ContextoIdempotencia.<RespuestaInscripcionEvento>nuevo(
+                        org.mockito.Mockito.mock(RegistroIdempotencia.class)));
+
+        assertThatThrownBy(() -> servicioInscripciones.inscribir(
+                7L, solicitud, "clave-grupo", actor))
+                .isInstanceOf(SolicitudInvalidaException.class)
+                .hasMessageContaining("edad");
 
         verify(repositorioEvento, never()).reservarCupo(any(), any());
     }

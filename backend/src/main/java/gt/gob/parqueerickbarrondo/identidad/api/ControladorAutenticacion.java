@@ -4,10 +4,14 @@ import gt.gob.parqueerickbarrondo.identidad.api.modelo.RespuestaCsrf;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.RespuestaMensaje;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.RespuestaPerfil;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudCambioContrasena;
+import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudConfirmacionCorreo;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudInicioSesion;
+import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudReenvioVerificacion;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudRegistroCuenta;
+import gt.gob.parqueerickbarrondo.identidad.aplicacion.ConflictoDatosException;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioAutenticacion;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioRegistroCuenta;
+import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioVerificacionCorreo;
 import gt.gob.parqueerickbarrondo.identidad.seguridad.UsuarioSesion;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -29,16 +33,21 @@ import org.springframework.web.bind.annotation.RestController;
 public class ControladorAutenticacion {
 
     private static final String MENSAJE_REGISTRO =
-            "Si los datos son elegibles, la cuenta quedará disponible según la política institucional.";
+            "Cuenta creada. Revisa tu correo para confirmar la dirección y habilitar el acceso.";
+    private static final String MENSAJE_REENVIO =
+            "Si la cuenta está pendiente, enviamos un nuevo enlace de verificación.";
 
     private final ServicioRegistroCuenta servicioRegistroCuenta;
     private final ServicioAutenticacion servicioAutenticacion;
+    private final ServicioVerificacionCorreo servicioVerificacionCorreo;
 
     public ControladorAutenticacion(
             ServicioRegistroCuenta servicioRegistroCuenta,
-            ServicioAutenticacion servicioAutenticacion) {
+            ServicioAutenticacion servicioAutenticacion,
+            ServicioVerificacionCorreo servicioVerificacionCorreo) {
         this.servicioRegistroCuenta = servicioRegistroCuenta;
         this.servicioAutenticacion = servicioAutenticacion;
+        this.servicioVerificacionCorreo = servicioVerificacionCorreo;
     }
 
     @GetMapping("/csrf")
@@ -52,9 +61,21 @@ public class ControladorAutenticacion {
             servicioRegistroCuenta.registrar(solicitud);
         }
         catch (DataIntegrityViolationException ignorada) {
-            // La respuesta permanece genérica ante una carrera por correo duplicado.
+            throw new ConflictoDatosException("El correo electrónico o DPI/CUI ya está registrado.");
         }
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new RespuestaMensaje(MENSAJE_REGISTRO));
+        return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaMensaje(MENSAJE_REGISTRO));
+    }
+
+    @PostMapping("/confirmar-correo")
+    public RespuestaMensaje confirmarCorreo(@Valid @RequestBody SolicitudConfirmacionCorreo solicitud) {
+        servicioVerificacionCorreo.confirmar(solicitud.token());
+        return new RespuestaMensaje("Confirmado, ya puedes iniciar sesión.");
+    }
+
+    @PostMapping("/reenviar-verificacion")
+    public RespuestaMensaje reenviarVerificacion(@Valid @RequestBody SolicitudReenvioVerificacion solicitud) {
+        servicioVerificacionCorreo.reenviar(solicitud.correo());
+        return new RespuestaMensaje(MENSAJE_REENVIO);
     }
 
     @PostMapping("/iniciar-sesion")

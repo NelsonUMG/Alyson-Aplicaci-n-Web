@@ -27,6 +27,8 @@ public record SolicitudEvento(
         int capacidadTotal,
         @Size(max = 10000, message = "El formulario no puede superar 10000 caracteres.")
         String esquemaFormularioJson,
+        @Size(max = 20000, message = "La configuración de grupos no puede superar 20000 caracteres.")
+        String configuracionGruposJson,
         @Valid
         @Size(max = 30, message = "Un evento no puede tener más de 30 requisitos.")
         List<SolicitudRequisitoEvento> requisitos,
@@ -34,5 +36,21 @@ public record SolicitudEvento(
 
     public SolicitudEvento {
         requisitos = requisitos == null ? List.of() : List.copyOf(requisitos);
+    }
+
+    public SolicitudEvento(
+            String titulo,
+            String descripcion,
+            String lugar,
+            Instant iniciaEn,
+            Instant finalizaEn,
+            Instant inscripcionAbreEn,
+            Instant inscripcionCierraEn,
+            int capacidadTotal,
+            String esquemaFormularioJson,
+            List<SolicitudRequisitoEvento> requisitos,
+            Long version) {
+        this(titulo, descripcion, lugar, iniciaEn, finalizaEn, inscripcionAbreEn,
+                inscripcionCierraEn, capacidadTotal, esquemaFormularioJson, null, requisitos, version);
     }
 }

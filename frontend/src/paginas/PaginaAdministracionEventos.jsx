@@ -16,6 +16,7 @@ import {
   publicarEvento,
 } from "../api/administracionEventos";
 import { usarSesion } from "../autenticacion/ContextoSesion";
+import { formatearTextoTecnico } from "../utilidades/formatoTexto";
 
 const paginaVacia = { contenido: [], pagina: 0, totalPaginas: 0, totalElementos: 0 };
 const tiposCampoFormulario = [
@@ -28,7 +29,12 @@ const tiposCampoFormulario = [
   { valor: "SELECCION_UNICA", etiqueta: "Elegir una opción" },
 ];
 const tiposCampoPermitidos = new Set(tiposCampoFormulario.map((tipo) => tipo.valor));
+const diasSemana = [
+  ["LUNES", "Lunes"], ["MARTES", "Martes"], ["MIERCOLES", "Miércoles"],
+  ["JUEVES", "Jueves"], ["VIERNES", "Viernes"], ["SABADO", "Sábado"], ["DOMINGO", "Domingo"],
+];
 let secuenciaCampoFormulario = 0;
+let secuenciaGrupo = 0;
 
 function crearClaveCampoFormulario() {
   secuenciaCampoFormulario += 1;
@@ -81,6 +87,58 @@ function generarFormularioJson(camposFormulario) {
   return JSON.stringify({ campos });
 }
 
+function crearClaveGrupo() {
+  secuenciaGrupo += 1;
+  return `grupo-${secuenciaGrupo}`;
+}
+
+function horarioVacio() {
+  return { dia: "LUNES", horaInicio: "", horaFin: "", lugar: "" };
+}
+
+function grupoVacio() {
+  return {
+    clave: crearClaveGrupo(), codigo: "", nombre: "", categoriaEdad: "",
+    edadMinima: "", edadMaxima: "", horarios: [horarioVacio()],
+  };
+}
+
+function interpretarGruposJson(contenido) {
+  if (!contenido?.trim()) return [];
+  try {
+    const estructura = JSON.parse(contenido);
+    if (!Array.isArray(estructura.grupos)) return [];
+    return estructura.grupos.map((grupo) => ({
+      clave: crearClaveGrupo(),
+      codigo: grupo.codigo || "", nombre: grupo.nombre || "",
+      categoriaEdad: grupo.categoriaEdad || "",
+      edadMinima: grupo.edadMinima ?? "", edadMaxima: grupo.edadMaxima ?? "",
+      horarios: Array.isArray(grupo.horarios) && grupo.horarios.length
+        ? grupo.horarios.map((horario) => ({
+          dia: horario.dia || "LUNES", horaInicio: horario.horaInicio || "",
+          horaFin: horario.horaFin || "", lugar: horario.lugar || "",
+        })) : [horarioVacio()],
+    }));
+  } catch { return []; }
+}
+
+function generarGruposJson(grupos) {
+  if (!grupos.length) return null;
+  return JSON.stringify({
+    grupos: grupos.map((grupo, indice) => ({
+      codigo: (grupo.codigo || grupo.nombre || `grupo-${indice + 1}`).trim().toLowerCase()
+        .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, ""),
+      nombre: grupo.nombre.trim(), categoriaEdad: grupo.categoriaEdad.trim(),
+      edadMinima: grupo.edadMinima === "" ? null : Number(grupo.edadMinima),
+      edadMaxima: grupo.edadMaxima === "" ? null : Number(grupo.edadMaxima),
+      horarios: grupo.horarios.map((horario) => ({
+        dia: horario.dia, horaInicio: horario.horaInicio,
+        horaFin: horario.horaFin, lugar: horario.lugar.trim() || null,
+      })),
+    })),
+  });
+}
+
 const eventoVacio = {
   idEvento: null,
   titulo: "",
@@ -94,7 +152,9 @@ const eventoVacio = {
   cantidadOcupada: 0,
   estado: "BORRADOR",
   esquemaFormularioJson: "",
+  configuracionGruposJson: "",
   camposFormulario: [],
+  grupos: [],
   requisitos: [],
   tieneImagen: false,
   urlImagen: null,
@@ -121,7 +181,9 @@ function prepararEdicion(evento) {
     inscripcionAbreEn: aFechaLocal(evento.inscripcionAbreEn),
     inscripcionCierraEn: aFechaLocal(evento.inscripcionCierraEn),
     esquemaFormularioJson: evento.esquemaFormularioJson || "",
+    configuracionGruposJson: evento.configuracionGruposJson || "",
     camposFormulario: interpretarFormularioJson(evento.esquemaFormularioJson),
+    grupos: interpretarGruposJson(evento.configuracionGruposJson),
     requisitos: evento.requisitos || [],
   };
 }
@@ -198,7 +260,7 @@ export function PaginaAdministracionEventos() {
   function nuevoEvento() {
     if (eventoEdicion && !eventoEdicion.idEvento) return;
     establecerMostrarListado(false);
-    establecerEventoEdicion({ ...eventoVacio, camposFormulario: [], requisitos: [] });
+    establecerEventoEdicion({ ...eventoVacio, camposFormulario: [], grupos: [], requisitos: [] });
     establecerInscripciones(paginaVacia);
     establecerImagenesSecundarias([]);
   }
@@ -260,6 +322,53 @@ export function PaginaAdministracionEventos() {
     }));
   }
 
+  function agregarGrupo() {
+    establecerEventoEdicion((actual) => ({
+      ...actual, grupos: actual.grupos.length >= 20 ? actual.grupos : [...actual.grupos, grupoVacio()],
+    }));
+  }
+
+  function actualizarGrupo(indice, cambios) {
+    establecerEventoEdicion((actual) => ({
+      ...actual, grupos: actual.grupos.map((grupo, posicion) => (
+        posicion === indice ? { ...grupo, ...cambios } : grupo
+      )),
+    }));
+  }
+
+  function eliminarGrupo(indice) {
+    establecerEventoEdicion((actual) => ({
+      ...actual, grupos: actual.grupos.filter((_, posicion) => posicion !== indice),
+    }));
+  }
+
+  function agregarHorario(indiceGrupo) {
+    establecerEventoEdicion((actual) => ({
+      ...actual,
+      grupos: actual.grupos.map((grupo, posicion) => posicion === indiceGrupo
+        ? { ...grupo, horarios: grupo.horarios.length >= 14 ? grupo.horarios : [...grupo.horarios, horarioVacio()] }
+        : grupo),
+    }));
+  }
+
+  function actualizarHorario(indiceGrupo, indiceHorario, cambios) {
+    establecerEventoEdicion((actual) => ({
+      ...actual,
+      grupos: actual.grupos.map((grupo, posicion) => posicion === indiceGrupo
+        ? { ...grupo, horarios: grupo.horarios.map((horario, indice) => indice === indiceHorario ? { ...horario, ...cambios } : horario) }
+        : grupo),
+    }));
+  }
+
+  function eliminarHorario(indiceGrupo, indiceHorario) {
+    establecerEventoEdicion((actual) => ({
+      ...actual,
+      grupos: actual.grupos.map((grupo, posicion) => posicion === indiceGrupo
+        ? { ...grupo, horarios: grupo.horarios.filter((_, indice) => indice !== indiceHorario) }
+        : grupo),
+    }));
+  }
+
   function moverCampoFormulario(indice, desplazamiento) {
     establecerEventoEdicion((actual) => {
       const camposActuales = actual.camposFormulario || [];
@@ -287,6 +396,7 @@ export function PaginaAdministracionEventos() {
       return;
     }
     const esquemaFormularioJson = generarFormularioJson(camposFormulario);
+    const configuracionGruposJson = generarGruposJson(eventoEdicion.grupos || []);
     if (esquemaFormularioJson && esquemaFormularioJson.length > 10000) {
       establecerEstado((actual) => ({
         ...actual,
@@ -306,6 +416,7 @@ export function PaginaAdministracionEventos() {
       inscripcionCierraEn: aInstant(eventoEdicion.inscripcionCierraEn),
       capacidadTotal: Number(eventoEdicion.capacidadTotal),
       esquemaFormularioJson,
+      configuracionGruposJson,
       requisitos: [],
       version: eventoEdicion.version,
     };
@@ -451,7 +562,7 @@ export function PaginaAdministracionEventos() {
             >
               <span><strong>{evento.titulo}</strong></span>
               <span>{evento.lugar || "Lugar pendiente"}</span>
-              <span><strong>{evento.estado}</strong><small>{evento.cantidadOcupada} de {evento.capacidadTotal} cupos</small></span>
+              <span><strong>{formatearTextoTecnico(evento.estado)}</strong><small>{evento.cantidadOcupada} de {evento.capacidadTotal} cupos</small></span>
             </button>
           ))}
           {!estado.cargando && pagina.contenido.length === 0 && <p>No hay eventos registrados.</p>}
@@ -470,7 +581,7 @@ export function PaginaAdministracionEventos() {
           aria-labelledby="titulo-edicion-evento"
         >
           <div className="cabecera-panel-administracion">
-            <div><h2 id="titulo-edicion-evento">{eventoEdicion.idEvento ? "Editar evento" : "Nuevo evento"}</h2><p>Estado actual: {eventoEdicion.estado}</p></div>
+            <div><h2 id="titulo-edicion-evento">{eventoEdicion.idEvento ? "Editar evento" : "Nuevo evento"}</h2><p>Estado actual: {formatearTextoTecnico(eventoEdicion.estado)}</p></div>
             {eventoEdicion.idEvento && <span>{eventoEdicion.cantidadOcupada} ocupados · {eventoEdicion.capacidadTotal - eventoEdicion.cantidadOcupada} disponibles</span>}
           </div>
           <form className="formulario-administracion formulario-evento" onSubmit={guardarEvento}>
@@ -482,6 +593,34 @@ export function PaginaAdministracionEventos() {
             <label>Inscripción abre<input type="datetime-local" disabled={!puedeEditarFormulario} value={eventoEdicion.inscripcionAbreEn} onChange={(evento) => actualizarCampo("inscripcionAbreEn", evento.target.value)} /></label>
             <label>Inscripción cierra<input type="datetime-local" disabled={!puedeEditarFormulario} value={eventoEdicion.inscripcionCierraEn} onChange={(evento) => actualizarCampo("inscripcionCierraEn", evento.target.value)} /></label>
             <label>Capacidad total<input type="number" min={eventoEdicion.cantidadOcupada || 0} required disabled={!puedeEditarFormulario} value={eventoEdicion.capacidadTotal} onChange={(evento) => actualizarCampo("capacidadTotal", evento.target.value)} /></label>
+            <div className="campo-ancho constructor-grupos-evento">
+              <div className="cabecera-panel-administracion">
+                <div>
+                  <h3>Grupos, edades y horarios</h3>
+                  <p>Configura categorías como niños, adolescentes o adultos y agrega uno o varios días y horarios para cada grupo.</p>
+                </div>
+                {puedeEditarFormulario && <button type="button" disabled={(eventoEdicion.grupos || []).length >= 20} onClick={agregarGrupo}>Agregar grupo</button>}
+              </div>
+              <div className="lista-grupos-evento">
+                {(eventoEdicion.grupos || []).map((grupo, indiceGrupo) => (
+                  <fieldset className="grupo-evento" key={grupo.clave}>
+                    <legend>Grupo {indiceGrupo + 1}</legend>
+                    <div className="datos-grupo-evento">
+                      <label>Nombre del grupo<input required maxLength="120" disabled={!puedeEditarFormulario} placeholder="Ejemplo: Adolescentes" value={grupo.nombre} onChange={(evento) => actualizarGrupo(indiceGrupo, { nombre: evento.target.value })} /></label>
+                      <label>Categoría de edad<input required maxLength="120" disabled={!puedeEditarFormulario} placeholder="Ejemplo: 13 a 17 años" value={grupo.categoriaEdad} onChange={(evento) => actualizarGrupo(indiceGrupo, { categoriaEdad: evento.target.value })} /></label>
+                      <label>Edad mínima<input type="number" min="0" max="120" disabled={!puedeEditarFormulario} value={grupo.edadMinima} onChange={(evento) => actualizarGrupo(indiceGrupo, { edadMinima: evento.target.value })} /></label>
+                      <label>Edad máxima<input type="number" min="0" max="120" disabled={!puedeEditarFormulario} value={grupo.edadMaxima} onChange={(evento) => actualizarGrupo(indiceGrupo, { edadMaxima: evento.target.value })} /></label>
+                    </div>
+                    <div className="cabecera-horarios-grupo"><strong>Días y horarios</strong>{puedeEditarFormulario && <button type="button" disabled={grupo.horarios.length >= 14} onClick={() => agregarHorario(indiceGrupo)}>Agregar horario</button>}</div>
+                    <div className="lista-horarios-grupo">
+                      {grupo.horarios.map((horario, indiceHorario) => <div className="horario-grupo-evento" key={`${grupo.clave}-horario-${indiceHorario}`}><label>Día<select disabled={!puedeEditarFormulario} value={horario.dia} onChange={(evento) => actualizarHorario(indiceGrupo, indiceHorario, { dia: evento.target.value })}>{diasSemana.map(([codigo, nombre]) => <option key={codigo} value={codigo}>{nombre}</option>)}</select></label><label>Inicia<input type="time" required disabled={!puedeEditarFormulario} value={horario.horaInicio} onChange={(evento) => actualizarHorario(indiceGrupo, indiceHorario, { horaInicio: evento.target.value })} /></label><label>Finaliza<input type="time" required disabled={!puedeEditarFormulario} value={horario.horaFin} onChange={(evento) => actualizarHorario(indiceGrupo, indiceHorario, { horaFin: evento.target.value })} /></label><label>Lugar específico<input maxLength="180" disabled={!puedeEditarFormulario} value={horario.lugar} onChange={(evento) => actualizarHorario(indiceGrupo, indiceHorario, { lugar: evento.target.value })} /></label>{puedeEditarFormulario && grupo.horarios.length > 1 && <button className="boton-peligro" type="button" onClick={() => eliminarHorario(indiceGrupo, indiceHorario)}>Quitar horario</button>}</div>)}
+                    </div>
+                    {puedeEditarFormulario && <button className="boton-peligro" type="button" onClick={() => eliminarGrupo(indiceGrupo)}>Quitar grupo</button>}
+                  </fieldset>
+                ))}
+                {(eventoEdicion.grupos || []).length === 0 && <p>Sin grupos: la actividad conservará un solo horario general.</p>}
+              </div>
+            </div>
             <div className="campo-ancho constructor-formulario-evento">
               <div className="cabecera-panel-administracion">
                 <div>
@@ -630,9 +769,9 @@ export function PaginaAdministracionEventos() {
             <button type="submit">Aplicar</button>
           </form>
           <div className="tabla-administracion tabla-inscripciones">
-            <table><thead><tr><th>Persona</th><th>Correo</th><th>Estado</th><th>Requisitos enviados</th><th>Confirmación</th></tr></thead><tbody>{inscripciones.contenido.map((inscripcion) => {
+            <table><thead><tr><th>Persona</th><th>Correo</th><th>Grupo</th><th>Estado</th><th>Requisitos enviados</th><th>Confirmación</th></tr></thead><tbody>{inscripciones.contenido.map((inscripcion) => {
               const respuestas = respuestasInscripcion(inscripcion, camposFormularioEvento);
-              return <tr key={inscripcion.idInscripcionEvento}><td>{inscripcion.nombre} {inscripcion.apellido}</td><td>{inscripcion.correo}</td><td>{inscripcion.estado}</td><td>{respuestas.length > 0 ? <details><summary>Ver respuestas</summary><dl className="respuestas-requisitos-evento">{respuestas.map((respuesta) => <div key={respuesta.etiqueta}><dt>{respuesta.etiqueta}</dt><dd>{respuesta.valor}</dd></div>)}</dl></details> : "—"}</td><td>{inscripcion.confirmadaEn ? new Date(inscripcion.confirmadaEn).toLocaleString("es-GT") : "—"}</td></tr>;
+              return <tr key={inscripcion.idInscripcionEvento}><td>{inscripcion.nombre} {inscripcion.apellido}</td><td>{inscripcion.correo}</td><td>{inscripcion.nombreGrupo || "Horario general"}</td><td>{formatearTextoTecnico(inscripcion.estado)}</td><td>{respuestas.length > 0 ? <details><summary>Ver respuestas</summary><dl className="respuestas-requisitos-evento">{respuestas.map((respuesta) => <div key={respuesta.etiqueta}><dt>{respuesta.etiqueta}</dt><dd>{respuesta.valor}</dd></div>)}</dl></details> : "—"}</td><td>{inscripcion.confirmadaEn ? new Date(inscripcion.confirmadaEn).toLocaleString("es-GT") : "—"}</td></tr>;
             })}</tbody></table>
             {inscripciones.contenido.length === 0 && <p>No hay inscripciones para mostrar.</p>}
           </div>

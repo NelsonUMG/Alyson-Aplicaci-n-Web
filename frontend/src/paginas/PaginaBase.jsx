@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarPublicaciones } from "../api/portalPublico";
+import { formatearTextoEditorial } from "../utilidades/formatoTexto";
 
 const publicacionesProvisionales = [
   {
@@ -68,7 +69,7 @@ export function PaginaBase() {
         <div className="portal-contenedor inicio-portada-contenido">
           <p className="portal-sobrelinea">Bienvenido</p>
           <h1 id="titulo-inicio">Parque Erick Barrondo</h1>
-          <p>Recreación para parque.</p>
+          <p>Recreación y deporte para todas las personas.</p>
           <div className="inicio-acciones">
             <Link className="portal-boton portal-boton-principal" to="/nosotros">Conoce el parque</Link>
             <Link className="portal-boton portal-boton-secundario" to="/eventos">Ver próximos eventos</Link>
@@ -96,8 +97,8 @@ export function PaginaBase() {
                 <span>{publicacionActual.tipo}</span>
                 <h3>
                   {publicacionActual.identificadorUrl
-                    ? <Link to={`/noticias/${publicacionActual.identificadorUrl}`}>{publicacionActual.titulo}</Link>
-                    : publicacionActual.titulo}
+                      ? <Link to={`/noticias/${publicacionActual.identificadorUrl}`}>{formatearTextoEditorial(publicacionActual.titulo)}</Link>
+                      : formatearTextoEditorial(publicacionActual.titulo)}
                 </h3>
                 <p>{publicacionActual.descripcion}</p>
                 {publicacionActual.identificadorUrl && (
@@ -117,7 +118,7 @@ export function PaginaBase() {
                   <button
                     type="button"
                     className={indice === indicePublicacion ? "activo" : ""}
-                    aria-label={`Mostrar noticia ${indice + 1}: ${publicacion.titulo}`}
+                    aria-label={`Mostrar noticia ${indice + 1}: ${formatearTextoEditorial(publicacion.titulo)}`}
                     aria-pressed={indice === indicePublicacion}
                     key={publicacion.identificadorUrl || publicacion.tipo}
                     onClick={() => seleccionarPublicacion(indice)}
@@ -126,7 +127,7 @@ export function PaginaBase() {
               </div>
             </div>
           )}
-          <p className="portal-aviso-contenido">Contenido  de actividades.</p>
+          <p className="portal-aviso-contenido">Contenido de actividades.</p>
         </div>
       </section>
 

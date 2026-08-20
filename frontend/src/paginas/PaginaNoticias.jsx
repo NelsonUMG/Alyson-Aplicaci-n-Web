@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarCategoriasPublicacion, listarPublicaciones } from "../api/portalPublico";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
+import { formatearTextoEditorial } from "../utilidades/formatoTexto";
 
 const filtrosIniciales = {
   busqueda: "",
@@ -141,7 +142,7 @@ export function PaginaNoticias() {
                       <p className="portal-sobrelinea">{publicacion.nombreCategoria}</p>
                       {formatearFechaPublicacion(publicacion) && <time dateTime={publicacion.fechaEditorial || publicacion.publicadoEn}>{formatearFechaPublicacion(publicacion)}</time>}
                     </div>
-                    <h2><Link to={`/noticias/${publicacion.identificadorUrl}`}>{publicacion.titulo}</Link></h2>
+                    <h2><Link to={`/noticias/${publicacion.identificadorUrl}`}>{formatearTextoEditorial(publicacion.titulo)}</Link></h2>
                     <p>{limitarResumen(publicacion.resumen)}</p>
                     <Link className="portal-enlace-ver" to={`/noticias/${publicacion.identificadorUrl}`}>Leer publicación</Link>
                   </div>

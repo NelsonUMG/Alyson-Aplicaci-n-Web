@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { listarAreas } from "../api/portalPublico";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
+import { formatearTextoEditorial, formatearTextoTecnico } from "../utilidades/formatoTexto";
 
 const espacios = ["Áreas deportivas", "Espacios recreativos", "Servicios al visitante"];
 
@@ -47,10 +48,10 @@ export function PaginaAreasServicios() {
                   {area.urlImagen && <img className="pagina-tarjeta-imagen" src={area.urlImagen} alt={area.nombre} />}
                   <span className="pagina-tarjeta-numero">{String(indice + 1).padStart(2, "0")}</span>
                   <p className="portal-sobrelinea">{area.nombreCategoria}</p>
-                  <h2>{area.nombre}</h2>
+                  <h2>{formatearTextoEditorial(area.nombre)}</h2>
                   <p>{area.descripcion || "Información pendiente de actualización"}</p>
                   {area.notaDisponibilidad && <p>{area.notaDisponibilidad}</p>}
-                  <span className="pagina-estado-dato">{area.estado}</span>
+                  <span className="pagina-estado-dato">{formatearTextoTecnico(area.estado)}</span>
                 </article>
               ))}
             </div>

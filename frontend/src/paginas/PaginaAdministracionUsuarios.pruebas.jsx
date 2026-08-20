@@ -47,7 +47,7 @@ describe("Administración de usuarios", () => {
     expect(within(acciones).getByRole("button", { name: "Registrar empleado" }).getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByRole("heading", { name: "Registrar empleado" })).toBeTruthy();
     expect(screen.getByLabelText("Correo electrónico")).toBeTruthy();
-    expect(screen.getByText("El rol USUARIOREGISTRADO se asigna automáticamente.")).toBeTruthy();
+    expect(screen.getByText("El rol Usuario registrado se asigna automáticamente.")).toBeTruthy();
     expect(screen.getByLabelText(/Operador de eventos/)).toBeTruthy();
   });
 
@@ -61,7 +61,7 @@ describe("Administración de usuarios", () => {
     expect(screen.getByRole("button", { name: "Crear Roles" }).getAttribute("aria-expanded")).toBe("true");
     expect(screen.getByRole("heading", { name: "Crear rol para empleados" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Eventos e inscripciones" })).toBeTruthy();
-    expect(screen.getByLabelText(/EVENTO LEER/)).toBeTruthy();
+    expect(screen.getByLabelText(/Consultar eventos/)).toBeTruthy();
   });
 
   it("impide abrir el registro de empleados cuando no hay roles asignables", async () => {

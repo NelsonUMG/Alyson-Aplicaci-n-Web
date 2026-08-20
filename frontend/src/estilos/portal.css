@@ -78,6 +78,31 @@
   object-fit: cover;
 }
 
+.portal-grupos-evento {
+  margin: 2rem 0;
+}
+
+.portal-lista-grupos-evento {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.portal-lista-grupos-evento article {
+  padding: 1rem 1.1rem;
+  border: 1px solid #d8e0dc;
+  border-radius: 0.8rem;
+  background: #f8faf9;
+}
+
+.portal-lista-grupos-evento h3 {
+  margin-top: 0;
+}
+
+.portal-lista-grupos-evento ul {
+  padding-left: 1.2rem;
+}
+
 .portal-nombre {
   display: grid;
   gap: 0.15rem;
@@ -95,7 +120,7 @@
   color: var(--portal-gris);
   font-size: 0.67rem;
   letter-spacing: 0.07em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .portal-navegacion {
@@ -163,7 +188,7 @@
   cursor: pointer;
   font-size: 0.8rem;
   font-weight: 800;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .portal-boton-menu > span {
@@ -214,7 +239,7 @@
   font-size: 0.76rem;
   font-weight: 900;
   letter-spacing: 0.16em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .inicio-portada h1 {
@@ -255,7 +280,7 @@
   font-weight: 850;
   letter-spacing: 0.035em;
   text-decoration: none;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .portal-boton-principal {
@@ -287,7 +312,7 @@
   color: rgb(255 255 255 / 72%);
   font-size: 0.64rem;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .inicio-franja {
@@ -501,7 +526,7 @@
   font-size: 0.7rem;
   font-weight: 900;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .inicio-publicacion h3 {
@@ -603,7 +628,7 @@
   font-size: 0.77rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .inicio-aliados-lista span:last-child {
@@ -824,7 +849,7 @@
   font-size: 0.72rem;
   font-weight: 850;
   letter-spacing: 0.05em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .pagina-vacio {
@@ -955,7 +980,7 @@
   font-size: 0.7rem;
   font-weight: 900;
   letter-spacing: 0.08em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .portal-evento-publico dd,
@@ -1204,7 +1229,7 @@
   font-size: 0.8rem;
   font-weight: 900;
   letter-spacing: 0.13em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .eventos-fecha strong {
@@ -1513,7 +1538,7 @@
   cursor: pointer;
   font-size: 0.72rem;
   font-weight: 900;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .mapa-marcador-activo {
@@ -1621,7 +1646,7 @@
   font-size: 0.68rem;
   font-weight: 900;
   letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .mapa-estado-disponibilidad::before {
@@ -1649,7 +1674,7 @@
   font-size: 0.82rem;
   font-weight: 900;
   letter-spacing: 0.05em;
-  text-transform: uppercase;
+  text-transform: none;
 }
 
 .mapa-detalle-disponibilidad p {

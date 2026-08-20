@@ -1,0 +1,6 @@
+ALTER TABLE dbo.Solicitudes
+DROP CONSTRAINT CKSolicitudesEstado;
+
+ALTER TABLE dbo.Solicitudes
+ADD CONSTRAINT CKSolicitudesEstado
+    CHECK (Estado IN ('BORRADOR', 'ENVIADA', 'ENREVISION', 'APROBADA', 'RECHAZADA', 'CANCELADA'));

@@ -2,6 +2,9 @@ package gt.gob.parqueerickbarrondo.eventos.aplicacion;
 
 import java.text.Normalizer;
 import java.time.Instant;
+import java.time.LocalTime;
+import java.time.format.DateTimeParseException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -115,8 +118,9 @@ public class ServicioAdministracionEventos {
                 solicitud.finalizaEn(),
                 solicitud.inscripcionAbreEn(),
                 solicitud.inscripcionCierraEn(),
-                solicitud.capacidadTotal(),
-                normalizarFormulario(solicitud.esquemaFormularioJson()));
+                  solicitud.capacidadTotal(),
+                  normalizarFormulario(solicitud.esquemaFormularioJson()),
+                  normalizarGrupos(solicitud.configuracionGruposJson()));
         reemplazarRequisitos(evento, solicitud.requisitos());
         evento = repositorioEvento.saveAndFlush(evento);
         auditar(actor, "EVENTOCREADO", evento.obtenerIdEvento());
@@ -141,8 +145,9 @@ public class ServicioAdministracionEventos {
                 solicitud.finalizaEn(),
                 solicitud.inscripcionAbreEn(),
                 solicitud.inscripcionCierraEn(),
-                solicitud.capacidadTotal(),
-                normalizarFormulario(solicitud.esquemaFormularioJson()));
+                  solicitud.capacidadTotal(),
+                  normalizarFormulario(solicitud.esquemaFormularioJson()),
+                  normalizarGrupos(solicitud.configuracionGruposJson()));
         reemplazarRequisitos(evento, solicitud.requisitos());
         repositorioEvento.saveAndFlush(evento);
         auditar(actor, "EVENTOACTUALIZADO", idEvento);
@@ -321,9 +326,7 @@ public class ServicioAdministracionEventos {
             String estado,
             int numeroPagina,
             int tamano) {
-        if (!repositorioEvento.existsById(idEvento)) {
-            throw new RecursoNoEncontradoException("No se encontró el evento solicitado.");
-        }
+        var evento = buscarEvento(idEvento);
         var estadoNormalizado = estado == null || estado.isBlank()
                 ? ""
                 : estado.strip().toUpperCase(Locale.ROOT);
@@ -347,6 +350,8 @@ public class ServicioAdministracionEventos {
                             usuario.obtenerNombre(),
                             usuario.obtenerApellido(),
                             usuario.obtenerCorreoNormalizado(),
+                            inscripcion.obtenerGrupoSeleccionadoCodigo(),
+                            nombreGrupo(evento, inscripcion.obtenerGrupoSeleccionadoCodigo()),
                             inscripcion.obtenerEstado(),
                             inscripcion.obtenerRequisitosAceptadosEn(),
                             inscripcion.obtenerConfirmadaEn(),
@@ -365,6 +370,19 @@ public class ServicioAdministracionEventos {
     private Evento buscarEvento(Long idEvento) {
         return repositorioEvento.buscarAdministradoPorId(idEvento)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el evento solicitado."));
+    }
+
+    private String nombreGrupo(Evento evento, String codigo) {
+        if (codigo == null || evento.obtenerConfiguracionGruposJson() == null) return null;
+        try {
+            var grupos = serializadorJson.readTree(evento.obtenerConfiguracionGruposJson()).get("grupos");
+            for (var grupo : grupos) {
+                if (codigo.equals(texto(grupo, "codigo"))) return texto(grupo, "nombre");
+            }
+        } catch (JacksonException | NullPointerException excepcion) {
+            return codigo;
+        }
+        return codigo;
     }
 
     private ImagenEvento buscarImagenSecundaria(Long idEvento, Long idImagenEvento) {
@@ -415,8 +433,79 @@ public class ServicioAdministracionEventos {
             throw new SolicitudInvalidaException(
                     "La capacidad total no puede ser menor que las inscripciones confirmadas.");
         }
-        normalizarFormulario(solicitud.esquemaFormularioJson());
-    }
+          normalizarFormulario(solicitud.esquemaFormularioJson());
+          normalizarGrupos(solicitud.configuracionGruposJson());
+      }
+
+      private String normalizarGrupos(String contenido) {
+          if (contenido == null || contenido.isBlank()) return null;
+          var normalizado = contenido.strip();
+          try {
+              var raiz = serializadorJson.readTree(normalizado);
+              var grupos = raiz == null ? null : raiz.get("grupos");
+              if (raiz == null || !raiz.isObject() || grupos == null || !grupos.isArray()
+                      || grupos.size() == 0 || grupos.size() > 20) {
+                  throw new SolicitudInvalidaException(
+                          "La configuración debe contener entre 1 y 20 grupos.");
+              }
+              var codigos = new HashSet<String>();
+              var diasValidos = Set.of("LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO", "DOMINGO");
+              for (var grupo : grupos) {
+                  var codigo = texto(grupo, "codigo");
+                  var nombre = texto(grupo, "nombre");
+                  var categoria = texto(grupo, "categoriaEdad");
+                  if (!codigo.matches("[a-z0-9-]{1,64}") || !codigos.add(codigo)
+                          || nombre.isBlank() || nombre.length() > 120
+                          || categoria.isBlank() || categoria.length() > 120) {
+                      throw new SolicitudInvalidaException(
+                              "Cada grupo necesita código único, nombre y categoría de edad válidos.");
+                  }
+                  var edadMinima = grupo.get("edadMinima");
+                  var edadMaxima = grupo.get("edadMaxima");
+                  if (edadMinima != null && !edadMinima.isNull() && (!edadMinima.isInt() || edadMinima.asInt() < 0 || edadMinima.asInt() > 120)
+                          || edadMaxima != null && !edadMaxima.isNull() && (!edadMaxima.isInt() || edadMaxima.asInt() < 0 || edadMaxima.asInt() > 120)
+                          || edadMinima != null && edadMaxima != null && edadMinima.isInt() && edadMaxima.isInt()
+                              && edadMaxima.asInt() < edadMinima.asInt()) {
+                      throw new SolicitudInvalidaException("El rango de edad de un grupo no es válido.");
+                  }
+                  var horarios = grupo.get("horarios");
+                  if (horarios == null || !horarios.isArray() || horarios.size() == 0 || horarios.size() > 14) {
+                      throw new SolicitudInvalidaException(
+                              "Cada grupo debe tener entre 1 y 14 horarios.");
+                  }
+                  for (var horario : horarios) {
+                      var dia = texto(horario, "dia");
+                      var inicio = texto(horario, "horaInicio");
+                      var fin = texto(horario, "horaFin");
+                      if (!diasValidos.contains(dia)) {
+                          throw new SolicitudInvalidaException("El día de un horario no es válido.");
+                      }
+                      try {
+                          if (!LocalTime.parse(fin).isAfter(LocalTime.parse(inicio))) {
+                              throw new SolicitudInvalidaException(
+                                      "La hora final de cada grupo debe ser posterior a la hora inicial.");
+                          }
+                      } catch (DateTimeParseException excepcion) {
+                          throw new SolicitudInvalidaException("Las horas de los grupos no son válidas.");
+                      }
+                      var lugar = texto(horario, "lugar");
+                      if (lugar.length() > 180) {
+                          throw new SolicitudInvalidaException("El lugar de un horario no puede superar 180 caracteres.");
+                      }
+                  }
+              }
+              return normalizado;
+          } catch (SolicitudInvalidaException excepcion) {
+              throw excepcion;
+          } catch (JacksonException excepcion) {
+              throw new SolicitudInvalidaException("La configuración de grupos debe contener JSON válido.");
+          }
+      }
+
+      private String texto(tools.jackson.databind.JsonNode objeto, String campo) {
+          var valor = objeto == null ? null : objeto.get(campo);
+          return valor == null || !valor.isTextual() ? "" : valor.asText().strip();
+      }
 
     private String normalizarFormulario(String contenido) {
         if (contenido == null || contenido.isBlank()) {
@@ -516,9 +605,10 @@ public class ServicioAdministracionEventos {
                 evento.obtenerCapacidadTotal(),
                 evento.obtenerCantidadOcupada(),
                 Math.max(evento.obtenerCapacidadTotal() - evento.obtenerCantidadOcupada(), 0),
-                evento.obtenerEstado(),
-                evento.obtenerEsquemaFormularioJson(),
-                evento.obtenerRequisitos().stream()
+                  evento.obtenerEstado(),
+                  evento.obtenerEsquemaFormularioJson(),
+                  evento.obtenerConfiguracionGruposJson(),
+                  evento.obtenerRequisitos().stream()
                         .map(requisito -> new RespuestaRequisitoEventoAdministrado(
                                 requisito.obtenerIdRequisitoEvento(),
                                 requisito.obtenerDescripcion(),

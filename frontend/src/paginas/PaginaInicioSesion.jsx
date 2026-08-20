@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { usarSesion } from "../autenticacion/ContextoSesion";
+import { MarcaPortal } from "../componentes/EstructuraPortal";
 
 export function PaginaInicioSesion() {
   const { iniciar } = usarSesion();
@@ -29,9 +30,12 @@ export function PaginaInicioSesion() {
   }
 
   return (
-    <main className="pagina-formulario">
-      <Link className="enlace-regreso" to="/">← Volver al inicio</Link>
-      <div className="tarjeta-formulario">
+    <main className="pagina-formulario pagina-inicio-sesion">
+      <Link className="enlace-regreso enlace-regreso-inicio-sesion" to="/">← Volver al inicio</Link>
+      <div className="tarjeta-formulario tarjeta-inicio-sesion">
+        <div className="marca-identidad-acceso marca-identidad-inicio-sesion">
+          <MarcaPortal mostrarDerechos={false} />
+        </div>
         <p className="etiqueta-fase">Acceso a la plataforma</p>
         <h1>Iniciar sesión</h1>
         <p>Utiliza tus credenciales.</p>

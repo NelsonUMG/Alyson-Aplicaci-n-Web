@@ -8,6 +8,8 @@ import {
   listarRoles,
   listarUsuarios,
 } from "../api/administracionUsuarios";
+import { MODULO_BICICLETAS_VISIBLE } from "../configuracion/modulos";
+import { formatearPermiso, formatearTextoTecnico } from "../utilidades/formatoTexto";
 
 const datosEmpleadoIniciales = {
   nombre: "",
@@ -213,9 +215,16 @@ export function PaginaAdministracionUsuarios() {
     }
   }
 
-  const rolesParaEmpleado = roles.filter((rol) => rol.codigo !== "USUARIOREGISTRADO");
+  const rolesVisiblesAdministracion = roles.filter((rol) => (
+    MODULO_BICICLETAS_VISIBLE || rol.codigo !== "OPERADORBICICLETAS"
+  ));
+  const rolesParaEmpleado = rolesVisiblesAdministracion.filter((rol) => (
+    rol.codigo !== "USUARIOREGISTRADO"
+  ));
   const registroEmpleadoNoDisponible = estado.cargando || rolesParaEmpleado.length === 0;
-  const gruposPermisos = agruparPermisos(permisos);
+  const gruposPermisos = agruparPermisos(permisos.filter((permiso) => (
+    MODULO_BICICLETAS_VISIBLE || !permiso.codigo.startsWith("BICICLETA")
+  )));
 
   return (
     <main className="pagina-administracion pagina-administracion-usuarios">
@@ -267,7 +276,7 @@ export function PaginaAdministracionUsuarios() {
       {panelActivo === "empleado" && (
         <section className="panel-edicion panel-formulario-administracion" aria-labelledby="titulo-empleado">
           <h2 id="titulo-empleado">Registrar empleado</h2>
-          <p className="nota-formulario-administracion">Los clientes conservan el registro de cuenta habitual y el rol USUARIOREGISTRADO.</p>
+          <p className="nota-formulario-administracion">Los clientes conservan el registro de cuenta habitual y el rol Usuario registrado.</p>
           <form className="formulario-administracion-usuarios" onSubmit={guardarEmpleado}>
             <div className="campos-formulario-administracion">
               <div>
@@ -293,7 +302,7 @@ export function PaginaAdministracionUsuarios() {
             </div>
             <fieldset className="selector-administracion">
               <legend>Roles del empleado</legend>
-              <p>El rol USUARIOREGISTRADO se asigna automáticamente.</p>
+              <p>El rol Usuario registrado se asigna automáticamente.</p>
               <div className="lista-seleccion-administracion">
                 {rolesParaEmpleado.map((rol) => (
                   <label key={rol.codigo}>
@@ -331,7 +340,7 @@ export function PaginaAdministracionUsuarios() {
                       {grupo.permisos.map((permiso) => (
                         <label key={permiso.codigo}>
                           <input type="checkbox" checked={datosRol.codigosPermisos.includes(permiso.codigo)} onChange={() => alternarPermiso(permiso.codigo)} />
-                          <span><strong>{formatearCodigoPermiso(permiso.codigo)}</strong><small>{permiso.descripcion}</small></span>
+                          <span><strong>{formatearPermiso(permiso.codigo)}</strong><small>{permiso.descripcion}</small></span>
                         </label>
                       ))}
                     </div>
@@ -364,8 +373,8 @@ export function PaginaAdministracionUsuarios() {
                 <tr className={seleccion?.idUsuario === usuario.idUsuario ? "fila-seleccionada" : ""} key={usuario.idUsuario}>
                   <td>{usuario.nombre} {usuario.apellido}</td>
                   <td>{usuario.correo}</td>
-                  <td>{usuario.estado}</td>
-                  <td>{usuario.roles.join(", ")}</td>
+                  <td>{formatearTextoTecnico(usuario.estado)}</td>
+                  <td>{usuario.roles.map(formatearTextoTecnico).join(", ")}</td>
                   <td><button
                     className="boton-tabla"
                     type="button"
@@ -404,7 +413,7 @@ export function PaginaAdministracionUsuarios() {
         <section id="detalle-usuario-seleccionado" className="panel-edicion panel-detalle-administracion" aria-labelledby="titulo-edicion">
           <h2 id="titulo-edicion">Roles de {seleccion.nombre} {seleccion.apellido}</h2>
           <div className="lista-roles">
-            {roles.map((rol) => (
+            {rolesVisiblesAdministracion.map((rol) => (
               <label key={rol.codigo}>
                 <input
                   type="checkbox"
@@ -431,12 +440,6 @@ function alternarCodigo(codigos, codigo) {
   if (seleccion.has(codigo)) seleccion.delete(codigo);
   else seleccion.add(codigo);
   return [...seleccion];
-}
-
-function formatearCodigoPermiso(codigo) {
-  return codigo
-    .replace(/(AREA|AUDITORIA|BICICLETA|EVENTO|INSTITUCIONAL|MANTENIMIENTO|PUBLICACION|REPORTE|USUARIO|ROL)(?=[A-Z])/g, "$1 ")
-    .replace(/(ACTUALIZAR|GESTIONAR)(?=[A-Z])/g, "$1 ");
 }
 
 function agruparPermisos(permisos) {

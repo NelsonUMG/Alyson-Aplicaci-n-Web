@@ -2,6 +2,9 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { cambiarContrasena } from "../api/autenticacion";
 import { usarSesion } from "../autenticacion/ContextoSesion";
+import { esUsuarioComun } from "../autenticacion/clasificacionUsuario";
+import { MODULO_BICICLETAS_VISIBLE } from "../configuracion/modulos";
+import { formatearTextoTecnico } from "../utilidades/formatoTexto";
 
 export function PaginaPerfil() {
   const { usuario, cerrar } = usarSesion();
@@ -9,8 +12,9 @@ export function PaginaPerfil() {
   const [datos, setDatos] = useState({ contrasenaActual: "", contrasenaNueva: "" });
   const [estado, setEstado] = useState({ enviando: false, error: "", mensaje: "" });
   const esAdministrador = usuario.roles.includes("ADMINISTRADOR");
+  const usuarioComun = esUsuarioComun(usuario);
   const rolesVisibles = usuario.roles.filter((rol) => rol !== "USUARIOREGISTRADO");
-  const modulosAdministracion = [
+  const modulosAdministracion = usuarioComun ? [] : [
     {
       permiso: "ROLGESTIONAR",
       destino: "/administracion/usuarios",
@@ -40,6 +44,7 @@ export function PaginaPerfil() {
       destino: "/administracion/bicicletas",
       etiqueta: "Inventario de bicicletas",
       icono: "bicicletas",
+      visible: MODULO_BICICLETAS_VISIBLE,
     },
     {
       permiso: "INSTITUCIONALGESTIONAR",
@@ -48,12 +53,24 @@ export function PaginaPerfil() {
       icono: "institucional",
     },
     {
+      permiso: "SOLICITUDGESTIONAR",
+      destino: "/administracion/solicitudes",
+      etiqueta: "Solicitudes de instalaciones",
+      icono: "solicitudes",
+    },
+    {
+      permiso: "REPORTELEER",
+      destino: "/administracion/reportes/inscripciones",
+      etiqueta: "Reportes de inscripciones",
+      icono: "reportes",
+    },
+    {
       permiso: "REPORTELEER",
       destino: "/administracion/auditoria",
       etiqueta: "Auditoría del sistema",
       icono: "auditoria",
     },
-  ].filter((modulo) => usuario.permisos.includes(modulo.permiso));
+  ].filter((modulo) => modulo.visible !== false && usuario.permisos.includes(modulo.permiso));
 
   async function salir() {
     await cerrar();
@@ -83,15 +100,12 @@ export function PaginaPerfil() {
         </div>
         <button className="boton-secundario" type="button" onClick={salir}>Cerrar sesión</button>
       </header>
-      {!esAdministrador && (
+      {!esAdministrador && !usuarioComun && (
         <section className="panel-cuenta" aria-labelledby="titulo-roles">
           <h2 id="titulo-roles">Roles asignados</h2>
           <ul className="lista-etiquetas">
-            {rolesVisibles.map((rol) => <li key={rol}>{formatearNombreRol(rol)}</li>)}
+            {rolesVisibles.map((rol) => <li key={rol}>{formatearTextoTecnico(rol)}</li>)}
           </ul>
-          <nav className="acciones-perfil" aria-label="Accesos personales">
-            <Link className="enlace-principal" to="/mis-inscripciones">Mis inscripciones</Link>
-          </nav>
         </section>
       )}
       {modulosAdministracion.length > 0 && (
@@ -99,7 +113,7 @@ export function PaginaPerfil() {
           <h2 id="titulo-modulos">Visualización de módulos</h2>
           <nav className="modulos-administracion" aria-label="Accesos de administración">
             {modulosAdministracion.map((modulo) => (
-              <Link key={modulo.permiso} className="tarjeta-modulo" to={modulo.destino}>
+              <Link key={modulo.destino} className="tarjeta-modulo" to={modulo.destino}>
                 <span className="icono-modulo" aria-hidden="true"><IconoModulo tipo={modulo.icono} /></span>
                 <span>{modulo.etiqueta}</span>
               </Link>
@@ -146,16 +160,11 @@ function IconoModulo({ tipo }) {
   if (tipo === "institucional") {
     return <svg {...propiedades}><path d="M18 9h23l10 10v36H18Z" /><path d="M41 9v11h10M25 31h18M25 40h18M25 49h11" /><path d="M12 15v40h31" /></svg>;
   }
+  if (tipo === "reportes") {
+    return <svg {...propiedades}><path d="M12 54V10h40v44Z" /><path d="M20 44V33h7v11M31 44V24h7v20M42 44V17h7v27M19 49h30" /></svg>;
+  }
+  if (tipo === "solicitudes") {
+    return <svg {...propiedades}><path d="M17 9h30v46H17Z" /><path d="M24 20h16M24 29h16M24 38h10" /><path d="m38 45 4 4 8-9" /></svg>;
+  }
   return <svg {...propiedades}><path d="M18 9h23l10 10v36H18Z" /><path d="M41 9v11h10M25 31h18M25 40h18M25 49h11" /><circle cx="31" cy="25" r="5" /></svg>;
-}
-
-function formatearNombreRol(codigo) {
-  const nombres = {
-    ADMINISTRADOR: "Administrador",
-    OPERADOREVENTOS: "Operador de eventos",
-    OPERADORBICICLETAS: "Operador de bicicletas",
-    OPERADORMANTENIMIENTO: "Operador de mantenimiento",
-    CONSULTAREPORTES: "Consulta de reportes",
-  };
-  return nombres[codigo] || codigo;
 }

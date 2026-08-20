@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarEventos } from "../api/portalPublico";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
+import { formatearTextoEditorial, formatearTextoTecnico } from "../utilidades/formatoTexto";
 
 const formatoFecha = new Intl.DateTimeFormat("es-GT", {
   dateStyle: "long",
@@ -73,8 +74,8 @@ export function PaginaEventos() {
                 <article className="portal-elemento-publico portal-evento-publico" key={evento.identificadorUrl}>
                   {evento.urlImagen && <img className="portal-imagen-evento-listado" src={evento.urlImagen} alt={evento.titulo} loading="lazy" />}
                   <div>
-                    <p className="portal-sobrelinea">{evento.estado}</p>
-                    <h2><Link to={`/eventos/${evento.identificadorUrl}`}>{evento.titulo}</Link></h2>
+                    <p className="portal-sobrelinea">{formatearTextoTecnico(evento.estado)}</p>
+                    <h2><Link to={`/eventos/${evento.identificadorUrl}`}>{formatearTextoEditorial(evento.titulo)}</Link></h2>
                     <p>{evento.descripcion}</p>
                   </div>
                   <dl>

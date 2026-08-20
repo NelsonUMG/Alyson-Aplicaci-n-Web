@@ -23,7 +23,7 @@ describe("Aplicacion", () => {
 
     expect(await screen.findByRole("heading", { name: "Parque Erick Barrondo" })).toBeTruthy();
     expect(screen.getByRole("navigation", { name: "Navegación principal" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "Bicicletas" })).toBeTruthy();
+    expect(screen.queryByRole("link", { name: "Bicicletas" })).toBeNull();
     expect(screen.getByRole("heading", { name: "Últimas publicaciones" })).toBeTruthy();
     expect(screen.queryByLabelText("Accesos rápidos")).toBeNull();
     expect(screen.queryByRole("heading", { name: "Instituciones aliadas" })).toBeNull();

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { consultarResumenBicicletas } from "../api/portalPublico";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
+import { formatearTextoTecnico } from "../utilidades/formatoTexto";
 
 const estadosBicicleta = [
   "DISPONIBLE",
@@ -67,7 +68,7 @@ export function PaginaBicicletas() {
                 {estadosBicicleta.map((nombreEstado) => (
                   <article key={nombreEstado}>
                     <strong>{resumen.cantidadesPorEstado[nombreEstado] || 0}</strong>
-                    <span>{nombreEstado}</span>
+                    <span>{formatearTextoTecnico(nombreEstado)}</span>
                   </article>
                 ))}
               </div>
