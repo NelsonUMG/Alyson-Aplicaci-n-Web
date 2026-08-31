@@ -31,6 +31,7 @@ import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.Repositorio
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioHistorialEstadoArea;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioNodoMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioReservaArea;
+import gt.gob.parqueerickbarrondo.compartido.codigos.GeneradorCodigoAutomatico;
 import gt.gob.parqueerickbarrondo.compartido.observabilidad.IdentificadorCorrelacion;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ConflictoDatosException;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.RecursoNoEncontradoException;
@@ -47,6 +48,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -117,14 +119,11 @@ public class ServicioAdministracionAreas {
     }
 
     @PreAuthorize("hasAuthority('AREAACTUALIZARESTADO')")
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public RespuestaCategoriaAreaAdministrada crearCategoria(
             SolicitudCategoriaArea solicitud,
             UsuarioSesion actor) {
-        var codigo = solicitud.codigo().strip().toUpperCase(Locale.ROOT);
-        if (repositorioCategoria.existsByCodigoIgnoreCase(codigo)) {
-            throw new ConflictoDatosException("Ya existe una categoría de área con ese código.");
-        }
+        var codigo = GeneradorCodigoAutomatico.siguiente(repositorioCategoria.findAllCodigos());
         var categoria = repositorioCategoria.saveAndFlush(new CategoriaArea(
                 codigo,
                 solicitud.nombre().strip(),
@@ -142,12 +141,8 @@ public class ServicioAdministracionAreas {
             UsuarioSesion actor) {
         var categoria = buscarCategoria(idCategoria);
         validarVersion(categoria.obtenerVersion(), solicitud.version(), "La categoría de área");
-        var codigo = solicitud.codigo().strip().toUpperCase(Locale.ROOT);
-        if (repositorioCategoria.existsByCodigoIgnoreCaseAndIdCategoriaAreaNot(codigo, idCategoria)) {
-            throw new ConflictoDatosException("Ya existe una categoría de área con ese código.");
-        }
         categoria.actualizar(
-                codigo,
+                categoria.obtenerCodigo(),
                 solicitud.nombre().strip(),
                 normalizarOpcional(solicitud.descripcion()),
                 solicitud.activa());
@@ -189,30 +184,32 @@ public class ServicioAdministracionAreas {
     }
 
     @PreAuthorize("hasAuthority('AREAACTUALIZARESTADO')")
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public RespuestaAreaAdministrada crearArea(SolicitudArea solicitud, UsuarioSesion actor) {
         var responsable = buscarResponsable(actor);
         var categoria = buscarCategoriaActiva(solicitud.idCategoriaArea());
         var estado = normalizarEstado(solicitud.estado());
         validarDatosArea(solicitud, null, estado);
         validarUnicidadArea(solicitud, null);
+        var perimetro = construirPerimetro(solicitud.perimetro());
+        var centro = calcularCentro(perimetro);
         var area = new Area(
                 categoria,
-                solicitud.codigo().strip().toUpperCase(Locale.ROOT),
+                GeneradorCodigoAutomatico.siguiente(repositorioArea.findAllCodigos()),
                 solicitud.numeroVisibleMapa(),
                 solicitud.nombre().strip(),
                 normalizarOpcional(solicitud.descripcion()),
                 estado,
-                normalizarOpcional(solicitud.notaDisponibilidad()),
-                solicitud.latitud(),
-                solicitud.longitud(),
-                solicitud.coordenadasConfirmadas(),
+                null,
+                centro == null ? null : centro.latitud(),
+                centro == null ? null : centro.longitud(),
+                centro != null,
                 normalizarJson(solicitud.horarioJson()),
                 normalizarOpcional(solicitud.observacionesInternas()),
                 responsable);
         area.establecerPerimetro(
-                construirPerimetro(solicitud.perimetro()),
-                solicitud.perimetroConfirmado(),
+                perimetro,
+                !perimetro.isEmpty(),
                 responsable);
         area = repositorioArea.saveAndFlush(area);
         repositorioHistorial.save(new HistorialEstadoArea(
@@ -238,18 +235,20 @@ public class ServicioAdministracionAreas {
         validarDatosArea(solicitud, estadoAnterior, nuevoEstado);
         validarUnicidadArea(solicitud, idArea);
         var responsable = buscarResponsable(actor);
+        var perimetro = construirPerimetro(solicitud.perimetro());
+        var centro = calcularCentro(perimetro);
         area.actualizarDatos(
                 buscarCategoriaActiva(solicitud.idCategoriaArea()),
-                solicitud.codigo().strip().toUpperCase(Locale.ROOT),
+                area.obtenerCodigo(),
                 solicitud.numeroVisibleMapa(),
                 solicitud.nombre().strip(),
                 normalizarOpcional(solicitud.descripcion()),
-                normalizarOpcional(solicitud.notaDisponibilidad()),
-                solicitud.latitud(),
-                solicitud.longitud(),
-                solicitud.coordenadasConfirmadas(),
-                construirPerimetro(solicitud.perimetro()),
-                solicitud.perimetroConfirmado(),
+                null,
+                centro == null ? null : centro.latitud(),
+                centro == null ? null : centro.longitud(),
+                centro != null,
+                perimetro,
+                !perimetro.isEmpty(),
                 normalizarJson(solicitud.horarioJson()),
                 normalizarOpcional(solicitud.observacionesInternas()),
                 responsable);
@@ -395,11 +394,8 @@ public class ServicioAdministracionAreas {
         if (anterior == null) {
             throw new RecursoNoEncontradoException("El área no tiene una imagen registrada.");
         }
-        area.establecerClaveImagen(null, buscarResponsable(actor));
-        repositorioArea.saveAndFlush(area);
-        eliminarArchivoAnteriorDespuesDeConfirmar(anterior);
-        auditar(actor, "IMAGENAREAELIMINADA", "AREA", idArea);
-        return convertirArea(area);
+        throw new SolicitudInvalidaException(
+                "La imagen principal del área es obligatoria. Puedes reemplazarla por otra imagen.");
     }
 
     @PreAuthorize("hasAuthority('AREALEER')")
@@ -524,7 +520,6 @@ public class ServicioAdministracionAreas {
     }
 
     private void validarDatosArea(SolicitudArea solicitud, String estadoAnterior, String estadoNuevo) {
-        validarCoordenadas(solicitud.latitud(), solicitud.longitud());
         normalizarJson(solicitud.horarioJson());
         if (estadoAnterior == null || !estadoAnterior.equals(estadoNuevo)) {
             if (solicitud.motivoCambioEstado() == null || solicitud.motivoCambioEstado().isBlank()) {
@@ -559,13 +554,6 @@ public class ServicioAdministracionAreas {
     }
 
     private void validarUnicidadArea(SolicitudArea solicitud, Long idArea) {
-        var codigo = solicitud.codigo().strip();
-        var codigoDuplicado = idArea == null
-                ? repositorioArea.existsByCodigoIgnoreCase(codigo)
-                : repositorioArea.existsByCodigoIgnoreCaseAndIdAreaNot(codigo, idArea);
-        if (codigoDuplicado) {
-            throw new ConflictoDatosException("Ya existe un área con ese código.");
-        }
         if (solicitud.numeroVisibleMapa() != null) {
             var numeroDuplicado = idArea == null
                     ? repositorioArea.existsByNumeroVisibleMapa(solicitud.numeroVisibleMapa())
@@ -770,6 +758,22 @@ public class ServicioAdministracionAreas {
         return vertices;
     }
 
+    private CentroArea calcularCentro(List<VerticeAreaMapa> perimetro) {
+        if (perimetro.isEmpty()) {
+            return null;
+        }
+        var divisor = BigDecimal.valueOf(perimetro.size());
+        var latitud = perimetro.stream()
+                .map(VerticeAreaMapa::obtenerLatitud)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(divisor, 8, java.math.RoundingMode.HALF_UP);
+        var longitud = perimetro.stream()
+                .map(VerticeAreaMapa::obtenerLongitud)
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(divisor, 8, java.math.RoundingMode.HALF_UP);
+        return new CentroArea(latitud, longitud);
+    }
+
     private RespuestaNodoMapaAdministrado convertirNodo(NodoMapa nodo) {
         var area = nodo.obtenerArea();
         return new RespuestaNodoMapaAdministrado(
@@ -869,5 +873,8 @@ public class ServicioAdministracionAreas {
                 idRecurso.toString(),
                 "EXITOSO",
                 IdentificadorCorrelacion.actual());
+    }
+
+    private record CentroArea(BigDecimal latitud, BigDecimal longitud) {
     }
 }

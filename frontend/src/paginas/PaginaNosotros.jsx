@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { consultarContenidoInstitucional } from "../api/portalPublico";
+import { obtenerMensajeError } from "../api/clienteHttp";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
 
 const contenidoInicial = {
@@ -11,15 +12,24 @@ const contenidoInicial = {
 
 export function PaginaNosotros() {
   const [contenido, establecerContenido] = useState(contenidoInicial);
+  const [error, establecerError] = useState("");
 
   useEffect(() => {
     let vigente = true;
     consultarContenidoInstitucional()
       .then((contenidoRecibido) => {
-        if (vigente) establecerContenido(contenidoRecibido);
+        if (vigente) {
+          establecerContenido(contenidoRecibido);
+          establecerError("");
+        }
       })
-      .catch(() => {
-        // El contenido inicial conserva la información visible mientras el servicio no esté disponible.
+      .catch((errorCarga) => {
+        if (vigente) {
+          establecerError(obtenerMensajeError(
+            errorCarga,
+            "No fue posible actualizar la información institucional. Se muestra la versión disponible.",
+          ));
+        }
       });
     return () => {
       vigente = false;
@@ -35,6 +45,7 @@ export function PaginaNosotros() {
       />
       <section className="portal-seccion">
         <div className="portal-contenedor nosotros-panel">
+          {error && <p className="portal-mensaje-error" role="alert">{error}</p>}
           <div className="nosotros-introduccion">
             <p className="portal-sobrelinea">Sobre el parque</p>
             <h2>Un espacio público al servicio de la comunidad</h2>

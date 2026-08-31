@@ -101,11 +101,10 @@ export function listarImagenesPublicacion(idPublicacion) {
   return solicitarApi(`/administracion/publicaciones/${idPublicacion}/imagenes`);
 }
 
-export async function agregarImagenPublicacion(idPublicacion, archivo, textoAlternativo) {
+export async function agregarImagenPublicacion(idPublicacion, archivo) {
   await prepararCsrf();
   const formulario = new window.FormData();
   formulario.append("archivo", archivo);
-  formulario.append("textoAlternativo", textoAlternativo);
   return solicitarApi(`/administracion/publicaciones/${idPublicacion}/imagenes`, {
     method: "POST",
     body: formulario,
@@ -116,5 +115,12 @@ export async function eliminarImagenPublicacion(idPublicacion, idImagen) {
   await prepararCsrf();
   return solicitarApi(`/administracion/publicaciones/${idPublicacion}/imagenes/${idImagen}`, {
     method: "DELETE",
+  });
+}
+
+export async function establecerPortadaPublicacion(idPublicacion, idImagen) {
+  await prepararCsrf();
+  return solicitarApi(`/administracion/publicaciones/${idPublicacion}/imagenes/${idImagen}/portada`, {
+    method: "PUT",
   });
 }

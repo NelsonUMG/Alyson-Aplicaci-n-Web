@@ -85,11 +85,10 @@ class ServicioAdministracionAreasPruebas {
         when(repositorioCategoria.findByIdCategoriaArea(2L)).thenReturn(Optional.of(categoria));
         when(repositorioUsuario.findById(5L)).thenReturn(Optional.of(responsable));
         var solicitud = new SolicitudArea(
-                2L, "CANCHA1", 1, "Cancha", null, "ENMANTENIMIENTO", null,
-                null, null, false, List.of(
+                2L, 1, "Cancha", null, "ENMANTENIMIENTO", List.of(
                         new CoordenadaAreaMapa(new BigDecimal("14.63910000"), new BigDecimal("-90.54130000")),
                         new CoordenadaAreaMapa(new BigDecimal("14.63910000"), new BigDecimal("-90.54090000")),
-                        new CoordenadaAreaMapa(new BigDecimal("14.63950000"), new BigDecimal("-90.54090000"))), true,
+                        new CoordenadaAreaMapa(new BigDecimal("14.63950000"), new BigDecimal("-90.54090000"))),
                 null, "Revisión interna", "Reparación programada", 3L);
 
         var respuesta = servicioAdministracion.actualizarArea(9L, solicitud, actor);
@@ -102,6 +101,9 @@ class ServicioAdministracionAreasPruebas {
         assertThat(historial.getValue().obtenerCambiadoPor()).isSameAs(responsable);
         assertThat(respuesta.estado()).isEqualTo("ENMANTENIMIENTO");
         assertThat(respuesta.nombreActualizadoPor()).isEqualTo("Nelson Prueba");
+        assertThat(respuesta.latitud()).isEqualByComparingTo("14.63923333");
+        assertThat(respuesta.longitud()).isEqualByComparingTo("-90.54103333");
+        assertThat(respuesta.coordenadasConfirmadas()).isTrue();
         assertThat(respuesta.perimetroConfirmado()).isTrue();
         assertThat(respuesta.perimetro()).hasSize(3);
         verify(servicioAuditoria).registrar(

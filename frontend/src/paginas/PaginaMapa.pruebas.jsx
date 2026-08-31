@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const apiMapa = vi.hoisted(() => ({
@@ -142,10 +142,7 @@ describe("Mapa público con OpenFreeMap y MapLibre", () => {
           tituloReservaActiva: "Entrenamiento",
         },
       ],
-      conexiones: [
-        { idConexionMapa: 11, idNodoOrigen: 1, idNodoDestino: 2, cerrada: false },
-        { idConexionMapa: 12, idNodoOrigen: 2, idNodoDestino: 3, cerrada: false },
-      ],
+      conexiones: [],
       areas: [
         {
           idArea: 9,
@@ -156,12 +153,8 @@ describe("Mapa público con OpenFreeMap y MapLibre", () => {
           disponibleAhora: false,
           cambiaEstadoEn: new Date(Date.now() + 3600000).toISOString(),
           tituloReservaActiva: "Entrenamiento",
-          perimetro: [
-            { latitud: 14.6018, longitud: -90.5522 },
-            { latitud: 14.6018, longitud: -90.5518 },
-            { latitud: 14.6022, longitud: -90.5518 },
-            { latitud: 14.6022, longitud: -90.5522 },
-          ],
+          latitudCentro: 14.602,
+          longitudCentro: -90.552,
         },
       ],
       actualizadoEn: "2026-08-03T12:00:00Z",
@@ -189,7 +182,7 @@ describe("Mapa público con OpenFreeMap y MapLibre", () => {
   it("inicia en el parque, usa GPS real y dibuja el recorrido hacia el área seleccionada", async () => {
     render(<PaginaMapa />);
 
-    expect(await screen.findByRole("option", { name: "Cancha — En uso" })).toBeTruthy();
+    expect(await screen.findByRole("option", { name: "Cancha" })).toBeTruthy();
     await waitFor(() => expect(simuladorMapLibre.Map).toHaveBeenCalledOnce());
     expect(simuladorMapLibre.opcionesMapa).toEqual(expect.objectContaining({
       style: "https://tiles.openfreemap.org/styles/liberty",
@@ -213,15 +206,10 @@ describe("Mapa público con OpenFreeMap y MapLibre", () => {
       type: "raster",
       tiles: ["https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"],
     }));
-    await waitFor(() => expect(simuladorMapLibre.fuentes.get("areas-parque").setData).toHaveBeenCalled());
-    const poligonos = simuladorMapLibre.fuentes.get("areas-parque").setData.mock.calls.at(-1)[0];
-    expect(poligonos.features[0]).toEqual(expect.objectContaining({
-      properties: expect.objectContaining({ nombre: "Cancha", estado: "ENUSO" }),
-      geometry: expect.objectContaining({ type: "Polygon" }),
-    }));
-    expect(poligonos.features[0].geometry.coordinates[0][0])
-      .toEqual(poligonos.features[0].geometry.coordinates[0].at(-1));
-    expect(screen.getByLabelText("Estados de las áreas")).toBeTruthy();
+    expect(simuladorMapLibre.fuentes.has("areas-parque")).toBe(false);
+    expect(simuladorMapLibre.fuentes.has("conexiones-parque")).toBe(false);
+    expect(simuladorMapLibre.Marker).toHaveBeenCalledTimes(1);
+    expect(screen.queryByLabelText("Estados de las áreas")).toBeNull();
     expect(screen.getByRole("button", { name: "Satélite" }).getAttribute("aria-pressed")).toBe("true");
     fireEvent.click(screen.getByRole("button", { name: "Ver información y atribuciones del mapa" }));
     expect(screen.getByRole("dialog", { name: "Información del mapa y atribuciones" })).toBeTruthy();
@@ -240,7 +228,6 @@ describe("Mapa público con OpenFreeMap y MapLibre", () => {
     expect(screen.getByText("OpenFreeMap")).toBeTruthy();
 
     expect(await screen.findByText("En uso", { selector: ".mapa-estado-disponibilidad" })).toBeTruthy();
-    expect(screen.getByText("Entrenamiento")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Usar mi ubicación" }));
     expect(await screen.findByText(/precisión aproximada de 7 metros/)).toBeTruthy();
     expect(screen.getByRole("button", { name: "Detener ubicación" })).toBeTruthy();
@@ -264,29 +251,28 @@ describe("Mapa público con OpenFreeMap y MapLibre", () => {
     expect(screen.getByLabelText("Mapa interactivo del Parque Erick Barrondo")).toBeTruthy();
   });
 
-  it("mueve un solo marcador temporal y copia la coordenada seleccionada", async () => {
-    apiMapa.consultarMapa.mockResolvedValue({ nodos: [], conexiones: [], areas: [], actualizadoEn: null });
+  it("no expone coordenadas, perímetros ni áreas disponibles", async () => {
+    apiMapa.consultarMapa.mockResolvedValue({
+      nodos: [],
+      conexiones: [],
+      areas: [{
+        idArea: 12,
+        nombreArea: "Cancha disponible",
+        estadoCalculadoArea: "DISPONIBLE",
+        latitudCentro: 14.639,
+        longitudCentro: -90.541,
+      }],
+      actualizadoEn: null,
+    });
     render(<PaginaMapa />);
 
-    expect(await screen.findByRole("heading", { name: "Mapa real del Parque Erick Barrondo" })).toBeTruthy();
-    await waitFor(() => expect(simuladorMapLibre.eventosMapa.has("click")).toBe(true));
-    act(() => simuladorMapLibre.emitirMapa("click", { lngLat: { lat: 14.63891234, lng: -90.54144561 } }));
-    expect(await screen.findByText("Latitud: 14.6389123")).toBeTruthy();
-    expect(screen.getByText("Longitud: -90.5414456")).toBeTruthy();
-    const marcadoresTemporales = simuladorMapLibre.marcadores
-      .filter((marcador) => marcador.opciones.color === "#e09b31");
-    expect(marcadoresTemporales).toHaveLength(1);
-    const marcadorTemporal = marcadoresTemporales[0];
-
-    act(() => simuladorMapLibre.emitirMapa("click", { lngLat: { lat: 14.63930001, lng: -90.54090002 } }));
-    expect(await screen.findByText("Latitud: 14.6393000")).toBeTruthy();
-    expect(simuladorMapLibre.marcadores.filter((marcador) => marcador.opciones.color === "#e09b31"))
-      .toHaveLength(1);
-    expect(marcadorTemporal.setLngLat).toHaveBeenLastCalledWith([-90.5409, 14.6393]);
-
-    fireEvent.click(screen.getByRole("button", { name: "Copiar coordenadas" }));
-    await waitFor(() => expect(window.navigator.clipboard.writeText)
-      .toHaveBeenCalledWith("14.6393000, -90.5409000"));
-    expect(await screen.findByText("Coordenadas copiadas.")).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Mapa del Parque Erick Barrondo" })).toBeTruthy();
+    expect(screen.getByText("No hay áreas en uso ni en mantenimiento en este momento.")).toBeTruthy();
+    expect(screen.queryByText("Cancha disponible")).toBeNull();
+    expect(screen.queryByText(/Latitud:/)).toBeNull();
+    expect(screen.queryByText(/Longitud:/)).toBeNull();
+    expect(screen.queryByRole("button", { name: "Copiar coordenadas" })).toBeNull();
+    expect(simuladorMapLibre.eventosMapa.has("click")).toBe(false);
+    expect(simuladorMapLibre.Marker).toHaveBeenCalledTimes(1);
   });
 });

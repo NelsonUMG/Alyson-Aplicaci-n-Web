@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarEventos } from "../api/portalPublico";
+import { obtenerMensajeError } from "../api/clienteHttp";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
 import { formatearTextoEditorial, formatearTextoTecnico } from "../utilidades/formatoTexto";
 
@@ -27,10 +28,10 @@ export function PaginaEventos() {
           establecerCargando(false);
         }
       })
-      .catch(() => {
+      .catch((errorCarga) => {
         if (paginaVigente) {
           establecerRespuesta(null);
-          establecerError("No fue posible cargar los eventos.");
+          establecerError(obtenerMensajeError(errorCarga, "No fue posible cargar los eventos."));
           establecerCargando(false);
         }
       });

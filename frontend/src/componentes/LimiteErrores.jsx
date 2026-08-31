@@ -4,11 +4,14 @@ import { PaginaEstado } from "../paginas/PaginaEstado";
 export class LimiteErrores extends Component {
   constructor(propiedades) {
     super(propiedades);
-    this.state = { hayError: false };
+    this.state = { hayError: false, referencia: "" };
   }
 
   static getDerivedStateFromError() {
-    return { hayError: true };
+    return {
+      hayError: true,
+      referencia: window.crypto?.randomUUID?.() || String(Date.now()),
+    };
   }
 
   componentDidCatch() {
@@ -19,9 +22,11 @@ export class LimiteErrores extends Component {
     if (this.state.hayError) {
       return (
         <PaginaEstado
-          codigo="Error"
-          titulo="Ocurrió un error inesperado"
-          mensaje="Recarga la página. Si el problema continúa, comunícalo al personal responsable."
+          codigo="500"
+          codigoSoporte="ERR-UI-500"
+          referencia={this.state.referencia}
+          textoAccion="Recargar página"
+          alAccion={() => window.location.reload()}
         />
       );
     }

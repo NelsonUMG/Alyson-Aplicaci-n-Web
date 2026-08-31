@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { consultarPublicacion } from "../api/portalPublico";
+import { obtenerMensajeError } from "../api/clienteHttp";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
 
 export function PaginaDetallePublicacion() {
@@ -14,8 +15,10 @@ export function PaginaDetallePublicacion() {
       .then((datos) => {
         if (paginaVigente) establecerPublicacion(datos);
       })
-      .catch(() => {
-        if (paginaVigente) establecerError("No fue posible cargar la publicación solicitada.");
+      .catch((errorCarga) => {
+        if (paginaVigente) {
+          establecerError(obtenerMensajeError(errorCarga, "No fue posible cargar la publicación solicitada."));
+        }
       });
     return () => {
       paginaVigente = false;
@@ -45,6 +48,22 @@ export function PaginaDetallePublicacion() {
                 />
               )}
               <p className="portal-contenido-publicacion">{publicacion.contenido}</p>
+              {publicacion.imagenesSecundarias?.length > 0 && (
+                <section className="portal-galeria-publicacion" aria-labelledby="titulo-galeria-publicacion">
+                  <h2 id="titulo-galeria-publicacion">Galería</h2>
+                  <div>
+                    {publicacion.imagenesSecundarias.map((imagen) => (
+                      <img
+                        key={imagen.idImagenPublicacion}
+                        src={imagen.url}
+                        alt={imagen.textoAlternativo}
+                        width={imagen.anchoPixeles}
+                        height={imagen.altoPixeles}
+                      />
+                    ))}
+                  </div>
+                </section>
+              )}
             </>
           )}
           <Link className="portal-enlace-ver" to="/noticias">Volver a noticias</Link>

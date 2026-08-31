@@ -55,7 +55,7 @@ class ServicioMapaPublicoPruebas {
     void prepararGrafo() {
         origen = nodo(1L, "Entrada", true);
         intermedio = nodo(2L, "Intersección", true);
-        destino = nodo(3L, "Cancha", true);
+        destino = nodo(3L, "Cancha", true, "DESTINO");
         conexionDirecta = conexion(11L, origen, destino, "50.00", false);
         conexionPrimerTramo = conexion(12L, origen, intermedio, "30.00", true);
         conexionSegundoTramo = conexion(13L, intermedio, destino, "30.00", true);
@@ -131,17 +131,18 @@ class ServicioMapaPublicoPruebas {
             assertThat(areaPublica.estadoCalculadoArea()).isEqualTo("ENUSO");
             assertThat(areaPublica.disponibleAhora()).isFalse();
             assertThat(areaPublica.tituloReservaActiva()).isEqualTo("Entrenamiento");
-            assertThat(areaPublica.perimetro()).hasSize(3);
+            assertThat(areaPublica.latitudCentro()).isEqualByComparingTo("14.63923333");
+            assertThat(areaPublica.longitudCentro()).isEqualByComparingTo("-90.54103333");
         });
     }
 
     private NodoMapa nodo(Long id, String nombre, boolean accesible) {
-        return nodo(id, nombre, accesible, null);
+        return nodo(id, nombre, accesible, "INTERSECCION");
     }
 
-    private NodoMapa nodo(Long id, String nombre, boolean accesible, Area area) {
+    private NodoMapa nodo(Long id, String nombre, boolean accesible, String tipoNodo) {
         var nodo = new NodoMapa(
-                area, "INTERSECCION", nombre, new BigDecimal("14.60000000"),
+                null, tipoNodo, nombre, new BigDecimal("14.60000000"),
                 new BigDecimal("-90.55000000"), true, accesible);
         ReflectionTestUtils.setField(nodo, "idNodoMapa", id);
         ReflectionTestUtils.setField(nodo, "version", 0L);

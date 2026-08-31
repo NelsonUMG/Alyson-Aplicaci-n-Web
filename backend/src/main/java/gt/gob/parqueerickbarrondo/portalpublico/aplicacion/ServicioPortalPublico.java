@@ -123,7 +123,10 @@ public class ServicioPortalPublico {
                 .buscarPublicadaPorIdentificadorUrl(identificadorSeguro, Instant.now())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la publicación solicitada."));
         var categoria = publicacion.obtenerCategoria();
-        var imagen = buscarImagenesPrincipales(List.of(publicacion)).get(publicacion.obtenerIdPublicacion());
+        var imagenes = repositorioImagenPublicacion
+                .findAllByPublicacion_IdPublicacionOrderByOrdenVisualizacionAscIdImagenPublicacionAsc(
+                        publicacion.obtenerIdPublicacion());
+        var imagen = imagenes.getFirst();
         return new RespuestaDetallePublicacion(
                 publicacion.obtenerIdentificadorUrl(),
                 publicacion.obtenerTitulo(),
@@ -133,7 +136,8 @@ public class ServicioPortalPublico {
                 categoria.obtenerNombre(),
                 publicacion.obtenerFechaEditorial(),
                 publicacion.obtenerPublicadoEn(),
-                convertirImagen(imagen));
+                convertirImagen(imagen),
+                imagenes.stream().skip(1).map(this::convertirImagen).toList());
     }
 
     @Transactional(readOnly = true)

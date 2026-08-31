@@ -36,8 +36,8 @@ spring:
       enabled: true
   servlet:
     multipart:
-      max-file-size: 5MB
-      max-request-size: 6MB
+      max-file-size: 20MB
+      max-request-size: 21MB
   mail:
     host: ${CORREOSMTPHOST:smtp.gmail.com}
     port: ${CORREOSMTPPUERTO:587}
@@ -47,7 +47,10 @@ spring:
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
       mail.smtp.starttls.required: true
-    test-connection: false
+      mail.smtp.connectiontimeout: 10000
+      mail.smtp.timeout: 15000
+      mail.smtp.writetimeout: 15000
+    test-connection: ${CORREOPROBARCONEXIONALINICIAR:false}
 
 correo:
   verificacion:
@@ -66,6 +69,8 @@ almacenamiento:
     ruta: ${ALMACENAMIENTORUTAAREAS:../datos/areas}
   solicitudes:
     ruta: ${ALMACENAMIENTORUTASOLICITUDES:../datos/solicitudes}
+  perfiles:
+    ruta: ${ALMACENAMIENTORUTAPERFILES:../datos/perfiles}
 
 server:
   port: ${PUERTOSERVIDOR:8080}

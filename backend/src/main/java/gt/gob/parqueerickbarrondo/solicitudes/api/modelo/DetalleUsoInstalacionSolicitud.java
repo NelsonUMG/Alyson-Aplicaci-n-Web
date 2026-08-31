@@ -12,5 +12,13 @@ public record DetalleUsoInstalacionSolicitud(
         String tipoActividad,
         int cantidadPersonas,
         String descripcion,
-        DatosSolicitanteSolicitud datosSolicitante) {
+        DatosSolicitanteSolicitud datosSolicitante,
+        String codigoTramite,
+        String tipoReserva,
+        String centroDeportivo,
+        String nombreResponsable,
+        Boolean representanteLegal,
+        String institucion,
+        String tipoReporte,
+        String asunto) {
 }

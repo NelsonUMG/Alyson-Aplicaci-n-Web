@@ -9,9 +9,11 @@ param(
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName System.Security -ErrorAction Stop
 $raizRepositorio = Split-Path -Parent $PSScriptRoot
-$rutaJar = Join-Path $raizRepositorio 'backend\target\servidor-0.0.1-SNAPSHOT.jar'
+$rutaJarCompilado = Join-Path $raizRepositorio 'backend\target\servidor-0.0.1-SNAPSHOT.jar'
 $rutaBackend = Join-Path $raizRepositorio 'backend'
 $rutaFrontend = Join-Path $raizRepositorio 'frontend'
+$directorioJarsEjecucion = Join-Path $env:TEMP 'ParqueErickBarrondo\Ejecuciones'
+$rutaJarEjecucion = $null
 $rutaDatos = 'C:\Users\Nelson\Desktop\Proyecto de Alyson Vannesa\Datos Revision Parque'
 $rutaRegistro = Join-Path $env:TEMP 'parque-erick-barrondo-ejecucion.json'
 $marcaTiempo = Get-Date -Format 'yyyyMMddHHmmss'
@@ -150,6 +152,22 @@ function MostrarUltimasLineas {
     }
 }
 
+function EliminarJarEjecucionAnterior {
+    param([string]$Ruta)
+
+    if ([string]::IsNullOrWhiteSpace($Ruta)) {
+        return
+    }
+    $directorioPermitido = [IO.Path]::GetFullPath($directorioJarsEjecucion).TrimEnd('\') + '\'
+    $rutaResuelta = [IO.Path]::GetFullPath($Ruta)
+    if (-not $rutaResuelta.StartsWith($directorioPermitido, [StringComparison]::OrdinalIgnoreCase)) {
+        return
+    }
+    if (Test-Path -LiteralPath $rutaResuelta -PathType Leaf) {
+        Remove-Item -LiteralPath $rutaResuelta -Force
+    }
+}
+
 if ($HabilitarCorreoGmail -and $DeshabilitarCorreoGmail) {
     throw 'No puedes habilitar y deshabilitar Gmail al mismo tiempo.'
 }
@@ -171,11 +189,10 @@ if ($GuardarCredencialCorreoGmail) {
     return
 }
 
-$usarCorreoGmail = -not $DeshabilitarCorreoGmail -and
-    ($HabilitarCorreoGmail -or (Test-Path -LiteralPath $rutaCredencialCorreo -PathType Leaf))
+$usarCorreoGmail = -not $DeshabilitarCorreoGmail
 
-if (-not (Test-Path -LiteralPath $rutaJar -PathType Leaf)) {
-    throw "No se encontró el servidor compilado en: $rutaJar"
+if (-not (Test-Path -LiteralPath $rutaJarCompilado -PathType Leaf)) {
+    throw "No se encontró el servidor compilado en: $rutaJarCompilado"
 }
 if (Test-Path -LiteralPath $rutaRegistro -PathType Leaf) {
     $ejecucionAnterior = Get-Content -Raw -LiteralPath $rutaRegistro | ConvertFrom-Json
@@ -187,6 +204,7 @@ if (Test-Path -LiteralPath $rutaRegistro -PathType Leaf) {
     if ($backendAnteriorVigente -or $frontendAnteriorVigente) {
         throw 'Ya existe una revisión local registrada. Detén esa ejecución antes de iniciar otra.'
     }
+    EliminarJarEjecucionAnterior -Ruta $ejecucionAnterior.backendJarEjecucion
 }
 
 ProbarPuertoLibre -Puerto 8080
@@ -199,6 +217,10 @@ $conexionPrincipal = [System.Data.SqlClient.SqlConnection]::new(
     'Server=localhost;Database=master;Integrated Security=True;Encrypt=True;TrustServerCertificate=True;')
 
 try {
+    [void](New-Item -ItemType Directory -Path $directorioJarsEjecucion -Force)
+    $rutaJarEjecucion = Join-Path $directorioJarsEjecucion "servidor-revision-$marcaTiempo-$([Guid]::NewGuid().ToString('N')).jar"
+    Copy-Item -LiteralPath $rutaJarCompilado -Destination $rutaJarEjecucion
+
     $conexionPrincipal.Open()
     $crearObjetos = $conexionPrincipal.CreateCommand()
     $crearObjetos.CommandText = @"
@@ -244,12 +266,14 @@ IF IS_ROLEMEMBER('db_owner', '$nombreLoginSql') <> 1
     $env:ALMACENAMIENTORUTAEVENTOS = Join-Path $rutaDatos 'eventos'
     $env:ALMACENAMIENTORUTAAREAS = Join-Path $rutaDatos 'areas'
     $env:ALMACENAMIENTORUTASOLICITUDES = Join-Path $rutaDatos 'solicitudes'
+    $env:ALMACENAMIENTORUTAPERFILES = Join-Path $rutaDatos 'perfiles'
     $env:CORREOENVIOHABILITADO = if ($usarCorreoGmail) { 'true' } else { 'false' }
     if ($usarCorreoGmail) {
         $env:CORREOSMTPHOST = 'smtp.gmail.com'
         $env:CORREOSMTPPUERTO = '587'
         $env:CORREONOREPLY = $correoNoReply
         $env:CORREOCLAVEAPLICACION = $contrasenaAplicacionCorreo
+        $env:CORREOPROBARCONEXIONALINICIAR = 'true'
         $env:URLPUBLICAFRONTEND = 'http://127.0.0.1:5173'
     }
     else {
@@ -265,7 +289,7 @@ IF IS_ROLEMEMBER('db_owner', '$nombreLoginSql') <> 1
     $rutaNpm = (Get-Command npm.cmd -ErrorAction Stop).Source
     $procesoBackend = Start-Process `
         -FilePath $rutaJava `
-        -ArgumentList @('-jar', ('"{0}"' -f $rutaJar)) `
+        -ArgumentList @('-jar', ('"{0}"' -f $rutaJarEjecucion)) `
         -WorkingDirectory $rutaBackend `
         -RedirectStandardOutput $archivoBackendSalida `
         -RedirectStandardError $archivoBackendErrores `
@@ -379,6 +403,7 @@ IF IS_ROLEMEMBER('db_owner', '$nombreLoginSql') <> 1
     $informacion = [ordered]@{
         backendPid = $procesoBackend.Id
         frontendPid = $procesoFrontend.Id
+        backendJarEjecucion = $rutaJarEjecucion
         baseDatos = $nombreBaseDatos
         loginSql = $nombreLoginSql
         correoAdministrador = if ($OmitirVerificacionAdministrador) { $null } else { $correoAdministrador }
@@ -413,6 +438,7 @@ catch {
         Stop-Process -Id $procesoBackend.Id -Force -ErrorAction SilentlyContinue
         Start-Sleep -Milliseconds 500
     }
+    EliminarJarEjecucionAnterior -Ruta $rutaJarEjecucion
     Write-Host 'Salida reciente del backend:'
     MostrarUltimasLineas -Ruta $archivoBackendSalida
     MostrarUltimasLineas -Ruta $archivoBackendErrores

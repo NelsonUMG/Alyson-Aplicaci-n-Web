@@ -16,7 +16,6 @@ import java.util.Set;
 import gt.gob.parqueerickbarrondo.areas.dominio.ConexionMapa;
 import gt.gob.parqueerickbarrondo.areas.dominio.NodoMapa;
 import gt.gob.parqueerickbarrondo.areas.dominio.ReservaArea;
-import gt.gob.parqueerickbarrondo.areas.api.modelo.CoordenadaAreaMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioConexionMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioNodoMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioReservaArea;
@@ -65,12 +64,15 @@ public class ServicioMapaPublico {
         datos.areas().values().forEach(area -> actualizaciones.add(area.obtenerActualizadoEn()));
         return new RespuestaMapaPublico(
                 datos.nodos().values().stream()
+                        .filter(nodo -> nodo.obtenerArea() != null)
+                        .filter(nodo -> "DESTINO".equals(nodo.obtenerTipoNodo()))
                         .map(nodo -> convertirNodo(nodo, disponibilidad))
                         .toList(),
-                datos.conexiones().stream().map(this::convertirConexion).toList(),
+                List.of(),
                 datos.areas().values().stream()
                         .filter(Area::tienePerimetroConfirmado)
                         .filter(area -> area.obtenerPerimetro().size() >= 3)
+                        .filter(area -> esAlertaPublica(area, disponibilidad))
                         .map(area -> convertirArea(area, disponibilidad))
                         .toList(),
                 actualizaciones.stream().max(Comparator.naturalOrder()).orElse(null));
@@ -344,6 +346,15 @@ public class ServicioMapaPublico {
                         null,
                         null,
                         area.obtenerNotaDisponibilidad()));
+        var divisor = BigDecimal.valueOf(area.obtenerPerimetro().size());
+        var latitudCentro = area.obtenerPerimetro().stream()
+                .map(vertice -> vertice.obtenerLatitud())
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(divisor, 8, java.math.RoundingMode.HALF_UP);
+        var longitudCentro = area.obtenerPerimetro().stream()
+                .map(vertice -> vertice.obtenerLongitud())
+                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                .divide(divisor, 8, java.math.RoundingMode.HALF_UP);
         return new RespuestaAreaMapaPublica(
                 area.obtenerIdArea(),
                 area.obtenerCodigo(),
@@ -355,10 +366,18 @@ public class ServicioMapaPublico {
                 estadoTemporal.tituloReservaActiva(),
                 estadoTemporal.tituloProximaReserva(),
                 estadoTemporal.notaDisponibilidad(),
-                area.obtenerPerimetro().stream()
-                        .map(vertice -> new CoordenadaAreaMapa(
-                                vertice.obtenerLatitud(), vertice.obtenerLongitud()))
-                        .toList());
+                latitudCentro,
+                longitudCentro);
+    }
+
+    private boolean esAlertaPublica(
+            Area area,
+            Map<Long, DisponibilidadArea> disponibilidad) {
+        var estado = disponibilidad.getOrDefault(
+                area.obtenerIdArea(),
+                new DisponibilidadArea(area.obtenerEstado(), false, null, null, null, null))
+                .estadoCalculado();
+        return "ENUSO".equals(estado) || "ENMANTENIMIENTO".equals(estado);
     }
 
     private RespuestaPasoRutaMapa convertirPaso(NodoMapa nodo) {

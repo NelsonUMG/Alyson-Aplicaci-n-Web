@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarPublicaciones } from "../api/portalPublico";
+import { obtenerMensajeError } from "../api/clienteHttp";
 import { formatearTextoEditorial } from "../utilidades/formatoTexto";
 
 const publicacionesProvisionales = [
@@ -18,8 +19,8 @@ const publicacionesProvisionales = [
 
 export function PaginaBase() {
   const [publicaciones, establecerPublicaciones] = useState(publicacionesProvisionales);
+  const [errorPublicaciones, establecerErrorPublicaciones] = useState("");
   const [indicePublicacion, establecerIndicePublicacion] = useState(0);
-  const [segundosRestantes, establecerSegundosRestantes] = useState(10);
   const claveCarrusel = publicaciones.map((publicacion) => publicacion.identificadorUrl || publicacion.titulo).join("|");
 
   useEffect(() => {
@@ -34,8 +35,16 @@ export function PaginaBase() {
           })));
           establecerIndicePublicacion(0);
         }
+        if (paginaVigente) establecerErrorPublicaciones("");
       })
-      .catch(() => undefined);
+      .catch((errorCarga) => {
+        if (paginaVigente) {
+          establecerErrorPublicaciones(obtenerMensajeError(
+            errorCarga,
+            "No fue posible actualizar las publicaciones. Se muestra contenido provisional.",
+          ));
+        }
+      });
     return () => {
       paginaVigente = false;
     };
@@ -45,22 +54,16 @@ export function PaginaBase() {
     if (publicaciones.length <= 1) return undefined;
 
     const temporizador = window.setTimeout(() => {
-      if (segundosRestantes <= 1) {
-        establecerIndicePublicacion((indiceActual) => (indiceActual + 1) % publicaciones.length);
-        establecerSegundosRestantes(10);
-      } else {
-        establecerSegundosRestantes(segundosRestantes - 1);
-      }
-    }, 1000);
+      establecerIndicePublicacion((indiceActual) => (indiceActual + 1) % publicaciones.length);
+    }, 10000);
 
     return () => window.clearTimeout(temporizador);
-  }, [claveCarrusel, indicePublicacion, publicaciones.length, segundosRestantes]);
+  }, [claveCarrusel, indicePublicacion, publicaciones.length]);
 
   const publicacionActual = publicaciones[indicePublicacion] || publicaciones[0];
 
   function seleccionarPublicacion(indice) {
     establecerIndicePublicacion(indice);
-    establecerSegundosRestantes(10);
   }
 
   return (
@@ -86,6 +89,9 @@ export function PaginaBase() {
               <h2 id="titulo-publicaciones">Últimas publicaciones</h2>
             </div>
           </div>
+          {errorPublicaciones && (
+            <p className="portal-mensaje-error" role="alert">{errorPublicaciones}</p>
+          )}
           <div className="inicio-rejilla-publicaciones">
             <article className="inicio-publicacion" key={publicacionActual.identificadorUrl || publicacionActual.tipo}>
               <div className={`inicio-publicacion-imagen inicio-publicacion-imagen-${indicePublicacion + 1}`} aria-hidden="true">
@@ -112,7 +118,6 @@ export function PaginaBase() {
           </div>
           {publicaciones.length > 1 && (
             <div className="inicio-carrusel-controles">
-              <p>Siguiente noticia en {segundosRestantes} segundos.</p>
               <div aria-label="Seleccionar noticia" role="group">
                 {publicaciones.map((publicacion, indice) => (
                   <button

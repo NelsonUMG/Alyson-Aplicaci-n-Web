@@ -1,6 +1,6 @@
 import { solicitarApi } from "./clienteHttp";
 
-export function listarMisSolicitudes({ grupo = "ENPROCESO", pagina = 0, tamano = 10 } = {}) {
+export function listarMisSolicitudes({ grupo = "TODOS", pagina = 0, tamano = 10 } = {}) {
   const parametros = new URLSearchParams({
     grupo,
     pagina: String(pagina),
@@ -11,6 +11,35 @@ export function listarMisSolicitudes({ grupo = "ENPROCESO", pagina = 0, tamano =
 
 export function consultarProcedimientoUsoInstalacion() {
   return solicitarApi("/solicitudes/procedimientos/uso-instalacion");
+}
+
+export function listarCatalogoTramites() {
+  return solicitarApi("/solicitudes/catalogo");
+}
+
+export function consultarTramite(codigo) {
+  return solicitarApi(`/solicitudes/tramites/${encodeURIComponent(codigo)}`);
+}
+
+export function guardarResenaTramite(codigo, datos) {
+  return solicitarApi(`/solicitudes/tramites/${encodeURIComponent(codigo)}/resena`, {
+    method: "PUT",
+    body: JSON.stringify(datos),
+  });
+}
+
+export function iniciarBorradorTramite(codigo, datos) {
+  return solicitarApi(`/solicitudes/tramites/${encodeURIComponent(codigo)}/borradores`, {
+    method: "POST",
+    body: JSON.stringify(datos),
+  });
+}
+
+export function enviarDenunciaQueja(datos) {
+  return solicitarApi("/solicitudes/denuncias-quejas", {
+    method: "POST",
+    body: JSON.stringify(datos),
+  });
 }
 
 export function crearBorradorUsoInstalacion(datos) {
@@ -42,6 +71,12 @@ export function agregarDocumentoSolicitud(idSolicitud, archivo) {
 
 export function eliminarDocumentoSolicitud(idSolicitud, idDocumentoSolicitud) {
   return solicitarApi(`/solicitudes/${idSolicitud}/documentos/${idDocumentoSolicitud}`, {
+    method: "DELETE",
+  });
+}
+
+export function eliminarBorradorSolicitud(idSolicitud) {
+  return solicitarApi(`/solicitudes/${idSolicitud}`, {
     method: "DELETE",
   });
 }

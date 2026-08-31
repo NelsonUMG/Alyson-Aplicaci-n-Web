@@ -42,10 +42,15 @@ public class SolicitudDocumento {
     }
 
     public SolicitudDocumento(Solicitud solicitud, Documento documento, String categoriaDocumento) {
+        this(solicitud, documento, categoriaDocumento, false);
+    }
+
+    public SolicitudDocumento(Solicitud solicitud, Documento documento,
+            String categoriaDocumento, boolean obligatorio) {
         this.solicitud = solicitud;
         this.documento = documento;
         this.categoriaDocumento = categoriaDocumento;
-        this.obligatorio = false;
+        this.obligatorio = obligatorio;
         this.creadoEn = Instant.now();
     }
 

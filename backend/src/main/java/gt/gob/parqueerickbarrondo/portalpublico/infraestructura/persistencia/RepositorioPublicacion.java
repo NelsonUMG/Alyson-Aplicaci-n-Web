@@ -19,6 +19,7 @@ public interface RepositorioPublicacion extends JpaRepository<Publicacion, Long>
                     where p.estado = 'PUBLICADA'
                       and p.publicadoEn <= :ahora
                       and c.activa = true
+                      and exists (select i.idImagenPublicacion from ImagenPublicacion i where i.publicacion = p)
                       and (:categoria = '' or upper(c.codigo) = upper(:categoria))
                       and (:publicadoDesde is null or p.publicadoEn >= :publicadoDesde)
                       and (:publicadoHasta is null or p.publicadoEn < :publicadoHasta)
@@ -31,6 +32,7 @@ public interface RepositorioPublicacion extends JpaRepository<Publicacion, Long>
                     where p.estado = 'PUBLICADA'
                       and p.publicadoEn <= :ahora
                       and c.activa = true
+                      and exists (select i.idImagenPublicacion from ImagenPublicacion i where i.publicacion = p)
                       and (:categoria = '' or upper(c.codigo) = upper(:categoria))
                       and (:publicadoDesde is null or p.publicadoEn >= :publicadoDesde)
                       and (:publicadoHasta is null or p.publicadoEn < :publicadoHasta)
@@ -53,6 +55,7 @@ public interface RepositorioPublicacion extends JpaRepository<Publicacion, Long>
               and p.estado = 'PUBLICADA'
               and p.publicadoEn <= :ahora
               and c.activa = true
+              and exists (select i.idImagenPublicacion from ImagenPublicacion i where i.publicacion = p)
             """)
     @EntityGraph(attributePaths = "categoria")
     Optional<Publicacion> buscarPublicadaPorIdentificadorUrl(

@@ -195,6 +195,7 @@ class ServicioAdministracionPublicacionesPruebas {
         when(publicacion.obtenerEstado()).thenReturn("BORRADOR");
         when(publicacion.obtenerIdPublicacion()).thenReturn(10L);
         when(repositorioPublicacion.buscarAdministradaPorId(10L)).thenReturn(Optional.of(publicacion));
+        when(repositorioImagen.countByPublicacion_IdPublicacion(10L)).thenReturn(1L);
         var actor = org.mockito.Mockito.mock(UsuarioSesion.class);
         when(actor.obtenerIdUsuario()).thenReturn(7L);
 
@@ -205,6 +206,70 @@ class ServicioAdministracionPublicacionesPruebas {
                 eq(7L), eq("PUBLICACIONPUBLICADA"), eq("PUBLICACION"), eq("10"), eq("EXITOSO"), anyString());
         assertThat(respuesta.idPublicacion()).isEqualTo(10L);
         assertThat(respuesta.version()).isEqualTo(2L);
+    }
+
+    @Test
+    void impidePublicarUnaNoticiaSinPortada() {
+        var categoria = org.mockito.Mockito.mock(CategoriaPublicacion.class);
+        when(categoria.estaActiva()).thenReturn(true);
+        var publicacion = org.mockito.Mockito.mock(Publicacion.class);
+        when(publicacion.obtenerVersion()).thenReturn(1L);
+        when(publicacion.obtenerCategoria()).thenReturn(categoria);
+        when(publicacion.obtenerEstado()).thenReturn("BORRADOR");
+        when(repositorioPublicacion.buscarAdministradaPorId(10L)).thenReturn(Optional.of(publicacion));
+
+        assertThatThrownBy(() -> servicioAdministracion.publicar(
+                10L, 1L, org.mockito.Mockito.mock(UsuarioSesion.class)))
+                .isInstanceOf(gt.gob.parqueerickbarrondo.identidad.aplicacion.SolicitudInvalidaException.class)
+                .hasMessageContaining("imagen principal obligatoria");
+
+        verify(publicacion, never()).publicar(any());
+    }
+
+    @Test
+    void generaAutomaticamenteLaDescripcionAccesibleDeUnaImagen() {
+        var publicacion = org.mockito.Mockito.mock(Publicacion.class);
+        when(publicacion.obtenerEstado()).thenReturn("BORRADOR");
+        when(publicacion.obtenerTitulo()).thenReturn("Festival familiar");
+        when(repositorioPublicacion.buscarAdministradaPorId(10L)).thenReturn(Optional.of(publicacion));
+        when(repositorioImagen.countByPublicacion_IdPublicacion(10L)).thenReturn(0L);
+        var archivo = org.mockito.Mockito.mock(org.springframework.web.multipart.MultipartFile.class);
+        when(servicioAlmacenamiento.guardar(archivo)).thenReturn(new ArchivoImagenAlmacenada(
+                "publicaciones/portada.jpg", "portada.jpg", "image/jpeg", 2048L, 1200, 800));
+        when(repositorioImagen.saveAndFlush(any(ImagenPublicacion.class))).thenAnswer(invocacion -> {
+            var imagen = invocacion.getArgument(0, ImagenPublicacion.class);
+            ReflectionTestUtils.setField(imagen, "idImagenPublicacion", 31L);
+            return imagen;
+        });
+        var actor = org.mockito.Mockito.mock(UsuarioSesion.class);
+        when(actor.obtenerIdUsuario()).thenReturn(7L);
+        org.springframework.transaction.support.TransactionSynchronizationManager.initSynchronization();
+
+        try {
+            var respuesta = servicioAdministracion.agregarImagen(10L, archivo, actor);
+
+            assertThat(respuesta.textoAlternativo()).isEqualTo("Portada de Festival familiar");
+            assertThat(respuesta.ordenVisualizacion()).isZero();
+        } finally {
+            org.springframework.transaction.support.TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void rechazaUnaImagenCuandoYaExistenLaPortadaYVeinteFotosDeGaleria() {
+        var publicacion = org.mockito.Mockito.mock(Publicacion.class);
+        when(publicacion.obtenerEstado()).thenReturn("BORRADOR");
+        when(repositorioPublicacion.buscarAdministradaPorId(10L)).thenReturn(Optional.of(publicacion));
+        when(repositorioImagen.countByPublicacion_IdPublicacion(10L)).thenReturn(21L);
+
+        assertThatThrownBy(() -> servicioAdministracion.agregarImagen(
+                10L,
+                org.mockito.Mockito.mock(org.springframework.web.multipart.MultipartFile.class),
+                org.mockito.Mockito.mock(UsuarioSesion.class)))
+                .isInstanceOf(gt.gob.parqueerickbarrondo.identidad.aplicacion.SolicitudInvalidaException.class)
+                .hasMessageContaining("20 fotos de galería");
+
+        verify(servicioAlmacenamiento, never()).guardar(any());
     }
 
     @Test

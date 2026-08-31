@@ -41,7 +41,8 @@ public class EnviadorCorreoVerificacionSmtp implements EnviadorCorreoVerificacio
 
     @Override
     public void enviar(String correo, String nombre, String token) {
-        var enlace = urlPublica + "/verificar-correo?token=" + token;
+        var urlPublicaEfectiva = ResolvedorUrlPublicaCorreo.resolver(urlPublica);
+        var enlace = urlPublicaEfectiva + "/verificar-correo?token=" + token;
         try {
             var mensaje = enviador.createMimeMessage();
             var contenido = new MimeMessageHelper(
@@ -51,7 +52,9 @@ public class EnviadorCorreoVerificacionSmtp implements EnviadorCorreoVerificacio
             contenido.setFrom(remitente, NOMBRE_REMITENTE);
             contenido.setTo(correo);
             contenido.setSubject("Finaliza la activación de tu cuenta");
-            contenido.setText(crearTextoPlano(nombre, enlace), crearHtml(nombre, enlace));
+            contenido.setText(
+                    crearTextoPlano(nombre, enlace, urlPublicaEfectiva),
+                    crearHtml(nombre, enlace, urlPublicaEfectiva));
             contenido.addInline(IDENTIFICADOR_EMBLEMA, EMBLEMA, "image/png");
             enviador.send(mensaje);
         }
@@ -60,21 +63,21 @@ public class EnviadorCorreoVerificacionSmtp implements EnviadorCorreoVerificacio
         }
     }
 
-    private String crearTextoPlano(String nombre, String enlace) {
+    private String crearTextoPlano(String nombre, String enlace, String urlPublicaEfectiva) {
         return "Hola " + nombre + ",\n\n"
                 + "Tu cuenta fue creada. Solo falta presionar el botón \"Confirmar mi cuenta\" "
                 + "para activar tu cuenta del Parque Erick Barrondo.\n\n"
                 + "Confirmar mi cuenta:\n"
                 + enlace + "\n\n"
                 + "Tienes " + duracionHoras + " horas para completar la activación.\n"
-                + "Visita la página: " + urlPublica + "\n\n"
+                + "Visita la página: " + urlPublicaEfectiva + "\n\n"
                 + "Si no reconoces este registro, no necesitas realizar ninguna acción.";
     }
 
-    private String crearHtml(String nombre, String enlace) {
+    private String crearHtml(String nombre, String enlace, String urlPublicaEfectiva) {
         var nombreSeguro = HtmlUtils.htmlEscape(nombre, StandardCharsets.UTF_8.name());
         var enlaceSeguro = HtmlUtils.htmlEscape(enlace, StandardCharsets.UTF_8.name());
-        var urlPublicaSegura = HtmlUtils.htmlEscape(urlPublica, StandardCharsets.UTF_8.name());
+        var urlPublicaSegura = HtmlUtils.htmlEscape(urlPublicaEfectiva, StandardCharsets.UTF_8.name());
         return """
                 <!doctype html>
                 <html lang="es">

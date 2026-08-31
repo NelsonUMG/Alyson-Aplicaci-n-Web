@@ -14,12 +14,15 @@ import gt.gob.parqueerickbarrondo.identidad.dominio.Usuario;
 import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioTokenVerificacionCorreo;
 import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioUsuario;
 import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ServicioVerificacionCorreo {
 
+    private static final Logger REGISTRO = LoggerFactory.getLogger(ServicioVerificacionCorreo.class);
     private static final SecureRandom ALEATORIO_SEGURO = new SecureRandom();
     private final RepositorioTokenVerificacionCorreo repositorioToken;
     private final RepositorioUsuario repositorioUsuario;
@@ -50,7 +53,7 @@ public class ServicioVerificacionCorreo {
     }
 
     @Transactional
-    public void crearYEnviar(Usuario usuario) {
+    public boolean crearYEnviar(Usuario usuario) {
         var token = generarToken();
         var ahora = Instant.now();
         repositorioToken.saveAndFlush(new TokenVerificacionCorreo(
@@ -58,7 +61,32 @@ public class ServicioVerificacionCorreo {
                 resumir(token),
                 ahora.plus(duracionToken),
                 ahora));
-        enviadorCorreo.enviar(usuario.obtenerCorreoNormalizado(), usuario.obtenerNombre(), token);
+        try {
+            enviadorCorreo.enviar(usuario.obtenerCorreoNormalizado(), usuario.obtenerNombre(), token);
+            servicioAuditoria.registrar(
+                    usuario.obtenerIdUsuario(),
+                    "CORREOVERIFICACIONENVIADA",
+                    "USUARIO",
+                    usuario.obtenerIdUsuario().toString(),
+                    "EXITOSO",
+                    IdentificadorCorrelacion.actual());
+            return true;
+        }
+        catch (RuntimeException excepcion) {
+            REGISTRO.error(
+                    "No fue posible enviar el correo de verificación. usuarioId={}, correlacion={}",
+                    usuario.obtenerIdUsuario(),
+                    IdentificadorCorrelacion.actual(),
+                    excepcion);
+            servicioAuditoria.registrar(
+                    usuario.obtenerIdUsuario(),
+                    "CORREOVERIFICACIONFALLIDA",
+                    "USUARIO",
+                    usuario.obtenerIdUsuario().toString(),
+                    "FALLIDO",
+                    IdentificadorCorrelacion.actual());
+            return false;
+        }
     }
 
     @Transactional
@@ -93,7 +121,7 @@ public class ServicioVerificacionCorreo {
         repositorioUsuario.buscarPorCorreoParaVerificacion(normalizadorCorreo.normalizar(correo))
                 .filter(Usuario::estaPendienteDeVerificacion)
                 .filter(this::puedeReenviar)
-                .ifPresent(this::crearYEnviar);
+                .ifPresent(usuario -> crearYEnviar(usuario));
     }
 
     private boolean puedeReenviar(Usuario usuario) {

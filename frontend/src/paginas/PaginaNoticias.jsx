@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarCategoriasPublicacion, listarPublicaciones } from "../api/portalPublico";
+import { obtenerMensajeError } from "../api/clienteHttp";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
 import { formatearTextoEditorial } from "../utilidades/formatoTexto";
 
@@ -23,10 +24,18 @@ export function PaginaNoticias() {
   const [pagina, establecerPagina] = useState(0);
   const [respuesta, establecerRespuesta] = useState(null);
   const [error, establecerError] = useState("");
+  const [errorCategorias, establecerErrorCategorias] = useState("");
   const [cargando, establecerCargando] = useState(true);
 
   useEffect(() => {
-    listarCategoriasPublicacion().then(establecerCategorias).catch(() => undefined);
+    listarCategoriasPublicacion()
+      .then((categoriasRecibidas) => {
+        establecerCategorias(categoriasRecibidas);
+        establecerErrorCategorias("");
+      })
+      .catch((errorCarga) => establecerErrorCategorias(
+        obtenerMensajeError(errorCarga, "No fue posible cargar las categorías de noticias."),
+      ));
   }, []);
 
   useEffect(() => {
@@ -40,10 +49,10 @@ export function PaginaNoticias() {
           establecerCargando(false);
         }
       })
-      .catch(() => {
+      .catch((errorCarga) => {
         if (paginaVigente) {
           establecerRespuesta(null);
-          establecerError("No fue posible cargar las noticias.");
+          establecerError(obtenerMensajeError(errorCarga, "No fue posible cargar las noticias."));
           establecerCargando(false);
         }
       });
@@ -117,6 +126,7 @@ export function PaginaNoticias() {
             <p className="portal-sobrelinea">Información oficial</p>
             <h2>Últimas publicaciones recientes</h2>
           </div>
+          {errorCategorias && <p className="portal-mensaje-error" role="alert">{errorCategorias}</p>}
           {error && <p className="portal-mensaje-error" role="alert">{error}</p>}
           {cargando && <p className="portal-estado-carga" role="status">Cargando noticias…</p>}
 

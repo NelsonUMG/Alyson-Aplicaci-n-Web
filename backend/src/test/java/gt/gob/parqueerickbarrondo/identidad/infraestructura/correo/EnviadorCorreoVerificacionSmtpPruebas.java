@@ -13,9 +13,18 @@ import jakarta.mail.Session;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 class EnviadorCorreoVerificacionSmtpPruebas {
+
+    @AfterEach
+    void limpiarSolicitud() {
+        RequestContextHolder.resetRequestAttributes();
+    }
 
     @Test
     void muestraNoReplyComoNombreDelRemitente() throws Exception {
@@ -49,6 +58,27 @@ class EnviadorCorreoVerificacionSmtpPruebas {
                 .doesNotContain("Entrar de forma segura al portal.")
                 .doesNotContain("Participar en cursos y actividades.")
                 .doesNotContain("Dar seguimiento a tus gestiones.");
+    }
+
+    @Test
+    void usaElDominioDeCloudflareQueOriginoElRegistro() throws Exception {
+        var solicitud = new MockHttpServletRequest();
+        solicitud.addHeader("Origin", "https://parque-prueba.trycloudflare.com");
+        RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(solicitud));
+        var enviador = mock(JavaMailSender.class);
+        var mensaje = new MimeMessage(Session.getInstance(new Properties()));
+        when(enviador.createMimeMessage()).thenReturn(mensaje);
+        var servicio = new EnviadorCorreoVerificacionSmtp(
+                enviador,
+                "notific.parqueerickbarrondo@gmail.com",
+                "http://127.0.0.1:5173",
+                24);
+
+        servicio.enviar("persona@example.com", "Persona", "token-seguro");
+
+        assertThat(extraerTexto(mensaje))
+                .contains("https://parque-prueba.trycloudflare.com/verificar-correo?token=token-seguro")
+                .doesNotContain("http://127.0.0.1:5173/verificar-correo");
     }
 
     private String extraerTexto(Part parte) throws Exception {

@@ -6,12 +6,18 @@ import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.RespuestaDetalleSolicit
 import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.RespuestaSolicitudAdministrada;
 import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.SolicitudResolucionAdministrativa;
 import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.SolicitudVersionSolicitud;
+import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.RespuestaTramiteAdministrado;
+import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.RespuestaCategoriaTramiteAdministrada;
+import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.SolicitudCategoriaTramiteAdministrada;
+import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.SolicitudTramiteAdministrado;
+import gt.gob.parqueerickbarrondo.solicitudes.aplicacion.ServicioCatalogoTramites;
 import gt.gob.parqueerickbarrondo.solicitudes.aplicacion.ServicioAdministracionSolicitudes;
 import jakarta.validation.Valid;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,16 +25,63 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 @RestController
 @RequestMapping("/api/v1/administracion/solicitudes")
 public class ControladorAdministracionSolicitudes {
 
     private final ServicioAdministracionSolicitudes servicio;
+    private final ServicioCatalogoTramites catalogo;
 
-    public ControladorAdministracionSolicitudes(ServicioAdministracionSolicitudes servicio) {
+    public ControladorAdministracionSolicitudes(ServicioAdministracionSolicitudes servicio,
+            ServicioCatalogoTramites catalogo) {
         this.servicio = servicio;
+        this.catalogo = catalogo;
+    }
+
+    @GetMapping("/catalogo")
+    public java.util.List<RespuestaTramiteAdministrado> listarCatalogo() {
+        return catalogo.listarAdministracion();
+    }
+
+    @GetMapping("/catalogo/categorias")
+    public java.util.List<RespuestaCategoriaTramiteAdministrada> listarCategoriasCatalogo() {
+        return catalogo.listarCategoriasAdministracion();
+    }
+
+    @PostMapping("/catalogo/categorias")
+    @ResponseStatus(HttpStatus.CREATED)
+    public RespuestaCategoriaTramiteAdministrada crearCategoriaCatalogo(
+            @AuthenticationPrincipal UsuarioSesion actor,
+            @Valid @RequestBody SolicitudCategoriaTramiteAdministrada solicitud) {
+        return catalogo.crearCategoria(actor.obtenerIdUsuario(), solicitud);
+    }
+
+    @PostMapping("/catalogo")
+    @ResponseStatus(HttpStatus.CREATED)
+    public RespuestaTramiteAdministrado crearTramite(
+            @AuthenticationPrincipal UsuarioSesion actor,
+            @Valid @RequestBody SolicitudTramiteAdministrado solicitud) {
+        return catalogo.crearTramite(actor.obtenerIdUsuario(), solicitud);
+    }
+
+    @PutMapping("/catalogo/{idTramite}")
+    public RespuestaTramiteAdministrado actualizarTramite(
+            @PathVariable Long idTramite,
+            @AuthenticationPrincipal UsuarioSesion actor,
+            @Valid @RequestBody SolicitudTramiteAdministrado solicitud) {
+        return catalogo.actualizar(idTramite, actor.obtenerIdUsuario(), solicitud);
+    }
+
+    @PostMapping(value = "/catalogo/{idTramite}/portada", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public RespuestaTramiteAdministrado actualizarPortada(
+            @PathVariable Long idTramite,
+            @AuthenticationPrincipal UsuarioSesion actor,
+            @RequestParam org.springframework.web.multipart.MultipartFile archivo) {
+        return catalogo.actualizarPortada(idTramite, actor.obtenerIdUsuario(), archivo);
     }
 
     @GetMapping

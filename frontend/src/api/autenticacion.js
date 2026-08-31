@@ -42,6 +42,38 @@ export function obtenerPerfil() {
   return solicitarApi("/autenticacion/perfil");
 }
 
+export async function actualizarPerfil(datos) {
+  await prepararCsrf();
+  const datosEditables = {
+    nombre: datos.nombre,
+    apellido: datos.apellido,
+    dpiExtendidoEn: datos.dpiExtendidoEn,
+    fechaNacimiento: datos.fechaNacimiento,
+    celular: datos.celular,
+    telefono: datos.telefono,
+    direccion: datos.direccion,
+  };
+  return solicitarApi("/autenticacion/perfil", {
+    method: "PUT",
+    body: JSON.stringify(datosEditables),
+  });
+}
+
+export async function subirFotoPerfil(archivo) {
+  await prepararCsrf();
+  const formulario = new window.FormData();
+  formulario.append("archivo", archivo);
+  return solicitarApi("/autenticacion/perfil/foto", {
+    method: "POST",
+    body: formulario,
+  });
+}
+
+export async function eliminarFotoPerfil() {
+  await prepararCsrf();
+  return solicitarApi("/autenticacion/perfil/foto", { method: "DELETE" });
+}
+
 export async function cerrarSesion() {
   await prepararCsrf();
   return solicitarApi("/autenticacion/cerrar-sesion", { method: "POST" });

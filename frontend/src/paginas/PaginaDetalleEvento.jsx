@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { ErrorApi } from "../api/clienteHttp";
+import { ErrorApi, obtenerMensajeError } from "../api/clienteHttp";
 import {
   cancelarInscripcionEvento,
   consultarInscripcionEvento,
@@ -79,8 +79,10 @@ export function PaginaDetalleEvento() {
       .then((datos) => {
         if (paginaVigente) establecerEvento(datos);
       })
-      .catch(() => {
-        if (paginaVigente) establecerError("No fue posible cargar el evento solicitado.");
+      .catch((errorCarga) => {
+        if (paginaVigente) {
+          establecerError(obtenerMensajeError(errorCarga, "No fue posible cargar el evento solicitado."));
+        }
       });
     return () => {
       paginaVigente = false;

@@ -44,7 +44,7 @@ export function SelectorHorarioArea({ periodos = [], alCambiar, formatoAnterior 
 
   return (
     <fieldset className="selector-horario-area">
-      <legend>Horario del área</legend>
+      <legend>Horario del área <span className="indicador-opcional">(opcional)</span></legend>
       <p>Selecciona un día y las horas. Agrega otra fila si el horario cambia durante la semana.</p>
       {formatoAnterior && periodos.length === 0 && (
         <p className="mensaje-advertencia">

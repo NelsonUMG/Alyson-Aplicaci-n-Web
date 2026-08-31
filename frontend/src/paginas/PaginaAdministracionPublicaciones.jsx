@@ -11,6 +11,7 @@ import {
   eliminarCategoria,
   eliminarImagenPublicacion,
   eliminarPublicacion,
+  establecerPortadaPublicacion,
   listarCategoriasAdministradas,
   listarImagenesPublicacion,
   listarPublicacionesAdministradas,
@@ -40,6 +41,8 @@ const publicacionInicial = {
 };
 
 const paginaInicial = { contenido: [], pagina: 0, totalPaginas: 0, totalElementos: 0 };
+const MAXIMO_FOTOS_GALERIA = 20;
+const MAXIMO_IMAGENES_PUBLICACION = MAXIMO_FOTOS_GALERIA + 1;
 
 function obtenerOrdenesDisponibles(categorias, idCategoriaActual = null, cantidad = 8) {
   const ocupados = new Set(categorias
@@ -87,7 +90,9 @@ export function PaginaAdministracionPublicaciones() {
   const [filtros, establecerFiltros] = useState({ busqueda: "", estado: "", idCategoria: "", orden: "ACTUALIZACION" });
   const [publicacionEdicion, establecerPublicacionEdicion] = useState(null);
   const [imagenes, establecerImagenes] = useState([]);
-  const [vistaPreviaImagen, establecerVistaPreviaImagen] = useState(null);
+  const [portadaPendiente, establecerPortadaPendiente] = useState(null);
+  const [vistaPreviaPortada, establecerVistaPreviaPortada] = useState(null);
+  const [imagenesGaleriaPendientes, establecerImagenesGaleriaPendientes] = useState([]);
   const [claveCreacion, establecerClaveCreacion] = useState(() => window.crypto.randomUUID());
   const [estado, establecerEstado] = useState({ cargando: true, guardando: false, error: "", mensaje: "" });
 
@@ -111,17 +116,6 @@ export function PaginaAdministracionPublicaciones() {
       vigente = false;
     };
   }, []);
-
-  useEffect(() => {
-    if (!estado.error) return undefined;
-
-    function ocultarErrorAlHacerClic() {
-      establecerEstado((actual) => (actual.error ? { ...actual, error: "" } : actual));
-    }
-
-    document.addEventListener("click", ocultarErrorAlHacerClic, { capture: true, once: true });
-    return () => document.removeEventListener("click", ocultarErrorAlHacerClic, { capture: true });
-  }, [estado.error]);
 
   async function recargarPublicaciones(numeroPagina = 0) {
     const listado = await listarPublicacionesAdministradas({ ...filtros, pagina: numeroPagina });
@@ -178,11 +172,12 @@ export function PaginaAdministracionPublicaciones() {
 
   async function guardarCategoria(evento) {
     evento.preventDefault();
-    const ordenesDisponibles = obtenerOrdenesDisponibles(
-      categorias,
-      categoriaEdicion.idCategoriaPublicacion,
-    );
-    if (!ordenesDisponibles.includes(Number(categoriaEdicion.ordenVisualizacion))) {
+    const ordenSolicitado = Number(categoriaEdicion.ordenVisualizacion);
+    const ordenOcupado = categorias.some((categoria) => (
+      categoria.idCategoriaPublicacion !== categoriaEdicion.idCategoriaPublicacion
+      && Number(categoria.ordenVisualizacion) === ordenSolicitado
+    ));
+    if (!Number.isInteger(ordenSolicitado) || ordenSolicitado < 1 || ordenSolicitado > 32767 || ordenOcupado) {
       establecerEstado((actual) => ({
         ...actual,
         error: `El orden ${categoriaEdicion.ordenVisualizacion} ya está asignado. Elige un número disponible.`,
@@ -231,13 +226,18 @@ export function PaginaAdministracionPublicaciones() {
       idCategoriaPublicacion: primeraCategoria.idCategoriaPublicacion,
     });
     establecerImagenes([]);
+    establecerPortadaPendiente(null);
+    establecerVistaPreviaPortada(null);
+    establecerImagenesGaleriaPendientes([]);
     establecerClaveCreacion(window.crypto.randomUUID());
   }
 
   function cancelarPublicacion() {
     establecerPublicacionEdicion(null);
     establecerImagenes([]);
-    establecerVistaPreviaImagen(null);
+    establecerPortadaPendiente(null);
+    establecerVistaPreviaPortada(null);
+    establecerImagenesGaleriaPendientes([]);
   }
 
   function alternarFormularioPublicacion() {
@@ -259,6 +259,9 @@ export function PaginaAdministracionPublicaciones() {
       ...publicacion,
       fechaEditorial: publicacion.fechaEditorial || "",
     });
+    establecerPortadaPendiente(null);
+    establecerVistaPreviaPortada(null);
+    establecerImagenesGaleriaPendientes([]);
     try {
       establecerImagenes(await listarImagenesPublicacion(publicacion.idPublicacion));
     } catch (error) {
@@ -276,21 +279,64 @@ export function PaginaAdministracionPublicaciones() {
       }));
       return;
     }
+    if (imagenes.length === 0 && !portadaPendiente) {
+      establecerEstado((actual) => ({
+        ...actual,
+        error: "La portada de la noticia es obligatoria.",
+        mensaje: "",
+      }));
+      return;
+    }
+    if (imagenes.length + imagenesGaleriaPendientes.length + (portadaPendiente ? 1 : 0) > MAXIMO_IMAGENES_PUBLICACION) {
+      establecerEstado((actual) => ({
+        ...actual,
+        error: `La galería admite un máximo de ${MAXIMO_FOTOS_GALERIA} fotos, además de la portada.`,
+        mensaje: "",
+      }));
+      return;
+    }
     establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
     const datos = {
       ...publicacionEdicion,
       idCategoriaPublicacion: Number(publicacionEdicion.idCategoriaPublicacion),
       fechaEditorial: publicacionEdicion.fechaEditorial || null,
     };
+    let guardada = null;
+    let cantidadGaleriaSubida = 0;
     try {
-      const guardada = publicacionEdicion.idPublicacion
+      guardada = publicacionEdicion.idPublicacion
         ? await actualizarPublicacion(publicacionEdicion.idPublicacion, datos)
         : await crearPublicacion(datos, claveCreacion);
       establecerPublicacionEdicion({ ...guardada, fechaEditorial: guardada.fechaEditorial || "" });
+      if (portadaPendiente) {
+        const imagenAgregada = await agregarImagenPublicacion(
+          guardada.idPublicacion,
+          portadaPendiente,
+        );
+        await establecerPortadaPublicacion(guardada.idPublicacion, imagenAgregada.idImagenPublicacion);
+        establecerPortadaPendiente(null);
+        establecerVistaPreviaPortada(null);
+      }
+      for (const imagenPendiente of imagenesGaleriaPendientes) {
+        await agregarImagenPublicacion(guardada.idPublicacion, imagenPendiente.archivo);
+        cantidadGaleriaSubida += 1;
+      }
+      establecerImagenesGaleriaPendientes([]);
       establecerImagenes(await listarImagenesPublicacion(guardada.idPublicacion));
       await recargarPublicaciones(pagina.pagina);
       establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Noticia guardada como borrador." });
     } catch (error) {
+      if (guardada) establecerPublicacionEdicion({ ...guardada, fechaEditorial: guardada.fechaEditorial || "" });
+      if (cantidadGaleriaSubida > 0) {
+        establecerImagenesGaleriaPendientes((actuales) => actuales.slice(cantidadGaleriaSubida));
+      }
+      if (guardada) {
+        try {
+          establecerImagenes(await listarImagenesPublicacion(guardada.idPublicacion));
+        } catch {
+          // Se conserva el error original de la carga para que el usuario pueda corregirlo.
+        }
+      }
       establecerEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
     }
   }
@@ -343,33 +389,73 @@ export function PaginaAdministracionPublicaciones() {
     }
   }
 
-  async function subirImagen(evento) {
-    evento.preventDefault();
-    const formularioElemento = evento.currentTarget;
-    const formulario = new window.FormData(formularioElemento);
-    const archivo = formulario.get("archivo");
-    const textoAlternativo = formulario.get("textoAlternativo");
-    establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
+  function leerImagen(archivo) {
+    return new Promise((resolver, rechazar) => {
+      const lector = new window.FileReader();
+      lector.addEventListener("load", () => resolver({
+        id: window.crypto.randomUUID(),
+        archivo,
+        nombre: archivo.name,
+        url: String(lector.result),
+      }));
+      lector.addEventListener("error", () => rechazar(new Error(`No se pudo leer ${archivo.name}.`)));
+      lector.readAsDataURL(archivo);
+    });
+  }
+
+  async function seleccionarImagenesGaleria(evento) {
+    const archivos = Array.from(evento.target.files || []);
+    evento.target.value = "";
+    if (archivos.length === 0) return;
+
+    const reservaPortada = imagenes.length === 0 && !portadaPendiente ? 1 : 0;
+    const espaciosDisponibles = Math.max(
+      0,
+      MAXIMO_IMAGENES_PUBLICACION
+        - imagenes.length
+        - imagenesGaleriaPendientes.length
+        - (portadaPendiente ? 1 : 0)
+        - reservaPortada,
+    );
+    const archivosAceptados = archivos.slice(0, espaciosDisponibles);
     try {
-      await agregarImagenPublicacion(publicacionEdicion.idPublicacion, archivo, textoAlternativo);
-      establecerImagenes(await listarImagenesPublicacion(publicacionEdicion.idPublicacion));
-      formularioElemento.reset();
-      establecerVistaPreviaImagen(null);
-      establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Imagen agregada." });
+      const nuevasImagenes = await Promise.all(archivosAceptados.map(leerImagen));
+      establecerImagenesGaleriaPendientes((actuales) => [...actuales, ...nuevasImagenes]);
+      if (archivos.length > espaciosDisponibles) {
+        establecerEstado((actual) => ({
+          ...actual,
+          error: `Solo se agregaron ${espaciosDisponibles} fotos porque la galería admite hasta ${MAXIMO_FOTOS_GALERIA}.`,
+          mensaje: "",
+        }));
+      }
     } catch (error) {
-      establecerEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
+      establecerEstado((actual) => ({ ...actual, error: error.message, mensaje: "" }));
     }
   }
 
-  function previsualizarImagen(evento) {
-    const archivo = evento.target.files?.[0];
+  function quitarImagenGaleriaPendiente(idImagen) {
+    establecerImagenesGaleriaPendientes((actuales) => actuales.filter((imagen) => imagen.id !== idImagen));
+  }
+
+  function seleccionarPortada(evento) {
+    const archivo = evento.target.files?.[0] || null;
+    if (archivo && imagenes.length + imagenesGaleriaPendientes.length + 1 > MAXIMO_IMAGENES_PUBLICACION) {
+      evento.target.value = "";
+      establecerEstado((actual) => ({
+        ...actual,
+        error: "Quita una foto de la galería antes de reemplazar la portada.",
+        mensaje: "",
+      }));
+      return;
+    }
+    establecerPortadaPendiente(archivo);
     if (!archivo) {
-      establecerVistaPreviaImagen(null);
+      establecerVistaPreviaPortada(null);
       return;
     }
     const lector = new window.FileReader();
     lector.addEventListener("load", () => {
-      establecerVistaPreviaImagen({ nombre: archivo.name, url: String(lector.result) });
+      establecerVistaPreviaPortada({ nombre: archivo.name, url: String(lector.result) });
     });
     lector.readAsDataURL(archivo);
   }
@@ -378,28 +464,50 @@ export function PaginaAdministracionPublicaciones() {
     establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
     try {
       await eliminarImagenPublicacion(publicacionEdicion.idPublicacion, idImagen);
-      establecerImagenes((actuales) => actuales.filter((imagen) => imagen.idImagenPublicacion !== idImagen));
+      establecerImagenes(await listarImagenesPublicacion(publicacionEdicion.idPublicacion));
       establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Imagen eliminada." });
     } catch (error) {
       establecerEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
     }
   }
 
+  async function usarComoPortada(idImagen) {
+    establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
+    try {
+      establecerImagenes(await establecerPortadaPublicacion(publicacionEdicion.idPublicacion, idImagen));
+      establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Portada actualizada." });
+    } catch (error) {
+      establecerEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
+    }
+  }
+
   const categoriasActivas = categorias.filter((categoria) => categoria.activa);
+  const espaciosGaleriaDisponibles = Math.max(
+    0,
+    MAXIMO_IMAGENES_PUBLICACION
+      - imagenes.length
+      - imagenesGaleriaPendientes.length
+      - (portadaPendiente ? 1 : 0)
+      - (imagenes.length === 0 && !portadaPendiente ? 1 : 0),
+  );
   const nuevaPublicacionNoDisponible = estado.cargando || categoriasActivas.length === 0;
-  const ordenesCategoriaDisponibles = obtenerOrdenesDisponibles(
-    categorias,
-    categoriaEdicion.idCategoriaPublicacion,
-  );
-  const ordenCategoriaDisponible = ordenesCategoriaDisponibles.includes(
-    Number(categoriaEdicion.ordenVisualizacion),
-  );
+  const ordenCategoriaNumero = Number(categoriaEdicion.ordenVisualizacion);
+  const ordenCategoriaDisponible = Number.isInteger(ordenCategoriaNumero)
+    && ordenCategoriaNumero >= 1
+    && ordenCategoriaNumero <= 32767
+    && !categorias.some((categoria) => (
+      categoria.idCategoriaPublicacion !== categoriaEdicion.idCategoriaPublicacion
+      && Number(categoria.ordenVisualizacion) === ordenCategoriaNumero
+    ));
   const publicacionExistenteSeleccionada = Boolean(
     mostrarListadoPublicaciones && publicacionEdicion?.idPublicacion,
   );
 
   return (
-    <main className="pagina-administracion pagina-administracion-publicaciones">
+    <main
+      className="pagina-administracion pagina-administracion-publicaciones"
+      onClickCapture={() => establecerEstado((actual) => (actual.error ? { ...actual, error: "" } : actual))}
+    >
       <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
       <p className="etiqueta-fase">Administración</p>
       <h1>Noticias</h1>
@@ -506,6 +614,50 @@ export function PaginaAdministracionPublicaciones() {
               <p id="ayuda-texto-noticia" className="ayuda-area-texto-autoexpandible">Resumen y contenido se amplían automáticamente mientras escribes.</p>
               <label htmlFor="fechaEditorial">Fecha editorial</label>
               <input id="fechaEditorial" type="date" value={publicacionEdicion.fechaEditorial} onChange={(evento) => establecerPublicacionEdicion({ ...publicacionEdicion, fechaEditorial: evento.target.value })} />
+              <div className="campo-portada-publicacion">
+                <h3>Añadir foto de portada</h3>
+                <p>{imagenes.length > 0 ? "Puedes conservar la portada actual o seleccionar una nueva." : "Selecciona la imagen principal antes de guardar."}</p>
+                <div className="selector-archivo-personalizado">
+                  <label className="boton-selector-archivo" htmlFor="portadaPublicacion">
+                    {portadaPendiente || imagenes.length > 0 ? "Cambiar foto" : "Seleccionar archivo"}
+                  </label>
+                  <span>{portadaPendiente?.name || (imagenes.length > 0 ? "Portada actual guardada" : "Ningún archivo seleccionado")}</span>
+                  <input
+                    id="portadaPublicacion"
+                    className="entrada-archivo-oculta"
+                    type="file"
+                    accept="image/png,image/jpeg"
+                    aria-label="Foto de portada"
+                    onChange={seleccionarPortada}
+                  />
+                </div>
+                {vistaPreviaPortada && <img className="vista-previa-imagen" src={vistaPreviaPortada.url} alt={`Vista previa de ${vistaPreviaPortada.nombre}`} />}
+              </div>
+              <div className="campo-galeria-publicacion">
+                <h3>Galería de fotos <span className="indicador-opcional">Opcional</span></h3>
+                <p>Selecciona una o varias fotos adicionales. Puedes incluir hasta 20 fotos además de la portada.</p>
+                <label htmlFor="galeriaPublicacion">Fotos de galería</label>
+                <input
+                  id="galeriaPublicacion"
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  multiple
+                  disabled={estado.guardando || espaciosGaleriaDisponibles === 0}
+                  onChange={seleccionarImagenesGaleria}
+                />
+                <small>{espaciosGaleriaDisponibles > 0 ? `Puedes seleccionar ${espaciosGaleriaDisponibles} foto${espaciosGaleriaDisponibles === 1 ? "" : "s"} más.` : "La galería ya está completa."}</small>
+                {imagenesGaleriaPendientes.length > 0 && (
+                  <ul className="lista-imagenes-galeria-pendientes" aria-label="Fotos de galería seleccionadas">
+                    {imagenesGaleriaPendientes.map((imagen, indice) => (
+                      <li key={imagen.id}>
+                        <img src={imagen.url} alt={`Vista previa de ${imagen.nombre}`} />
+                        <span><strong>Foto {indice + 1}</strong><small>{imagen.nombre}</small></span>
+                        <button className="boton-secundario" type="button" onClick={() => quitarImagenGaleriaPendiente(imagen.id)}>Quitar</button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </div>
               <div className="acciones-publicacion">
                 {publicacionEdicion.estado !== "ARCHIVADA" && ((publicacionEdicion.idPublicacion && puedeActualizar) || (!publicacionEdicion.idPublicacion && puedeCrear)) && <button type="submit" disabled={estado.guardando}>Guardar</button>}
                 {publicacionEdicion.idPublicacion && publicacionEdicion.estado !== "PUBLICADA" && publicacionEdicion.estado !== "ARCHIVADA" && puedeActualizar && <button type="button" onClick={() => ejecutarCambioEstado(publicarPublicacion)}>Publicar</button>}
@@ -523,18 +675,8 @@ export function PaginaAdministracionPublicaciones() {
 
             {publicacionEdicion.idPublicacion && publicacionEdicion.estado !== "ARCHIVADA" && puedeActualizar && (
               <div className="panel-imagenes-publicacion">
-                <h3>Imágenes</h3>
-                <form className="formulario-imagen" onSubmit={subirImagen}>
-                  <label>Archivo PNG o JPEG<input name="archivo" type="file" accept="image/png,image/jpeg" required onChange={previsualizarImagen} /></label>
-                  <label>Texto alternativo<input name="textoAlternativo" maxLength="255" required /></label>
-                  <button type="submit" disabled={estado.guardando || imagenes.length >= 5}>Agregar imagen</button>
-                  {vistaPreviaImagen && (
-                    <figure className="vista-previa-carga-publicacion">
-                      <img className="vista-previa-imagen" src={vistaPreviaImagen.url} alt={`Vista previa de ${vistaPreviaImagen.nombre}`} />
-                      <figcaption>Vista previa · {vistaPreviaImagen.nombre}</figcaption>
-                    </figure>
-                  )}
-                </form>
+                <h3>Imágenes guardadas</h3>
+                <p>La primera imagen es la portada; las demás forman la galería.</p>
                 <ul>
                   {imagenes.map((imagen) => (
                     <li key={imagen.idImagenPublicacion}>
@@ -543,8 +685,11 @@ export function PaginaAdministracionPublicaciones() {
                         src={`/api/v1/administracion/publicaciones/${publicacionEdicion.idPublicacion}/imagenes/${imagen.idImagenPublicacion}/archivo`}
                         alt={imagen.textoAlternativo}
                       />
-                      <span><strong>{imagen.nombreArchivoOriginal}</strong><small>{imagen.textoAlternativo} · {imagen.anchoPixeles} × {imagen.altoPixeles}</small></span>
-                      {puedeArchivar && <button type="button" onClick={() => eliminarImagen(imagen.idImagenPublicacion)}>Eliminar</button>}
+                      <span><strong>{imagen.ordenVisualizacion === 0 ? "Portada" : "Foto de galería"} · {imagen.nombreArchivoOriginal}</strong><small>{imagen.anchoPixeles} × {imagen.altoPixeles} píxeles</small></span>
+                      <span className="acciones-imagen-publicacion">
+                        {imagen.ordenVisualizacion !== 0 && puedeActualizar && <button type="button" onClick={() => usarComoPortada(imagen.idImagenPublicacion)}>Usar como portada</button>}
+                        {puedeArchivar && <button type="button" disabled={imagenes.length <= 1} onClick={() => eliminarImagen(imagen.idImagenPublicacion)}>Eliminar</button>}
+                      </span>
                     </li>
                   ))}
                 </ul>
@@ -571,11 +716,11 @@ export function PaginaAdministracionPublicaciones() {
         {estado.cargando ? <p role="status">Cargando noticias…</p> : (
           <div className="tabla-contenedor">
             <table>
-              <thead><tr><th>Título</th><th>Categoría</th><th>Estado</th><th>Versión</th><th><span className="solo-lector">Acciones</span></th></tr></thead>
+              <thead><tr><th>Título</th><th>Categoría</th><th>Estado</th><th><span className="solo-lector">Acciones</span></th></tr></thead>
               <tbody>
                 {pagina.contenido.map((publicacion) => (
                   <tr className={publicacionEdicion?.idPublicacion === publicacion.idPublicacion ? "fila-seleccionada" : ""} key={publicacion.idPublicacion}>
-                    <td>{publicacion.titulo}</td><td>{publicacion.nombreCategoria}</td><td>{formatearTextoTecnico(publicacion.estado)}</td><td>{publicacion.version}</td>
+                    <td>{publicacion.titulo}</td><td>{publicacion.nombreCategoria}</td><td>{formatearTextoTecnico(publicacion.estado)}</td>
                     <td><button
                       className="boton-tabla"
                       type="button"

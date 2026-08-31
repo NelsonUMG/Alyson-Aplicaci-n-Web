@@ -7,7 +7,6 @@ import {
   crearArea,
   crearCategoriaArea,
   eliminarArea,
-  eliminarImagenArea,
   listarAreasAdministradas,
   listarCategoriasArea,
 } from "../api/administracionAreas";
@@ -16,21 +15,16 @@ import { EditorPerimetroArea } from "../componentes/EditorPerimetroArea";
 import { SelectorHorarioArea } from "../componentes/SelectorHorarioArea";
 
 const paginaVacia = { contenido: [], pagina: 0, totalPaginas: 0, totalElementos: 0 };
-const categoriaVacia = { idCategoriaArea: null, codigo: "", nombre: "", descripcion: "", activa: true, version: null };
+const categoriaVacia = { idCategoriaArea: null, nombre: "", descripcion: "", activa: true, version: null };
 const areaVacia = {
   idArea: null,
   idCategoriaArea: "",
-  codigo: "",
   numeroVisibleMapa: "",
   nombre: "",
   descripcion: "",
   estado: "PENDIENTECONFIRMACION",
-  notaDisponibilidad: "",
-  latitud: "",
-  longitud: "",
-  coordenadasConfirmadas: false,
+  estadoOriginal: null,
   perimetro: [],
-  perimetroConfirmado: false,
   horarioJson: "",
   periodosHorario: [],
   horarioModificado: false,
@@ -69,11 +63,8 @@ function prepararArea(area) {
     idCategoriaArea: String(area.idCategoriaArea),
     numeroVisibleMapa: area.numeroVisibleMapa ?? "",
     descripcion: area.descripcion || "",
-    notaDisponibilidad: area.notaDisponibilidad || "",
-    latitud: area.latitud ?? "",
-    longitud: area.longitud ?? "",
+    estadoOriginal: area.estado,
     perimetro: area.perimetro || [],
-    perimetroConfirmado: Boolean(area.perimetroConfirmado),
     horarioJson: area.horarioJson || "",
     periodosHorario: horario.periodos,
     horarioModificado: false,
@@ -119,10 +110,6 @@ function serializarHorario(area) {
   }
 }
 
-function decimalOpcional(valor) {
-  return valor === "" ? null : Number(valor);
-}
-
 export function PaginaAdministracionAreas() {
   const { usuario } = usarSesion();
   const puedeActualizar = usuario.permisos.includes("AREAACTUALIZARESTADO");
@@ -134,6 +121,7 @@ export function PaginaAdministracionAreas() {
   const [areaEdicion, establecerAreaEdicion] = useState(null);
   const [mostrarListado, establecerMostrarListado] = useState(false);
   const [filtros, establecerFiltros] = useState({ busqueda: "", estado: "", idCategoria: "" });
+  const [imagenAreaPendiente, establecerImagenAreaPendiente] = useState(null);
   const [estado, establecerEstado] = useState({ cargando: true, guardando: false, error: "", mensaje: "" });
 
   useEffect(() => {
@@ -177,6 +165,7 @@ export function PaginaAdministracionAreas() {
     establecerMostrarCategorias(false);
     establecerMostrarListado(true);
     establecerAreaEdicion(prepararArea(area));
+    establecerImagenAreaPendiente(null);
     establecerEstado((actual) => ({ ...actual, error: "", mensaje: "" }));
   }
 
@@ -184,9 +173,15 @@ export function PaginaAdministracionAreas() {
     evento.preventDefault();
     establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
     try {
+      const datos = {
+        nombre: categoriaEdicion.nombre,
+        descripcion: categoriaEdicion.descripcion || null,
+        activa: categoriaEdicion.activa,
+        version: categoriaEdicion.version,
+      };
       const guardada = categoriaEdicion.idCategoriaArea
-        ? await actualizarCategoriaArea(categoriaEdicion.idCategoriaArea, categoriaEdicion)
-        : await crearCategoriaArea(categoriaEdicion);
+        ? await actualizarCategoriaArea(categoriaEdicion.idCategoriaArea, datos)
+        : await crearCategoriaArea(datos);
       establecerCategorias(await listarCategoriasArea());
       establecerCategoriaEdicion({ ...guardada });
       establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Categoría de área guardada." });
@@ -197,18 +192,17 @@ export function PaginaAdministracionAreas() {
 
   async function guardarArea(evento) {
     evento.preventDefault();
+    if (!areaEdicion.tieneImagen && !imagenAreaPendiente) {
+      establecerEstado((actual) => ({ ...actual, error: "La imagen principal del área es obligatoria.", mensaje: "" }));
+      return;
+    }
     establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
     const datos = {
       idCategoriaArea: Number(areaEdicion.idCategoriaArea),
-      codigo: areaEdicion.codigo,
       numeroVisibleMapa: areaEdicion.numeroVisibleMapa === "" ? null : Number(areaEdicion.numeroVisibleMapa),
       nombre: areaEdicion.nombre,
       descripcion: areaEdicion.descripcion || null,
       estado: areaEdicion.estado,
-      notaDisponibilidad: areaEdicion.notaDisponibilidad || null,
-      latitud: decimalOpcional(areaEdicion.latitud),
-      longitud: decimalOpcional(areaEdicion.longitud),
-      coordenadasConfirmadas: areaEdicion.coordenadasConfirmadas,
       horarioJson: serializarHorario(areaEdicion),
       observacionesInternas: areaEdicion.observacionesInternas || null,
       motivoCambioEstado: areaEdicion.motivoCambioEstado || null,
@@ -216,17 +210,23 @@ export function PaginaAdministracionAreas() {
         latitud: Number(vertice.latitud),
         longitud: Number(vertice.longitud),
       })),
-      perimetroConfirmado: areaEdicion.perimetroConfirmado,
       version: areaEdicion.version,
     };
+    let guardada = null;
     try {
-      const guardada = areaEdicion.idArea
+      guardada = areaEdicion.idArea
         ? await actualizarArea(areaEdicion.idArea, datos)
         : await crearArea(datos);
+      establecerAreaEdicion(prepararArea(guardada));
+      if (imagenAreaPendiente) {
+        guardada = await agregarImagenArea(guardada.idArea, imagenAreaPendiente);
+        establecerImagenAreaPendiente(null);
+      }
       establecerAreaEdicion(prepararArea(guardada));
       await recargarAreas(pagina.pagina);
       establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Área guardada." });
     } catch (error) {
+      if (guardada) establecerAreaEdicion(prepararArea(guardada));
       mostrarError(error);
     }
   }
@@ -247,37 +247,10 @@ export function PaginaAdministracionAreas() {
     }
   }
 
-  async function subirImagenArea(evento) {
-    evento.preventDefault();
-    const formulario = evento.currentTarget;
-    const archivo = new window.FormData(formulario).get("archivo");
-    establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
-    try {
-      const actualizada = await agregarImagenArea(areaEdicion.idArea, archivo);
-      establecerAreaEdicion(prepararArea(actualizada));
-      formulario.reset();
-      await recargarAreas(pagina.pagina);
-      establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Imagen del área actualizada." });
-    } catch (error) {
-      mostrarError(error);
-    }
-  }
-
-  async function quitarImagenArea() {
-    establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
-    try {
-      const actualizada = await eliminarImagenArea(areaEdicion.idArea);
-      establecerAreaEdicion(prepararArea(actualizada));
-      await recargarAreas(pagina.pagina);
-      establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Imagen del área eliminada." });
-    } catch (error) {
-      mostrarError(error);
-    }
-  }
-
   function alternarCategorias() {
     if (mostrarCategorias) return;
     establecerAreaEdicion(null);
+    establecerImagenAreaPendiente(null);
     establecerMostrarListado(false);
     establecerMostrarCategorias(true);
   }
@@ -296,12 +269,14 @@ export function PaginaAdministracionAreas() {
     establecerMostrarCategorias(false);
     establecerMostrarListado(false);
     establecerAreaEdicion({ ...areaVacia, idCategoriaArea: primeraCategoria.idCategoriaArea });
+    establecerImagenAreaPendiente(null);
   }
 
   function alternarListado() {
     if (mostrarListado) return;
     establecerMostrarCategorias(false);
     establecerAreaEdicion(null);
+    establecerImagenAreaPendiente(null);
     establecerMostrarListado(true);
   }
 
@@ -373,9 +348,8 @@ export function PaginaAdministracionAreas() {
                 const seleccionada = categorias.find((categoria) => categoria.idCategoriaArea === Number(evento.target.value));
                 establecerCategoriaEdicion(seleccionada ? { ...seleccionada } : { ...categoriaVacia });
               }}><option value="">Nueva categoría</option>{categorias.map((categoria) => <option key={categoria.idCategoriaArea} value={categoria.idCategoriaArea}>{categoria.nombre}{categoria.activa ? "" : " (inactiva)"}</option>)}</select></label>
-              <label>Código<input required maxLength="64" value={categoriaEdicion.codigo} onChange={(evento) => establecerCategoriaEdicion({ ...categoriaEdicion, codigo: evento.target.value })} /></label>
               <label>Nombre<input required maxLength="100" value={categoriaEdicion.nombre} onChange={(evento) => establecerCategoriaEdicion({ ...categoriaEdicion, nombre: evento.target.value })} /></label>
-              <label>Descripción<textarea maxLength="300" value={categoriaEdicion.descripcion || ""} onChange={(evento) => establecerCategoriaEdicion({ ...categoriaEdicion, descripcion: evento.target.value })} /></label>
+              <label>Descripción <span className="indicador-opcional">(opcional)</span><textarea maxLength="300" value={categoriaEdicion.descripcion || ""} onChange={(evento) => establecerCategoriaEdicion({ ...categoriaEdicion, descripcion: evento.target.value })} /></label>
               <label className="campo-verificacion"><input type="checkbox" checked={categoriaEdicion.activa} onChange={(evento) => establecerCategoriaEdicion({ ...categoriaEdicion, activa: evento.target.checked })} />Categoría activa</label>
               {puedeActualizar && <button type="submit">Guardar categoría</button>}
             </form>
@@ -392,38 +366,21 @@ export function PaginaAdministracionAreas() {
           <h2 id="titulo-editar-area">{areaEdicion.idArea ? "Actualizar área" : "Registrar área"}</h2>
           <form className="formulario-administracion formulario-area" onSubmit={guardarArea}>
             <label>Categoría<select required value={areaEdicion.idCategoriaArea} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, idCategoriaArea: evento.target.value })}><option value="">Selecciona una categoría</option>{categorias.filter((categoria) => categoria.activa || categoria.idCategoriaArea === Number(areaEdicion.idCategoriaArea)).map((categoria) => <option key={categoria.idCategoriaArea} value={categoria.idCategoriaArea}>{categoria.nombre}</option>)}</select></label>
-            <label>Código<input required maxLength="64" value={areaEdicion.codigo} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, codigo: evento.target.value })} /></label>
-            <label>Número visible del mapa<input type="number" min="1" max="9999" value={areaEdicion.numeroVisibleMapa} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, numeroVisibleMapa: evento.target.value })} /></label>
+            <label>Número visible del mapa <span className="indicador-opcional">(opcional)</span><input type="number" min="1" max="9999" value={areaEdicion.numeroVisibleMapa} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, numeroVisibleMapa: evento.target.value })} /></label>
             <label>Nombre<input required maxLength="150" value={areaEdicion.nombre} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, nombre: evento.target.value })} /></label>
             <label>Estado<select value={areaEdicion.estado} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, estado: evento.target.value })}>{estadosArea.map((valor) => <option key={valor} value={valor}>{etiquetaEstadoArea(valor)}</option>)}</select></label>
-            <label>Disponibilidad<input maxLength="300" value={areaEdicion.notaDisponibilidad} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, notaDisponibilidad: evento.target.value })} /></label>
-            <label>Latitud<input type="number" step="0.00000001" min="-90" max="90" value={areaEdicion.latitud} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, latitud: evento.target.value })} /></label>
-            <label>Longitud<input type="number" step="0.00000001" min="-180" max="180" value={areaEdicion.longitud} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, longitud: evento.target.value })} /></label>
-            <label className="campo-verificacion"><input type="checkbox" checked={areaEdicion.coordenadasConfirmadas} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, coordenadasConfirmadas: evento.target.checked })} />Coordenadas confirmadas</label>
             <div className="campo-ancho-completo">
+              <div className="etiqueta-bloque-formulario">Perímetro <span className="indicador-opcional">(opcional)</span></div>
               <EditorPerimetroArea
                 perimetro={areaEdicion.perimetro}
                 alCambiar={(cambio) => establecerAreaEdicion((actual) => ({
                   ...actual,
                   perimetro: typeof cambio === "function" ? cambio(actual.perimetro) : cambio,
-                  perimetroConfirmado: false,
                 }))}
               />
-              <label className="campo-verificacion confirmacion-perimetro">
-                <input
-                  type="checkbox"
-                  disabled={areaEdicion.perimetro.length < 3}
-                  checked={areaEdicion.perimetroConfirmado}
-                  onChange={(evento) => establecerAreaEdicion({
-                    ...areaEdicion,
-                    perimetroConfirmado: evento.target.checked,
-                  })}
-                />
-                Perímetro confirmado para mostrar en el mapa público
-              </label>
             </div>
-            <label>Motivo del estado<input required={!areaEdicion.idArea || areaEdicion.motivoCambioEstado !== ""} maxLength="500" value={areaEdicion.motivoCambioEstado} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, motivoCambioEstado: evento.target.value })} /></label>
-            <label className="campo-ancho-completo">Descripción<textarea rows="4" value={areaEdicion.descripcion} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, descripcion: evento.target.value })} /></label>
+            <label>Motivo del estado {areaEdicion.idArea && areaEdicion.estado === areaEdicion.estadoOriginal && <span className="indicador-opcional">(opcional)</span>}<input required={!areaEdicion.idArea || areaEdicion.estado !== areaEdicion.estadoOriginal} maxLength="500" value={areaEdicion.motivoCambioEstado} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, motivoCambioEstado: evento.target.value })} /></label>
+            <label className="campo-ancho-completo">Descripción <span className="indicador-opcional">(opcional)</span><textarea rows="4" value={areaEdicion.descripcion} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, descripcion: evento.target.value })} /></label>
             <div className="campo-ancho-completo">
               <SelectorHorarioArea
                 periodos={areaEdicion.periodosHorario}
@@ -436,7 +393,14 @@ export function PaginaAdministracionAreas() {
                 })}
               />
             </div>
-            <label className="campo-ancho-completo">Observaciones internas<textarea rows="4" value={areaEdicion.observacionesInternas} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, observacionesInternas: evento.target.value })} /></label>
+            <label className="campo-ancho-completo">Observaciones internas <span className="indicador-opcional">(opcional)</span><textarea rows="4" value={areaEdicion.observacionesInternas} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, observacionesInternas: evento.target.value })} /></label>
+            <div className="gestion-imagen-area campo-ancho-completo">
+              <h3>Imagen principal</h3>
+              <p>Obligatoria para que el área se muestre completa en Áreas y servicios.</p>
+              {areaEdicion.tieneImagen && <img src={`${areaEdicion.urlImagen}?version=${areaEdicion.version}`} alt={areaEdicion.nombre} />}
+              <label>{areaEdicion.tieneImagen ? "Reemplazar imagen (opcional)" : "Seleccionar imagen"}<input type="file" accept="image/png,image/jpeg" required={!areaEdicion.tieneImagen} onChange={(evento) => establecerImagenAreaPendiente(evento.target.files?.[0] || null)} /></label>
+              {imagenAreaPendiente && <small>Archivo seleccionado: {imagenAreaPendiente.name}</small>}
+            </div>
             <div className="acciones-area campo-ancho-completo">
               {puedeActualizar && <button type="submit" disabled={estado.guardando}>Guardar área</button>}
               {puedeEliminar && areaEdicion.idArea && (
@@ -451,24 +415,6 @@ export function PaginaAdministracionAreas() {
               )}
             </div>
           </form>
-          {areaEdicion.idArea && puedeActualizar && (
-            <div className="gestion-imagen-area">
-              <h3>Imagen del área</h3>
-              {areaEdicion.tieneImagen && (
-                <img
-                  src={`${areaEdicion.urlImagen}?version=${areaEdicion.version}`}
-                  alt={areaEdicion.nombre}
-                />
-              )}
-              <form onSubmit={subirImagenArea}>
-                <label>Archivo PNG o JPEG<input name="archivo" type="file" accept="image/png,image/jpeg" required /></label>
-                <button type="submit" disabled={estado.guardando}>Cargar o reemplazar imagen</button>
-              </form>
-              {areaEdicion.tieneImagen && (
-                <button className="boton-peligro" type="button" disabled={estado.guardando} onClick={quitarImagenArea}>Eliminar imagen</button>
-              )}
-            </div>
-          )}
         </section>
       )}
       </div>}

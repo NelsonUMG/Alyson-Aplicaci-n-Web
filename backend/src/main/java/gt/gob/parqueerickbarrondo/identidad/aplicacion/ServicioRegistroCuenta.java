@@ -38,7 +38,7 @@ public class ServicioRegistroCuenta {
     }
 
     @Transactional
-    public void registrar(SolicitudRegistroCuenta solicitud) {
+    public boolean registrar(SolicitudRegistroCuenta solicitud) {
         politicaContrasena.validar(solicitud.contrasena());
         if (!solicitud.contrasena().equals(solicitud.confirmarContrasena())) {
             throw new SolicitudInvalidaException("Las contraseñas no coinciden.");
@@ -66,7 +66,7 @@ public class ServicioRegistroCuenta {
         usuario.agregarRol(rolUsuario);
 
         usuario = repositorioUsuario.saveAndFlush(usuario);
-        servicioVerificacionCorreo.crearYEnviar(usuario);
+        var correoEnviado = servicioVerificacionCorreo.crearYEnviar(usuario);
 
         servicioAuditoria.registrar(
                 usuario.obtenerIdUsuario(),
@@ -75,5 +75,6 @@ public class ServicioRegistroCuenta {
                 usuario.obtenerIdUsuario().toString(),
                 "EXITOSO",
                 IdentificadorCorrelacion.actual());
+        return correoEnviado;
     }
 }

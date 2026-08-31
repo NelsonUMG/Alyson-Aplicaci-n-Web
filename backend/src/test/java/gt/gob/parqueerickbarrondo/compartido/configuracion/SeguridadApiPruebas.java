@@ -3,6 +3,7 @@ package gt.gob.parqueerickbarrondo.compartido.configuracion;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -10,9 +11,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import gt.gob.parqueerickbarrondo.compartido.api.ManejadorErroresApi;
 import gt.gob.parqueerickbarrondo.compartido.api.ManejadorErroresSeguridad;
+import gt.gob.parqueerickbarrondo.compartido.api.ControladorEstadoSistema;
 import gt.gob.parqueerickbarrondo.identidad.api.ControladorAutenticacion;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioAutenticacion;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioRegistroCuenta;
+import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioPerfilUsuario;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioVerificacionCorreo;
 import gt.gob.parqueerickbarrondo.identidad.seguridad.ManejadorCierreSesion;
 import gt.gob.parqueerickbarrondo.identidad.seguridad.ServicioDetallesUsuario;
@@ -25,7 +28,7 @@ import org.hamcrest.Matchers;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-@WebMvcTest(ControladorAutenticacion.class)
+@WebMvcTest({ControladorAutenticacion.class, ControladorEstadoSistema.class})
 @Import({ConfiguracionSeguridad.class, ManejadorErroresApi.class, ManejadorErroresSeguridad.class})
 class SeguridadApiPruebas {
 
@@ -40,6 +43,9 @@ class SeguridadApiPruebas {
 
     @MockitoBean
     private ServicioVerificacionCorreo servicioVerificacionCorreo;
+
+    @MockitoBean
+    private ServicioPerfilUsuario servicioPerfilUsuario;
 
     @MockitoBean
     private ServicioDetallesUsuario servicioDetallesUsuario;
@@ -113,6 +119,38 @@ class SeguridadApiPruebas {
                 .andExpect(header().string("Referrer-Policy", "strict-origin-when-cross-origin"))
                 .andExpect(header().string("Permissions-Policy", Matchers.containsString("camera=()")))
                 .andExpect(header().string("Strict-Transport-Security", Matchers.containsString("max-age=")));
+    }
+
+    @Test
+    void respondeConProblema404ParaUnRecursoPublicoInexistente() throws Exception {
+        clienteApi.perform(get("/api/v1/publico/recurso-inexistente"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.codigo").value("RECURSONOENCONTRADO"))
+                .andExpect(jsonPath("$.detail").value("No se encontró el recurso solicitado."))
+                .andExpect(jsonPath("$.ruta").value("/api/v1/publico/recurso-inexistente"))
+                .andExpect(jsonPath("$.idCorrelacion").isNotEmpty());
+    }
+
+    @Test
+    void respondeConProblema400CuandoElJsonNoSePuedeLeer() throws Exception {
+        clienteApi.perform(post("/api/v1/autenticacion/registro")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"correo\": "))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.codigo").value("SOLICITUDINVALIDA"))
+                .andExpect(jsonPath("$.detail").value(
+                        "La solicitud contiene datos ausentes o con un formato no válido."));
+    }
+
+    @Test
+    void respondeConProblema405CuandoElMetodoHttpNoEsValido() throws Exception {
+        clienteApi.perform(put("/api/v1/sistema/estado").with(csrf()))
+                .andExpect(status().isMethodNotAllowed())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
+                .andExpect(jsonPath("$.codigo").value("METODONOPERMITIDO"));
     }
 
     private String solicitudRegistroValida() {

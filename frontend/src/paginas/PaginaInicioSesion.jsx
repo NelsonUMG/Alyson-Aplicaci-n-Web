@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { usarSesion } from "../autenticacion/ContextoSesion";
 import { MarcaPortal } from "../componentes/EstructuraPortal";
+import { esUsuarioComun } from "../autenticacion/clasificacionUsuario";
 
 export function PaginaInicioSesion() {
   const { iniciar } = usarSesion();
@@ -19,10 +20,10 @@ export function PaginaInicioSesion() {
     evento.preventDefault();
     setEstado({ enviando: true, error: "" });
     try {
-      await iniciar(datos);
+      const usuario = await iniciar(datos);
       const destino = typeof ubicacion.state?.desde === "string" && ubicacion.state.desde.startsWith("/")
         ? ubicacion.state.desde
-        : "/perfil";
+        : esUsuarioComun(usuario) ? "/" : "/perfil";
       navegacion(destino, { replace: true });
     } catch (error) {
       setEstado({ enviando: false, error: error.message });

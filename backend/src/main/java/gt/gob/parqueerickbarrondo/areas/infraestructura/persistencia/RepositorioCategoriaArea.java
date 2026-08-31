@@ -5,6 +5,7 @@ import java.util.Optional;
 
 import gt.gob.parqueerickbarrondo.portalpublico.dominio.CategoriaArea;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
 public interface RepositorioCategoriaArea extends JpaRepository<CategoriaArea, Long> {
 
@@ -12,7 +13,6 @@ public interface RepositorioCategoriaArea extends JpaRepository<CategoriaArea, L
 
     Optional<CategoriaArea> findByIdCategoriaArea(Long idCategoriaArea);
 
-    boolean existsByCodigoIgnoreCase(String codigo);
-
-    boolean existsByCodigoIgnoreCaseAndIdCategoriaAreaNot(String codigo, Long idCategoriaArea);
+    @Query("select c.codigo from CategoriaArea c")
+    List<String> findAllCodigos();
 }

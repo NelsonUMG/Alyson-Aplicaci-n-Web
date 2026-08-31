@@ -30,8 +30,7 @@ public interface RepositorioSolicitud extends JpaRepository<Solicitud, Long> {
     @EntityGraph(attributePaths = "usuarioSolicitante")
     @Query("""
             select s from Solicitud s
-            where s.tipoSolicitud = 'USOINSTALACION'
-              and s.estado <> 'BORRADOR'
+            where s.estado <> 'BORRADOR'
               and (:estado = '' or s.estado = :estado)
               and (:busqueda = ''
                    or lower(s.usuarioSolicitante.nombre) like lower(concat('%', :busqueda, '%'))

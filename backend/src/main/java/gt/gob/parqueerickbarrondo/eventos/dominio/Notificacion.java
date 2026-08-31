@@ -71,4 +71,18 @@ public class Notificacion {
         this.creadoEn = ahora;
         this.actualizadoEn = ahora;
     }
+
+    public void marcarEnviada() {
+        var ahora = Instant.now();
+        estado = "ENVIADA";
+        enviadaEn = ahora;
+        cantidadIntentos++;
+        actualizadoEn = ahora;
+    }
+
+    public void marcarFallida() {
+        estado = "FALLIDA";
+        cantidadIntentos++;
+        actualizadoEn = Instant.now();
+    }
 }

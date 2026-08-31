@@ -17,6 +17,7 @@ import { PaginaBicicletas } from "../paginas/PaginaBicicletas";
 import { PaginaDetalleEvento } from "../paginas/PaginaDetalleEvento";
 import { PaginaDetallePublicacion } from "../paginas/PaginaDetallePublicacion";
 import { PaginaEstado } from "../paginas/PaginaEstado";
+import { PaginaErrorRuta } from "../paginas/PaginaErrorRuta";
 import { PaginaEventos } from "../paginas/PaginaEventos";
 import { PaginaInicioSesion } from "../paginas/PaginaInicioSesion";
 import { PaginaMapa } from "../paginas/PaginaMapa";
@@ -29,7 +30,7 @@ import { PaginaRegistro } from "../paginas/PaginaRegistro";
 import { PaginaReportesInscripciones } from "../paginas/PaginaReportesInscripciones";
 import { PaginaVerificacionCorreo } from "../paginas/PaginaVerificacionCorreo";
 
-export const rutasAplicacion = [
+const rutasSinManejador = [
   {
     element: <EstructuraPortal />,
     children: [
@@ -197,9 +198,9 @@ export const rutasAplicacion = [
     path: "/error",
     element: (
       <PaginaEstado
-        codigo="Error"
-        titulo="No fue posible completar la solicitud"
-        mensaje="Intenta nuevamente. Si el problema continúa, comunícalo al personal responsable."
+        codigo="500"
+        textoAccion="Recargar página"
+        alAccion={() => window.location.reload()}
       />
     ),
   },
@@ -214,6 +215,11 @@ export const rutasAplicacion = [
     ),
   },
 ];
+
+export const rutasAplicacion = rutasSinManejador.map((ruta) => ({
+  ...ruta,
+  errorElement: <PaginaErrorRuta />,
+}));
 
 export function crearEnrutadorAplicacion() {
   return createBrowserRouter(rutasAplicacion);

@@ -30,5 +30,9 @@ public record SolicitudUsoInstalacion(
         @NotBlank(message = "Describe brevemente la actividad.")
         @Size(max = 3000, message = "La descripción no puede superar 3000 caracteres.")
         String descripcion,
+        @Size(max = 32, message = "El tipo de reserva no es válido.")
+        String tipoReserva,
+        @Size(max = 200, message = "El nombre del responsable no puede superar 200 caracteres.")
+        String nombreResponsable,
         Long version) {
 }

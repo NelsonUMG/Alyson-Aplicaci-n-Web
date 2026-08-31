@@ -13,37 +13,6 @@ const filtrosVacios = {
   hasta: "",
 };
 
-const accionesCrear = new Set([
-  "ADMINISTRADORINICIALCREADO",
-  "AREACREADA",
-  "BICICLETACREADA",
-  "CATEGORIAAREACREADA",
-  "CATEGORIAPUBLICACIONCREADA",
-  "CONEXIONMAPACREADA",
-  "CUENTAREGISTRADA",
-  "EMPLEADOCREADO",
-  "EVENTOCREADO",
-  "NODOMAPACREADO",
-  "PUBLICACIONCREADA",
-  "RESERVAAREACREADA",
-  "ROLCREADO",
-]);
-
-const accionesEliminar = new Set([
-  "AREAELIMINADA",
-  "CONEXIONMAPAELIMINADA",
-  "IMAGENAREAELIMINADA",
-  "IMAGENEVENTOELIMINADA",
-  "IMAGENPUBLICACIONELIMINADA",
-  "NODOMAPAELIMINADO",
-  "PUBLICACIONELIMINADA",
-]);
-
-const etiquetasAccionesEspeciales = {
-  CIERRESESION: "Cerrar sesión",
-  INICIOSESION: "Iniciar sesión",
-};
-
 const etiquetasModulos = {
   AREA: "Áreas",
   BICICLETA: "Bicicletas",
@@ -73,10 +42,7 @@ function etiquetaLegible(codigo, etiquetas) {
 }
 
 function etiquetaAccion(codigo) {
-  const clave = codigo.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s/g, "").toUpperCase();
-  if (accionesCrear.has(clave)) return "Crear";
-  if (accionesEliminar.has(clave)) return "Eliminar";
-  return etiquetasAccionesEspeciales[clave] ?? "Modificar";
+  return codigo || "Sin acción";
 }
 
 function formatearFecha(fecha) {
@@ -127,6 +93,12 @@ export function PaginaAuditoria() {
     cargar(filtros, 0);
   }
 
+  function limpiarFiltros() {
+    establecerFiltros(filtrosVacios);
+    establecerFiltrosAplicados(filtrosVacios);
+    cargar(filtrosVacios, 0);
+  }
+
   return (
     <main className="pagina-administracion pagina-auditoria">
       <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
@@ -157,11 +129,13 @@ export function PaginaAuditoria() {
         <form className="filtros-administracion filtros-auditoria" onSubmit={aplicarFiltros}>
           <label>Acción<input maxLength="80" value={filtros.accion} onChange={(evento) => establecerFiltros({ ...filtros, accion: evento.target.value })} /></label>
           <label>Módulo<input maxLength="80" value={filtros.tipoRecurso} onChange={(evento) => establecerFiltros({ ...filtros, tipoRecurso: evento.target.value })} /></label>
+          <label>Id del registro<input maxLength="80" value={filtros.idRecurso} onChange={(evento) => establecerFiltros({ ...filtros, idRecurso: evento.target.value })} /></label>
           <label>Resultado<select value={filtros.resultado} onChange={(evento) => establecerFiltros({ ...filtros, resultado: evento.target.value })}><option value="">Todos</option><option value="EXITOSO">Exitoso</option><option value="DENEGADO">Denegado</option><option value="FALLIDO">Fallido</option></select></label>
           <label>Id del actor<input type="number" min="1" value={filtros.idUsuarioActor} onChange={(evento) => establecerFiltros({ ...filtros, idUsuarioActor: evento.target.value })} /></label>
           <label>Desde<input type="datetime-local" value={filtros.desde} onChange={(evento) => establecerFiltros({ ...filtros, desde: evento.target.value })} /></label>
           <label>Hasta<input type="datetime-local" value={filtros.hasta} onChange={(evento) => establecerFiltros({ ...filtros, hasta: evento.target.value })} /></label>
           <button type="submit" disabled={estado.cargando}>Aplicar</button>
+          <button className="boton-secundario" type="button" disabled={estado.cargando} onClick={limpiarFiltros}>Limpiar</button>
         </form>
 
         <div className="tabla-contenedor tabla-auditoria">

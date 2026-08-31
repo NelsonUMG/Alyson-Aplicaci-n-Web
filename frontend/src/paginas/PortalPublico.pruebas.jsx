@@ -1,6 +1,6 @@
 import { MemoryRouter } from "react-router-dom";
-import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const apiPortal = vi.hoisted(() => ({
   listarCategoriasPublicacion: vi.fn(),
@@ -22,6 +22,8 @@ function mostrar(componente) {
 }
 
 describe("Portal público", () => {
+  afterEach(cleanup);
+
   beforeEach(() => {
     apiPortal.listarCategoriasPublicacion.mockReset().mockResolvedValue([]);
     apiPortal.listarPublicaciones.mockReset().mockResolvedValue({
@@ -121,7 +123,7 @@ describe("Portal público", () => {
       expect(screen.getByRole("link", { name: "Leer más" }).getAttribute("href"))
         .toBe("/noticias/primera-noticia");
       expect(screen.queryByRole("link", { name: /Ver todas las noticias/i })).toBeNull();
-      expect(screen.getByText("Siguiente noticia en 10 segundos.")).toBeTruthy();
+      expect(screen.queryByText(/Siguiente noticia/)).toBeNull();
 
       for (let segundo = 0; segundo < 10; segundo += 1) {
         act(() => vi.advanceTimersByTime(1000));
@@ -130,14 +132,14 @@ describe("Portal público", () => {
       expect(screen.getByRole("heading", { name: "Segunda noticia" })).toBeTruthy();
       expect(screen.getByRole("link", { name: "Leer más" }).getAttribute("href"))
         .toBe("/noticias/segunda-noticia");
-      expect(screen.getByText("Siguiente noticia en 10 segundos.")).toBeTruthy();
+      expect(screen.queryByText(/Siguiente noticia/)).toBeNull();
 
       for (let segundo = 0; segundo < 10; segundo += 1) {
         act(() => vi.advanceTimersByTime(1000));
       }
 
       expect(screen.getByRole("heading", { name: "Primera noticia" })).toBeTruthy();
-      expect(screen.getByText("Siguiente noticia en 10 segundos.")).toBeTruthy();
+      expect(screen.queryByText(/Siguiente noticia/)).toBeNull();
     } finally {
       vi.useRealTimers();
     }
@@ -189,11 +191,11 @@ describe("Portal público", () => {
     expect(screen.getByText("12")).toBeTruthy();
   });
 
-  it("conserva las tarjetas provisionales cuando aún no hay áreas", async () => {
+  it("no inventa tarjetas provisionales cuando aún no hay áreas completas", async () => {
     mostrar(<PaginaAreasServicios />);
 
-    expect(await screen.findByRole("heading", { name: "Áreas deportivas" })).toBeTruthy();
-    expect(screen.getAllByText("Información pendiente")).toHaveLength(3);
+    expect(await screen.findByText("Aún no hay áreas con información e imagen completas para mostrar.")).toBeTruthy();
+    expect(screen.queryByText("Información pendiente")).toBeNull();
   });
 
   it("muestra el contenido institucional entregado por el servicio", async () => {

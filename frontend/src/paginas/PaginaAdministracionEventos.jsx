@@ -518,7 +518,7 @@ export function PaginaAdministracionEventos() {
       <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
       <p className="etiqueta-fase">Administración</p>
       <h1>Eventos y cursos</h1>
-      <p>Gestiona actividades, periodos de inscripción, requisitos y cupos.</p>
+      <p>Crea la actividad, configura la inscripción y publícala cuando esté lista.</p>
 
       <div className="disposicion-modulo-administracion">
         <aside className="menu-lateral-administracion">
@@ -584,20 +584,32 @@ export function PaginaAdministracionEventos() {
             <div><h2 id="titulo-edicion-evento">{eventoEdicion.idEvento ? "Editar evento" : "Nuevo evento"}</h2><p>Estado actual: {formatearTextoTecnico(eventoEdicion.estado)}</p></div>
             {eventoEdicion.idEvento && <span>{eventoEdicion.cantidadOcupada} ocupados · {eventoEdicion.capacidadTotal - eventoEdicion.cantidadOcupada} disponibles</span>}
           </div>
+          <div className="resumen-configuracion-evento" aria-label="Secciones del formulario">
+            <span><strong>1</strong> Información</span>
+            <span><strong>2</strong> Horarios</span>
+            <span><strong>3</strong> Requisitos</span>
+            <span><strong>4</strong> Imágenes</span>
+          </div>
           <form className="formulario-administracion formulario-evento" onSubmit={guardarEvento}>
-            <label>Título<input required maxLength="180" disabled={!puedeEditarFormulario} value={eventoEdicion.titulo} onChange={(evento) => actualizarCampo("titulo", evento.target.value)} /></label>
-            <label>Lugar<input maxLength="180" disabled={!puedeEditarFormulario} value={eventoEdicion.lugar} onChange={(evento) => actualizarCampo("lugar", evento.target.value)} /></label>
-            <label className="campo-ancho">Descripción<textarea required maxLength="20000" rows="5" disabled={!puedeEditarFormulario} value={eventoEdicion.descripcion} onChange={(evento) => actualizarCampo("descripcion", evento.target.value)} /></label>
-            <label>Inicia<input type="datetime-local" required disabled={!puedeEditarFormulario} value={eventoEdicion.iniciaEn} onChange={(evento) => actualizarCampo("iniciaEn", evento.target.value)} /></label>
-            <label>Finaliza<input type="datetime-local" disabled={!puedeEditarFormulario} value={eventoEdicion.finalizaEn} onChange={(evento) => actualizarCampo("finalizaEn", evento.target.value)} /></label>
-            <label>Inscripción abre<input type="datetime-local" disabled={!puedeEditarFormulario} value={eventoEdicion.inscripcionAbreEn} onChange={(evento) => actualizarCampo("inscripcionAbreEn", evento.target.value)} /></label>
-            <label>Inscripción cierra<input type="datetime-local" disabled={!puedeEditarFormulario} value={eventoEdicion.inscripcionCierraEn} onChange={(evento) => actualizarCampo("inscripcionCierraEn", evento.target.value)} /></label>
-            <label>Capacidad total<input type="number" min={eventoEdicion.cantidadOcupada || 0} required disabled={!puedeEditarFormulario} value={eventoEdicion.capacidadTotal} onChange={(evento) => actualizarCampo("capacidadTotal", evento.target.value)} /></label>
+            <fieldset className="campo-ancho seccion-formulario-evento">
+              <legend>Información principal</legend>
+              <label>Título<input required maxLength="180" disabled={!puedeEditarFormulario} value={eventoEdicion.titulo} onChange={(evento) => actualizarCampo("titulo", evento.target.value)} /></label>
+              <label>Lugar <span className="indicador-opcional">(opcional)</span><input maxLength="180" disabled={!puedeEditarFormulario} value={eventoEdicion.lugar} onChange={(evento) => actualizarCampo("lugar", evento.target.value)} /></label>
+              <label className="campo-ancho">Descripción<textarea required maxLength="20000" rows="5" disabled={!puedeEditarFormulario} value={eventoEdicion.descripcion} onChange={(evento) => actualizarCampo("descripcion", evento.target.value)} /></label>
+            </fieldset>
+            <fieldset className="campo-ancho seccion-formulario-evento">
+              <legend>Fechas y cupos</legend>
+              <label>Inicia<input type="datetime-local" required disabled={!puedeEditarFormulario} value={eventoEdicion.iniciaEn} onChange={(evento) => actualizarCampo("iniciaEn", evento.target.value)} /></label>
+              <label>Finaliza <span className="indicador-opcional">(opcional)</span><input type="datetime-local" disabled={!puedeEditarFormulario} value={eventoEdicion.finalizaEn} onChange={(evento) => actualizarCampo("finalizaEn", evento.target.value)} /></label>
+              <label>Inscripción abre <span className="indicador-opcional">(opcional)</span><input type="datetime-local" disabled={!puedeEditarFormulario} value={eventoEdicion.inscripcionAbreEn} onChange={(evento) => actualizarCampo("inscripcionAbreEn", evento.target.value)} /></label>
+              <label>Inscripción cierra <span className="indicador-opcional">(opcional)</span><input type="datetime-local" disabled={!puedeEditarFormulario} value={eventoEdicion.inscripcionCierraEn} onChange={(evento) => actualizarCampo("inscripcionCierraEn", evento.target.value)} /></label>
+              <label>Capacidad total<input type="number" min={eventoEdicion.cantidadOcupada || 0} required disabled={!puedeEditarFormulario} value={eventoEdicion.capacidadTotal} onChange={(evento) => actualizarCampo("capacidadTotal", evento.target.value)} /></label>
+            </fieldset>
             <div className="campo-ancho constructor-grupos-evento">
               <div className="cabecera-panel-administracion">
                 <div>
                   <h3>Grupos, edades y horarios</h3>
-                  <p>Configura categorías como niños, adolescentes o adultos y agrega uno o varios días y horarios para cada grupo.</p>
+                  <p>Agrega grupos solo si la actividad maneja horarios o edades diferentes.</p>
                 </div>
                 {puedeEditarFormulario && <button type="button" disabled={(eventoEdicion.grupos || []).length >= 20} onClick={agregarGrupo}>Agregar grupo</button>}
               </div>
@@ -625,7 +637,7 @@ export function PaginaAdministracionEventos() {
               <div className="cabecera-panel-administracion">
                 <div>
                   <h3>Requisitos para la inscripción</h3>
-                  <p>Crea los campos que deberá completar cada persona, como fecha, DPI/CUI o número.</p>
+                  <p>Solicita únicamente los datos necesarios para inscribirse.</p>
                 </div>
                 {puedeEditarFormulario && (
                   <button type="button" disabled={camposFormularioEvento.length >= 30} onClick={agregarCampoFormulario}>Crear requisito</button>
@@ -711,7 +723,7 @@ export function PaginaAdministracionEventos() {
               <section className="bloque-imagen-evento" aria-labelledby="titulo-imagen-principal-evento">
                 <div>
                   <h3 id="titulo-imagen-principal-evento">Imagen principal</h3>
-                  <p>Es el póster o portada que identifica el evento.</p>
+                  <p>Póster o portada del evento.</p>
                 </div>
                 {eventoEdicion.tieneImagen && <img className="imagen-principal-evento" src={`${eventoEdicion.urlImagen}?version=${eventoEdicion.version}`} alt={`Póster de ${eventoEdicion.titulo}`} />}
                 <form onSubmit={subirImagen}><input aria-label="Archivo de imagen principal" name="archivo" type="file" accept="image/png,image/jpeg" required /><button type="submit" disabled={estado.guardando}>Cargar o reemplazar póster</button></form>
@@ -720,7 +732,7 @@ export function PaginaAdministracionEventos() {
               <section className="bloque-imagen-evento" aria-labelledby="titulo-imagenes-secundarias-evento">
                 <div>
                   <h3 id="titulo-imagenes-secundarias-evento">Imágenes secundarias</h3>
-                  <p>Complementan el contenido del evento. Puedes agregar hasta 8 imágenes.</p>
+                  <p>Galería complementaria, hasta 8 imágenes.</p>
                 </div>
                 <div className="galeria-imagenes-evento-administracion">
                   {imagenesSecundarias.map((imagen, indice) => (
@@ -744,16 +756,14 @@ export function PaginaAdministracionEventos() {
               <section className="bloque-imagen-evento">
                 <div>
                   <h3>Imagen principal</h3>
-                  <p>Será el póster o portada que identifica el evento.</p>
+                  <p>Disponible después de guardar.</p>
                 </div>
-                <p>Guarda primero el evento para habilitar la carga del póster.</p>
               </section>
               <section className="bloque-imagen-evento">
                 <div>
                   <h3>Imágenes secundarias</h3>
-                  <p>Complementarán el contenido del evento; podrás agregar hasta 8.</p>
+                  <p>Disponible después de guardar.</p>
                 </div>
-                <p>Guarda primero el evento para habilitar la galería.</p>
               </section>
             </div>
           )}

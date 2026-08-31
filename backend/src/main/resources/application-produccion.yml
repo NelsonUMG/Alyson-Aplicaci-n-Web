@@ -11,9 +11,15 @@ server:
         secure: true
 
 spring:
+  mail:
+    test-connection: ${CORREOPROBARCONEXIONALINICIAR:true}
   jpa:
     hibernate:
       ddl-auto: validate
+
+correo:
+  verificacion:
+    envio-habilitado: ${CORREOENVIOHABILITADO:true}
 
 management:
   endpoint:

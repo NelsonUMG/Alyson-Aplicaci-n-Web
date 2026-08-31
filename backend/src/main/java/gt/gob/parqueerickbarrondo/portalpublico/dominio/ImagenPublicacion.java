@@ -116,4 +116,12 @@ public class ImagenPublicacion {
     public short obtenerOrdenVisualizacion() {
         return ordenVisualizacion;
     }
+
+    public void cambiarTextoAlternativo(String nuevoTextoAlternativo) {
+        textoAlternativo = nuevoTextoAlternativo;
+    }
+
+    public void cambiarOrdenVisualizacion(short nuevoOrden) {
+        ordenVisualizacion = nuevoOrden;
+    }
 }

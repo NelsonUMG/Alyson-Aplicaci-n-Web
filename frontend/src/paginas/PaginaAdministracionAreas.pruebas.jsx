@@ -9,7 +9,6 @@ const apiAreas = vi.hoisted(() => ({
   crearArea: vi.fn(),
   crearCategoriaArea: vi.fn(),
   eliminarArea: vi.fn(),
-  eliminarImagenArea: vi.fn(),
   listarAreasAdministradas: vi.fn(),
   listarCategoriasArea: vi.fn(),
 }));
@@ -43,9 +42,9 @@ describe("Administración de áreas", () => {
       contenido: [], pagina: 0, totalPaginas: 0, totalElementos: 0,
     });
     apiAreas.crearArea.mockReset();
+    apiAreas.actualizarArea.mockReset();
     apiAreas.agregarImagenArea.mockReset();
     apiAreas.eliminarArea.mockReset();
-    apiAreas.eliminarImagenArea.mockReset();
   });
 
   it("carga el inventario y abre el formulario completo de una nueva área", async () => {
@@ -60,17 +59,21 @@ describe("Administración de áreas", () => {
     expect(screen.queryByRole("heading", { name: "Categorías de áreas" })).toBeNull();
     expect(screen.getByRole("heading", { name: "Registrar área" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Nueva área" }).getAttribute("aria-expanded")).toBe("true");
-    expect(screen.getByLabelText("Coordenadas confirmadas")).toBeTruthy();
+    expect(screen.queryByLabelText("Código")).toBeNull();
+    expect(screen.queryByLabelText(/Latitud/)).toBeNull();
+    expect(screen.queryByLabelText(/Longitud/)).toBeNull();
+    expect(screen.queryByLabelText("Coordenadas confirmadas")).toBeNull();
     expect(within(screen.getByLabelText("Estado")).getByRole("option", { name: "Pendiente de confirmación" })).toBeTruthy();
     expect(within(screen.getByLabelText("Estado")).getByRole("option", { name: "En mantenimiento" })).toBeTruthy();
     expect(within(screen.getByLabelText("Estado")).getByRole("option", { name: "Fuera de servicio" })).toBeTruthy();
-    expect(screen.getByLabelText("Observaciones internas")).toBeTruthy();
-    expect(screen.getByRole("group", { name: "Horario del área" })).toBeTruthy();
+    expect(screen.getByLabelText(/Observaciones internas/)).toBeTruthy();
+    expect(screen.getByRole("group", { name: /Horario del área/ })).toBeTruthy();
     expect(screen.getByRole("combobox", { name: "Día" })).toBeTruthy();
     expect(screen.getByLabelText("Hora de apertura")).toBeTruthy();
     expect(screen.queryByText("Horario en JSON")).toBeNull();
     expect(screen.getByLabelText("Mapa para dibujar el perímetro del área")).toBeTruthy();
-    expect(screen.getByLabelText("Perímetro confirmado para mostrar en el mapa público").disabled).toBe(true);
+    expect(screen.queryByLabelText("Perímetro confirmado para mostrar en el mapa público")).toBeNull();
+    expect(screen.getByLabelText("Seleccionar imagen").required).toBe(true);
     expect(screen.getByRole("button", { name: "Guardar área" })).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Grafo de recorridos confirmados" })).toBeNull();
   });
@@ -109,6 +112,21 @@ describe("Administración de áreas", () => {
       motivoCambioEstado: null,
       version: 0,
     });
+    apiAreas.agregarImagenArea.mockResolvedValue({
+      idArea: 9,
+      idCategoriaArea: 1,
+      codigo: "1",
+      numeroVisibleMapa: null,
+      nombre: "Campo 1",
+      descripcion: null,
+      estado: "PENDIENTECONFIRMACION",
+      perimetro: [],
+      horarioJson,
+      observacionesInternas: null,
+      tieneImagen: true,
+      urlImagen: "/api/v1/administracion/areas/9/imagen",
+      version: 1,
+    });
     render(<MemoryRouter><PaginaAdministracionAreas /></MemoryRouter>);
     await screen.findByRole("button", { name: "Categorías" });
     fireEvent.click(screen.getByRole("button", { name: "Categorías" }));
@@ -116,20 +134,25 @@ describe("Administración de áreas", () => {
     fireEvent.click(screen.getByRole("button", { name: "Nueva área" }));
     const formulario = within(screen.getByRole("region", { name: "Registrar área" }));
     fireEvent.change(formulario.getByLabelText("Categoría"), { target: { value: "1" } });
-    fireEvent.change(formulario.getByLabelText("Código"), { target: { value: "CAMPO1" } });
     fireEvent.change(formulario.getByLabelText("Nombre"), { target: { value: "Campo 1" } });
     fireEvent.change(formulario.getByLabelText("Motivo del estado"), { target: { value: "Registro inicial" } });
     fireEvent.change(formulario.getByLabelText("Día"), { target: { value: "LUNES" } });
     fireEvent.change(formulario.getByLabelText("Hora de apertura"), { target: { value: "08:00" } });
     fireEvent.change(formulario.getByLabelText("Hora de cierre"), { target: { value: "17:00" } });
     fireEvent.click(formulario.getByRole("button", { name: "Agregar horario" }));
-    fireEvent.click(formulario.getByRole("button", { name: "Guardar área" }));
+    const archivo = new window.File(["imagen"], "campo.jpg", { type: "image/jpeg" });
+    fireEvent.change(formulario.getByLabelText("Seleccionar imagen"), { target: { files: [archivo] } });
+    fireEvent.submit(formulario.getByRole("button", { name: "Guardar área" }).closest("form"));
 
     await waitFor(() => expect(apiAreas.crearArea).toHaveBeenCalledWith(expect.objectContaining({
       horarioJson,
     })));
+    expect(apiAreas.crearArea.mock.calls[0][0]).not.toHaveProperty("codigo");
+    expect(apiAreas.crearArea.mock.calls[0][0]).not.toHaveProperty("latitud");
+    expect(apiAreas.crearArea.mock.calls[0][0]).not.toHaveProperty("perimetroConfirmado");
+    await waitFor(() => expect(apiAreas.agregarImagenArea).toHaveBeenCalledWith(9, archivo));
     expect(await screen.findByText("Área guardada.")).toBeTruthy();
-    expect(screen.getByRole("heading", { name: "Imagen del área" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Imagen principal" })).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Disponibilidad con reloj" })).toBeNull();
     expect(screen.queryByRole("heading", { name: "Historial de estados" })).toBeNull();
   });
@@ -208,17 +231,18 @@ describe("Administración de áreas", () => {
       urlImagen: "/api/v1/administracion/areas/9/imagen",
       version: 5,
     });
+    apiAreas.actualizarArea.mockResolvedValue(area);
     render(<MemoryRouter><PaginaAdministracionAreas /></MemoryRouter>);
 
     fireEvent.click(screen.getByRole("button", { name: "Listado de áreas" }));
     fireEvent.click(await screen.findByRole("button", { name: /Campo 2/ }));
     const archivo = new window.File(["imagen"], "campo.jpg", { type: "image/jpeg" });
-    const campoArchivo = screen.getByLabelText("Archivo PNG o JPEG");
+    const campoArchivo = screen.getByLabelText("Seleccionar imagen");
     fireEvent.change(campoArchivo, { target: { files: [archivo] } });
-    fireEvent.submit(campoArchivo.closest("form"));
+    fireEvent.submit(screen.getByRole("button", { name: "Guardar área" }).closest("form"));
 
     await waitFor(() => expect(apiAreas.agregarImagenArea).toHaveBeenCalledWith(9, archivo));
-    expect(await screen.findByText("Imagen del área actualizada.")).toBeTruthy();
+    expect(await screen.findByText("Área guardada.")).toBeTruthy();
     expect(screen.getByRole("img", { name: "Campo 2" })).toBeTruthy();
   });
 });

@@ -12,19 +12,18 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface RepositorioArea extends JpaRepository<Area, Long> {
 
-    boolean existsByCodigoIgnoreCase(String codigo);
-
-    boolean existsByCodigoIgnoreCaseAndIdAreaNot(String codigo, Long idArea);
-
     boolean existsByNumeroVisibleMapa(Integer numeroVisibleMapa);
 
     boolean existsByNumeroVisibleMapaAndIdAreaNot(Integer numeroVisibleMapa, Long idArea);
+
+    @Query("select a.codigo from Area a")
+    List<String> findAllCodigos();
 
     @Query(value = "SELECT COUNT_BIG(*) FROM dbo.SolicitudesMantenimiento WHERE IdArea = :idArea", nativeQuery = true)
     long contarSolicitudesMantenimiento(
             @org.springframework.data.repository.query.Param("idArea") Long idArea);
 
-    @Query("select a from Area a join a.categoria c where c.activa = true order by c.nombre, a.nombre")
+    @Query("select a from Area a join a.categoria c where c.activa = true and a.claveImagen is not null order by c.nombre, a.nombre")
     @EntityGraph(attributePaths = {"categoria", "perimetro"})
     List<Area> buscarPublicas();
 

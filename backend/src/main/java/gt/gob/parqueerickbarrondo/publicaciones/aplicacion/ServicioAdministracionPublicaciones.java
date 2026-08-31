@@ -2,12 +2,12 @@ package gt.gob.parqueerickbarrondo.publicaciones.aplicacion;
 
 import java.text.Normalizer;
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
 
+import gt.gob.parqueerickbarrondo.compartido.codigos.GeneradorCodigoAutomatico;
 import gt.gob.parqueerickbarrondo.compartido.idempotencia.ServicioIdempotencia;
 import gt.gob.parqueerickbarrondo.compartido.observabilidad.IdentificadorCorrelacion;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ConflictoDatosException;
@@ -41,6 +41,7 @@ import org.springframework.web.multipart.MultipartFile;
 public class ServicioAdministracionPublicaciones {
 
     private static final Set<String> ESTADOS_VALIDOS = Set.of("BORRADOR", "PUBLICADA", "ARCHIVADA");
+    private static final long MAXIMO_IMAGENES_PUBLICACION = 21L;
 
     private final RepositorioCategoriaPublicacion repositorioCategoria;
     private final RepositorioPublicacion repositorioPublicacion;
@@ -241,6 +242,10 @@ public class ServicioAdministracionPublicaciones {
         if (!publicacion.obtenerCategoria().estaActiva()) {
             throw new SolicitudInvalidaException("No se puede publicar contenido en una categoría inactiva.");
         }
+        if (repositorioImagen.countByPublicacion_IdPublicacion(idPublicacion) == 0) {
+            throw new SolicitudInvalidaException(
+                    "Agrega la imagen principal obligatoria antes de publicar la noticia.");
+        }
         publicacion.publicar(Instant.now());
         repositorioPublicacion.saveAndFlush(publicacion);
         auditar(actor, "PUBLICACIONPUBLICADA", "PUBLICACION", idPublicacion);
@@ -298,13 +303,13 @@ public class ServicioAdministracionPublicaciones {
     public RespuestaImagenAdministrada agregarImagen(
             Long idPublicacion,
             MultipartFile archivo,
-            String textoAlternativo,
             UsuarioSesion actor) {
         var publicacion = buscarPublicacion(idPublicacion);
         validarNoArchivada(publicacion);
         var cantidad = repositorioImagen.countByPublicacion_IdPublicacion(idPublicacion);
-        if (cantidad >= 5) {
-            throw new SolicitudInvalidaException("Una publicación no puede tener más de 5 imágenes.");
+        if (cantidad >= MAXIMO_IMAGENES_PUBLICACION) {
+            throw new SolicitudInvalidaException(
+                    "Una publicación no puede tener más de 20 fotos de galería, además de la portada.");
         }
         var almacenada = servicioAlmacenamiento.guardar(archivo);
         eliminarArchivoSiTransaccionFalla(almacenada.claveAlmacenamiento());
@@ -316,22 +321,46 @@ public class ServicioAdministracionPublicaciones {
                 almacenada.tamanoBytes(),
                 almacenada.anchoPixeles(),
                 almacenada.altoPixeles(),
-                textoAlternativo.strip(),
+                generarTextoAlternativo(publicacion, cantidad),
                 (short) cantidad);
         repositorioImagen.saveAndFlush(imagen);
         auditar(actor, "IMAGENPUBLICACIONAGREGADA", "PUBLICACION", idPublicacion);
         return convertirImagen(imagen);
     }
 
+    private String generarTextoAlternativo(Publicacion publicacion, long orden) {
+        return orden == 0
+                ? "Portada de " + publicacion.obtenerTitulo()
+                : "Imagen " + orden + " de la galería de " + publicacion.obtenerTitulo();
+    }
+
     @PreAuthorize("hasAuthority('PUBLICACIONELIMINAR')")
     @Transactional
     public void eliminarImagen(Long idPublicacion, Long idImagen, UsuarioSesion actor) {
-        buscarPublicacion(idPublicacion);
+        var publicacion = buscarPublicacion(idPublicacion);
+        validarNoArchivada(publicacion);
+        var imagenes = repositorioImagen
+                .findAllByPublicacion_IdPublicacionOrderByOrdenVisualizacionAscIdImagenPublicacionAsc(idPublicacion);
+        if (imagenes.size() <= 1) {
+            throw new SolicitudInvalidaException(
+                    "La portada es obligatoria. Carga otra imagen antes de eliminarla.");
+        }
         var imagen = repositorioImagen
                 .findByIdImagenPublicacionAndPublicacion_IdPublicacion(idImagen, idPublicacion)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la imagen solicitada."));
         var clave = imagen.obtenerClaveAlmacenamiento();
         repositorioImagen.delete(imagen);
+        short orden = 0;
+        for (var restante : imagenes) {
+            if (!restante.obtenerIdImagenPublicacion().equals(idImagen)) {
+                restante.cambiarOrdenVisualizacion(orden);
+                restante.cambiarTextoAlternativo(generarTextoAlternativo(publicacion, orden));
+                orden++;
+            }
+        }
+        repositorioImagen.saveAll(imagenes.stream()
+                .filter(restante -> !restante.obtenerIdImagenPublicacion().equals(idImagen))
+                .toList());
         repositorioImagen.flush();
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override
@@ -340,6 +369,38 @@ public class ServicioAdministracionPublicaciones {
             }
         });
         auditar(actor, "IMAGENPUBLICACIONELIMINADA", "PUBLICACION", idPublicacion);
+    }
+
+    @PreAuthorize("hasAuthority('PUBLICACIONACTUALIZAR')")
+    @Transactional
+    public List<RespuestaImagenAdministrada> establecerPortada(
+            Long idPublicacion,
+            Long idImagen,
+            UsuarioSesion actor) {
+        var publicacion = buscarPublicacion(idPublicacion);
+        validarNoArchivada(publicacion);
+        var imagenes = repositorioImagen
+                .findAllByPublicacion_IdPublicacionOrderByOrdenVisualizacionAscIdImagenPublicacionAsc(idPublicacion);
+        var portada = imagenes.stream()
+                .filter(imagen -> imagen.obtenerIdImagenPublicacion().equals(idImagen))
+                .findFirst()
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la imagen solicitada."));
+        short orden = 1;
+        portada.cambiarOrdenVisualizacion((short) 0);
+        portada.cambiarTextoAlternativo(generarTextoAlternativo(publicacion, 0));
+        for (var imagen : imagenes) {
+            if (!imagen.obtenerIdImagenPublicacion().equals(idImagen)) {
+                imagen.cambiarOrdenVisualizacion(orden);
+                imagen.cambiarTextoAlternativo(generarTextoAlternativo(publicacion, orden));
+                orden++;
+            }
+        }
+        repositorioImagen.saveAllAndFlush(imagenes);
+        auditar(actor, "PORTADAPUBLICACIONACTUALIZADA", "PUBLICACION", idPublicacion);
+        return imagenes.stream()
+                .sorted(java.util.Comparator.comparingInt(ImagenPublicacion::obtenerOrdenVisualizacion))
+                .map(this::convertirImagen)
+                .toList();
     }
 
     private CategoriaPublicacion buscarCategoria(Long idCategoria) {
@@ -371,23 +432,7 @@ public class ServicioAdministracionPublicaciones {
     }
 
     private String generarCodigoCategoria() {
-        var codigosOcupados = new HashSet<Long>();
-        for (var codigo : repositorioCategoria.findAllCodigos()) {
-            try {
-                var numero = Long.parseLong(codigo);
-                if (numero > 0) {
-                    codigosOcupados.add(numero);
-                }
-            }
-            catch (NumberFormatException ignorada) {
-                // Los códigos anteriores no numéricos no ocupan un número automático.
-            }
-        }
-        long candidato = 1;
-        while (codigosOcupados.contains(candidato)) {
-            candidato++;
-        }
-        return Long.toString(candidato);
+        return GeneradorCodigoAutomatico.siguiente(repositorioCategoria.findAllCodigos());
     }
 
     private String generarIdentificadorUrl(String titulo) {

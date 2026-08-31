@@ -42,6 +42,7 @@ public class ServicioAdministracionSolicitudes {
     private final RepositorioNotificacion repositorioNotificacion;
     private final ServicioAlmacenamientoDocumentosSolicitud almacenamiento;
     private final ServicioAuditoria auditoria;
+    private final EnviadorCorreoResolucionSolicitud enviadorCorreo;
     private final ObjectMapper json;
 
     public ServicioAdministracionSolicitudes(
@@ -50,12 +51,14 @@ public class ServicioAdministracionSolicitudes {
             RepositorioNotificacion repositorioNotificacion,
             ServicioAlmacenamientoDocumentosSolicitud almacenamiento,
             ServicioAuditoria auditoria,
+            EnviadorCorreoResolucionSolicitud enviadorCorreo,
             ObjectMapper json) {
         this.repositorioSolicitud = repositorioSolicitud;
         this.repositorioDocumento = repositorioDocumento;
         this.repositorioNotificacion = repositorioNotificacion;
         this.almacenamiento = almacenamiento;
         this.auditoria = auditoria;
+        this.enviadorCorreo = enviadorCorreo;
         this.json = json;
     }
 
@@ -107,7 +110,7 @@ public class ServicioAdministracionSolicitudes {
             throw new SolicitudInvalidaException(excepcion.getMessage());
         }
         repositorioSolicitud.saveAndFlush(solicitud);
-        guardarNotificacion(solicitud);
+        guardarNotificacionYEnviarCorreo(solicitud);
         auditar(actor, "SOLICITUD" + datos.decision(), solicitud);
         return convertirDetalle(solicitud);
     }
@@ -126,8 +129,7 @@ public class ServicioAdministracionSolicitudes {
 
     private Solicitud buscar(Long idSolicitud) {
         return repositorioSolicitud.buscarAdministradaPorId(idSolicitud)
-                .filter(solicitud -> "USOINSTALACION".equals(solicitud.obtenerTipoSolicitud())
-                        && !"BORRADOR".equals(solicitud.obtenerEstado()))
+                .filter(solicitud -> !"BORRADOR".equals(solicitud.obtenerEstado()))
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la solicitud indicada."));
     }
 
@@ -143,7 +145,8 @@ public class ServicioAdministracionSolicitudes {
         return new RespuestaSolicitudAdministrada(
                 solicitud.obtenerIdSolicitud(), solicitud.obtenerEstado(),
                 usuario.obtenerNombre() + " " + usuario.obtenerApellido(), usuario.obtenerCorreoNormalizado(),
-                detalle.nombreArea(), detalle.fechaSolicitada(), solicitud.obtenerCreadoEn(),
+                detalle.nombreArea() == null ? nombreTipo(solicitud.obtenerTipoSolicitud()) : detalle.nombreArea(),
+                detalle.fechaSolicitada(), solicitud.obtenerCreadoEn(),
                 solicitud.obtenerActualizadoEn(), solicitud.obtenerVersion());
     }
 
@@ -155,7 +158,7 @@ public class ServicioAdministracionSolicitudes {
                 .map(this::convertirDocumento).toList();
         return new RespuestaDetalleSolicitud(
                 solicitud.obtenerIdSolicitud(), solicitud.obtenerTipoSolicitud(),
-                "Uso de cancha o instalación", solicitud.obtenerEstado(), leerDetalle(solicitud),
+                nombreTipo(solicitud.obtenerTipoSolicitud()), solicitud.obtenerEstado(), leerDetalle(solicitud),
                 documentos, solicitud.obtenerResolucion(), solicitud.obtenerCreadoEn(),
                 solicitud.obtenerActualizadoEn(), solicitud.obtenerResueltoEn(), solicitud.obtenerVersion());
     }
@@ -179,17 +182,32 @@ public class ServicioAdministracionSolicitudes {
         }
     }
 
-    private void guardarNotificacion(Solicitud solicitud) {
+    private void guardarNotificacionYEnviarCorreo(Solicitud solicitud) {
         try {
-            repositorioNotificacion.save(new Notificacion(
+            var notificacion = new Notificacion(
                     solicitud.obtenerUsuarioSolicitante(), "RESPUESTASOLICITUD",
                     "Respuesta a solicitud #" + solicitud.obtenerIdSolicitud(),
                     json.writeValueAsString(Map.of(
                             "idSolicitud", solicitud.obtenerIdSolicitud(),
-                            "estado", solicitud.obtenerEstado()))));
+                            "estado", solicitud.obtenerEstado(),
+                            "motivo", solicitud.obtenerResolucion())));
+            repositorioNotificacion.save(notificacion);
+            var usuario = solicitud.obtenerUsuarioSolicitante();
+            try {
+                enviadorCorreo.enviar(usuario.obtenerCorreoNormalizado(), usuario.obtenerNombre(),
+                        solicitud.obtenerIdSolicitud(), solicitud.obtenerEstado(), solicitud.obtenerResolucion());
+                notificacion.marcarEnviada();
+            } catch (RuntimeException excepcionCorreo) {
+                notificacion.marcarFallida();
+            }
+            repositorioNotificacion.save(notificacion);
         } catch (JacksonException excepcion) {
             throw new IllegalStateException("No fue posible generar la notificación de la solicitud.", excepcion);
         }
+    }
+
+    private String nombreTipo(String tipo) {
+        return "DENUNCIAQUEJA".equals(tipo) ? "Denuncia o queja" : "Uso de cancha o instalación";
     }
 
     private String normalizarBusqueda(String busqueda) {

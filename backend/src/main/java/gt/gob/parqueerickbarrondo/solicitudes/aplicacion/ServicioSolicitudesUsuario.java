@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.time.LocalDate;
 
 import gt.gob.parqueerickbarrondo.compartido.observabilidad.IdentificadorCorrelacion;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ConflictoDatosException;
@@ -24,6 +25,8 @@ import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.RespuestaPaginaSolicitu
 import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.RespuestaProcedimientoUsoInstalacion;
 import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.RespuestaSolicitudUsuario;
 import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.SolicitudUsoInstalacion;
+import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.SolicitudInicioTramite;
+import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.SolicitudDenunciaQueja;
 import gt.gob.parqueerickbarrondo.solicitudes.dominio.Documento;
 import gt.gob.parqueerickbarrondo.solicitudes.dominio.Solicitud;
 import gt.gob.parqueerickbarrondo.solicitudes.dominio.SolicitudDocumento;
@@ -46,18 +49,21 @@ public class ServicioSolicitudesUsuario {
 
     private static final Set<String> BORRADORES = Set.of("BORRADOR");
     private static final Set<String> EN_PROCESO = Set.of("ENVIADA", "ENREVISION");
-    private static final Set<String> FINALIZADAS = Set.of("APROBADA", "CANCELADA");
+    private static final Set<String> FINALIZADAS = Set.of("APROBADA", "CANCELADA", "RECHAZADA");
     private static final Set<String> RECHAZADAS = Set.of("RECHAZADA");
+    private static final Set<String> TODAS = Set.of(
+            "BORRADOR", "ENVIADA", "ENREVISION", "APROBADA", "CANCELADA", "RECHAZADA");
     private static final Map<String, Set<String>> ESTADOS_POR_GRUPO = Map.of(
+            "TODOS", TODAS,
             "BORRADORES", BORRADORES,
             "ENPROCESO", EN_PROCESO,
-            "FINALIZADAS", FINALIZADAS,
-            "RECHAZADAS", RECHAZADAS);
+            "FINALIZADAS", FINALIZADAS);
     private static final Map<String, String> NOMBRES_TIPOS = Map.of(
             "USOINSTALACION", "Uso de cancha o instalación",
             "USO_INSTALACION", "Uso de cancha o instalación",
             "RESERVAAREA", "Uso de área o instalación",
-            "RESERVA_AREA", "Uso de área o instalación");
+            "RESERVA_AREA", "Uso de área o instalación",
+            "DENUNCIAQUEJA", "Denuncia o queja");
     private static final int MAXIMO_DOCUMENTOS = 5;
 
     private final RepositorioSolicitud repositorioSolicitud;
@@ -134,13 +140,52 @@ public class ServicioSolicitudesUsuario {
     }
 
     @Transactional
+    public RespuestaDetalleSolicitud iniciarBorrador(
+            Long idUsuario, String codigoTramite, SolicitudInicioTramite datos) {
+        var codigo = codigoTramite == null ? "" : codigoTramite.strip().toUpperCase(Locale.ROOT);
+        if (!Set.of("RESERVACANCHAS", "RESERVAAREAS").contains(codigo)) {
+            throw new SolicitudInvalidaException("El trámite seleccionado no utiliza el flujo de reserva.");
+        }
+        if (Boolean.TRUE.equals(datos.representanteLegal())
+                && (datos.institucion() == null || datos.institucion().isBlank())) {
+            throw new SolicitudInvalidaException("Indica la institución que representas.");
+        }
+        var usuario = buscarUsuario(idUsuario);
+        var detalle = new DetalleUsoInstalacionSolicitud(
+                null, null, null, null, null, null, 0, null,
+                new DatosSolicitanteSolicitud(datos.nombreCompleto().strip(), "", datos.correo().strip(),
+                        datos.dpi().strip(), datos.telefono().strip(), usuario.obtenerFechaNacimiento()),
+                codigo, null, "Centro Deportivo y Recreativo Parque Erick Bernabé Barrondo García",
+                null, datos.representanteLegal(), limpiarOpcional(datos.institucion()), null, null);
+        var solicitud = repositorioSolicitud.saveAndFlush(new Solicitud(
+                usuario, "USOINSTALACION", serializarDetalle(detalle)));
+        auditar(idUsuario, "SOLICITUDBORRADORCREADO", solicitud);
+        return convertirDetalle(solicitud, List.of());
+    }
+
+    @Transactional
+    public RespuestaDetalleSolicitud enviarDenunciaQueja(Long idUsuario, SolicitudDenunciaQueja datos) {
+        var usuario = buscarUsuario(idUsuario);
+        var detalle = new DetalleUsoInstalacionSolicitud(
+                null, "Parque Erick Bernabé Barrondo", null, null, null, null, 0,
+                datos.descripcion().strip(), datosSolicitanteRegistrado(usuario), "DENUNCIASQUEJAS", null,
+                "Parque Erick Bernabé Barrondo", null, false, null, datos.tipo(), datos.asunto().strip());
+        var solicitud = new Solicitud(usuario, "DENUNCIAQUEJA", serializarDetalle(detalle));
+        solicitud.enviar();
+        repositorioSolicitud.saveAndFlush(solicitud);
+        auditar(idUsuario, "DENUNCIAQUEJAENVIADA", solicitud);
+        return convertirDetalle(solicitud, List.of());
+    }
+
+    @Transactional
     public RespuestaDetalleSolicitud actualizarBorrador(
             Long idSolicitud, Long idUsuario, SolicitudUsoInstalacion datos) {
         var solicitud = buscarPropia(idSolicitud, idUsuario);
         validarVersion(solicitud, datos.version());
         validarBorrador(solicitud);
+        var anterior = deserializarDetalle(solicitud.obtenerDetalle());
         solicitud.actualizarBorrador(serializarDetalle(
-                crearDetalle(solicitud.obtenerUsuarioSolicitante(), datos)));
+                crearDetalle(solicitud.obtenerUsuarioSolicitante(), datos, anterior)));
         repositorioSolicitud.saveAndFlush(solicitud);
         auditar(idUsuario, "SOLICITUDBORRADORACTUALIZADO", solicitud);
         return convertirDetalle(solicitud, listarDocumentos(idSolicitud));
@@ -160,14 +205,14 @@ public class ServicioSolicitudesUsuario {
         if (repositorioSolicitudDocumento.countBySolicitud_IdSolicitud(idSolicitud) >= MAXIMO_DOCUMENTOS) {
             throw new SolicitudInvalidaException("Cada solicitud puede incluir hasta 5 documentos.");
         }
-        var guardado = almacenamiento.guardar(archivo);
+        var guardado = almacenamiento.guardarPdf(archivo);
         eliminarArchivoSiTransaccionFalla(guardado.claveAlmacenamiento());
         var documento = repositorioDocumento.saveAndFlush(new Documento(
-                solicitud.obtenerUsuarioSolicitante(), "RESPALDOACTIVIDAD",
+                solicitud.obtenerUsuarioSolicitante(), "DPISOLICITANTE",
                 guardado.claveAlmacenamiento(), guardado.nombreArchivoOriginal(),
                 guardado.tipoMedio(), guardado.tamanoBytes()));
         var relacion = repositorioSolicitudDocumento.saveAndFlush(new SolicitudDocumento(
-                solicitud, documento, "RESPALDOACTIVIDAD"));
+                solicitud, documento, "DPISOLICITANTE", true));
         auditar(idUsuario, "DOCUMENTOSOLICITUDAGREGADO", solicitud);
         return convertirDocumento(relacion, false);
     }
@@ -190,6 +235,26 @@ public class ServicioSolicitudesUsuario {
         auditar(idUsuario, "DOCUMENTOSOLICITUDELIMINADO", solicitud);
     }
 
+    @Transactional
+    public void eliminarBorrador(Long idSolicitud, Long idUsuario) {
+        var solicitud = buscarPropia(idSolicitud, idUsuario);
+        validarBorrador(solicitud);
+        var relaciones = repositorioSolicitudDocumento
+                .findAllBySolicitud_IdSolicitudOrderByCreadoEnAscIdSolicitudDocumentoAsc(idSolicitud);
+        var claves = relaciones.stream()
+                .map(relacion -> relacion.obtenerDocumento().obtenerClaveAlmacenamiento()).toList();
+        repositorioSolicitudDocumento.deleteAll(relaciones);
+        repositorioSolicitudDocumento.flush();
+        relaciones.forEach(relacion -> {
+            relacion.obtenerDocumento().marcarEliminado();
+            repositorioDocumento.save(relacion.obtenerDocumento());
+        });
+        auditar(idUsuario, "SOLICITUDBORRADORELIMINADO", solicitud);
+        repositorioSolicitud.delete(solicitud);
+        repositorioSolicitud.flush();
+        claves.forEach(this::eliminarArchivoDespuesDeConfirmar);
+    }
+
     @Transactional(readOnly = true)
     public ArchivoDocumentoSolicitud cargarDocumento(
             Long idSolicitud, Long idDocumentoSolicitud, Long idUsuario) {
@@ -207,7 +272,15 @@ public class ServicioSolicitudesUsuario {
         var solicitud = buscarPropia(idSolicitud, idUsuario);
         validarVersion(solicitud, version);
         validarBorrador(solicitud);
-        deserializarDetalle(solicitud.obtenerDetalle());
+        var detalle = deserializarDetalle(solicitud.obtenerDetalle());
+        validarDetalleCompleto(detalle);
+        var tieneDpi = repositorioSolicitudDocumento
+                .findAllBySolicitud_IdSolicitudOrderByCreadoEnAscIdSolicitudDocumentoAsc(idSolicitud)
+                .stream().anyMatch(relacion -> "DPISOLICITANTE".equals(relacion.obtenerCategoriaDocumento())
+                        && "ACTIVO".equals(relacion.obtenerDocumento().obtenerEstado()));
+        if (!tieneDpi) {
+            throw new SolicitudInvalidaException("Debes cargar el DPI del solicitante en formato PDF.");
+        }
         try {
             solicitud.enviar();
         } catch (IllegalStateException excepcion) {
@@ -219,6 +292,11 @@ public class ServicioSolicitudesUsuario {
     }
 
     private DetalleUsoInstalacionSolicitud crearDetalle(Usuario usuario, SolicitudUsoInstalacion datos) {
+        return crearDetalle(usuario, datos, null);
+    }
+
+    private DetalleUsoInstalacionSolicitud crearDetalle(
+            Usuario usuario, SolicitudUsoInstalacion datos, DetalleUsoInstalacionSolicitud anterior) {
         if (!datos.horaFin().isAfter(datos.horaInicio())) {
             throw new SolicitudInvalidaException(
                     "La hora de finalización debe ser posterior a la hora de inicio.");
@@ -226,13 +304,57 @@ public class ServicioSolicitudesUsuario {
         var area = repositorioArea.buscarPublicaPorCodigo(datos.codigoArea().strip())
                 .orElseThrow(() -> new SolicitudInvalidaException(
                         "La cancha o instalación seleccionada no está disponible en el catálogo del parque."));
+        if (datos.fechaSolicitada().isBefore(LocalDate.now().plusDays(7))) {
+            throw new SolicitudInvalidaException("La reserva debe solicitarse con al menos 7 días de anticipación.");
+        }
+        var tipoReserva = normalizarTipoReserva(datos.tipoReserva(), datos.cantidadPersonas());
+        var responsable = datos.nombreResponsable() == null || datos.nombreResponsable().isBlank()
+                ? usuario.obtenerNombre() + " " + usuario.obtenerApellido()
+                : datos.nombreResponsable().strip();
+        var solicitante = anterior != null && anterior.datosSolicitante() != null
+                ? anterior.datosSolicitante() : datosSolicitanteRegistrado(usuario);
         return new DetalleUsoInstalacionSolicitud(
                 area.obtenerCodigo(), area.obtenerNombre(), datos.fechaSolicitada(),
                 datos.horaInicio(), datos.horaFin(), datos.tipoActividad().strip(),
                 datos.cantidadPersonas(), datos.descripcion().strip(),
-                new DatosSolicitanteSolicitud(
-                        usuario.obtenerNombre(), usuario.obtenerApellido(), usuario.obtenerCorreoNormalizado(),
-                        usuario.obtenerDpi(), usuario.obtenerCelular(), usuario.obtenerFechaNacimiento()));
+                solicitante, anterior == null || anterior.codigoTramite() == null
+                        ? "RESERVACANCHAS" : anterior.codigoTramite(), tipoReserva,
+                "Centro Deportivo y Recreativo Parque Erick Bernabé Barrondo García", responsable,
+                anterior == null ? false : anterior.representanteLegal(),
+                anterior == null ? null : anterior.institucion(), null, null);
+    }
+
+    private DatosSolicitanteSolicitud datosSolicitanteRegistrado(Usuario usuario) {
+        return new DatosSolicitanteSolicitud(usuario.obtenerNombre(), usuario.obtenerApellido(),
+                usuario.obtenerCorreoNormalizado(), usuario.obtenerDpi(), usuario.obtenerCelular(),
+                usuario.obtenerFechaNacimiento());
+    }
+
+    private String normalizarTipoReserva(String valor, int personas) {
+        var tipo = valor == null ? "" : valor.strip().toUpperCase(Locale.ROOT);
+        if (!Set.of("AFLUENCIAMEDIA", "MAYORAFLUENCIA").contains(tipo)) {
+            throw new SolicitudInvalidaException("Selecciona el tipo de reserva.");
+        }
+        if ("AFLUENCIAMEDIA".equals(tipo) && (personas < 51 || personas > 100)) {
+            throw new SolicitudInvalidaException("La reserva de afluencia media admite de 51 a 100 personas.");
+        }
+        if ("MAYORAFLUENCIA".equals(tipo) && (personas < 101 || personas > 500)) {
+            throw new SolicitudInvalidaException("La reserva de mayor afluencia admite de 101 a 500 personas.");
+        }
+        return tipo;
+    }
+
+    private void validarDetalleCompleto(DetalleUsoInstalacionSolicitud detalle) {
+        if (detalle.codigoArea() == null || detalle.fechaSolicitada() == null
+                || detalle.horaInicio() == null || detalle.horaFin() == null
+                || detalle.tipoReserva() == null || detalle.nombreResponsable() == null) {
+            throw new SolicitudInvalidaException(
+                    "Debes completar el paso 2: información del espacio, fecha y horario.");
+        }
+    }
+
+    private String limpiarOpcional(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.strip();
     }
 
     private Usuario buscarUsuario(Long idUsuario) {
@@ -303,7 +425,7 @@ public class ServicioSolicitudesUsuario {
         var prefijo = administracion ? "/api/v1/administracion" : "/api/v1";
         return new RespuestaDocumentoSolicitud(
                 relacion.obtenerIdSolicitudDocumento(), relacion.obtenerCategoriaDocumento(),
-                "Documento de respaldo de la actividad", relacion.esObligatorio(),
+                "DPI del solicitante o representante legal", relacion.esObligatorio(),
                 documento.obtenerNombreArchivoOriginal(), documento.obtenerTipoMedio(),
                 documento.obtenerTamanoBytes(), relacion.obtenerCreadoEn(),
                 prefijo + "/solicitudes/" + relacion.obtenerSolicitud().obtenerIdSolicitud()
@@ -330,7 +452,7 @@ public class ServicioSolicitudesUsuario {
 
     private String normalizarGrupo(String grupo) {
         return grupo == null || grupo.isBlank()
-                ? "ENPROCESO" : grupo.strip().toUpperCase(Locale.ROOT);
+                ? "TODOS" : grupo.strip().toUpperCase(Locale.ROOT);
     }
 
     private String nombreLegible(String tipo) {

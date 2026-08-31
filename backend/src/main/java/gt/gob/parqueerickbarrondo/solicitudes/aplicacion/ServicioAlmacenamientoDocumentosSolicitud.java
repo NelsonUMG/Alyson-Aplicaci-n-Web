@@ -19,7 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Service
 public class ServicioAlmacenamientoDocumentosSolicitud {
 
-    private static final long TAMANO_MAXIMO = 5L * 1024L * 1024L;
+    private static final long TAMANO_MAXIMO = 20L * 1024L * 1024L;
     private final Path rutaRaiz;
 
     public ServicioAlmacenamientoDocumentosSolicitud(
@@ -32,7 +32,7 @@ public class ServicioAlmacenamientoDocumentosSolicitud {
             throw new SolicitudInvalidaException("Selecciona un documento para adjuntar.");
         }
         if (archivo.getSize() > TAMANO_MAXIMO) {
-            throw new SolicitudInvalidaException("El documento no puede superar 5 MB.");
+            throw new SolicitudInvalidaException("El documento no puede superar 20 MB.");
         }
         try {
             var bytes = archivo.getBytes();
@@ -55,6 +55,15 @@ public class ServicioAlmacenamientoDocumentosSolicitud {
         } catch (IOException excepcion) {
             throw new SolicitudInvalidaException("No fue posible validar o almacenar el documento.");
         }
+    }
+
+    public DocumentoSolicitudAlmacenado guardarPdf(MultipartFile archivo) {
+        var guardado = guardar(archivo);
+        if (!"application/pdf".equals(guardado.tipoMedio())) {
+            eliminar(guardado.claveAlmacenamiento());
+            throw new SolicitudInvalidaException("Este paso solo admite documentos PDF válidos.");
+        }
+        return guardado;
     }
 
     public ArchivoDocumentoSolicitud cargar(

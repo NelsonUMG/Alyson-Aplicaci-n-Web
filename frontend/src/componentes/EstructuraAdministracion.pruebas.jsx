@@ -36,6 +36,6 @@ describe("Estructura administrativa", () => {
     fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
 
     await waitFor(() => expect(sesion.cerrar).toHaveBeenCalledTimes(1));
-    expect(screen.getByRole("heading", { name: "Iniciar sesión" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Iniciar sesión" })).toBeTruthy();
   });
 });

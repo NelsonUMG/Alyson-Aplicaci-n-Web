@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -89,6 +90,36 @@ class ServicioVerificacionCorreoPruebas {
 
         verify(repositorioToken, never()).saveAndFlush(any());
         verify(enviador, never()).enviar(any(), any(), any());
+    }
+
+    @Test
+    void conservaLaCuentaPendienteYAauditaCuandoFallaSmtp() {
+        var repositorioToken = mock(RepositorioTokenVerificacionCorreo.class);
+        var enviador = mock(EnviadorCorreoVerificacion.class);
+        var auditoria = mock(ServicioAuditoria.class);
+        var usuario = usuarioPendiente();
+        doThrow(new IllegalStateException("SMTP no disponible"))
+                .when(enviador).enviar(any(), any(), any());
+        var servicio = new ServicioVerificacionCorreo(
+                repositorioToken,
+                mock(RepositorioUsuario.class),
+                new NormalizadorCorreo(),
+                enviador,
+                auditoria,
+                24,
+                5);
+
+        var enviado = servicio.crearYEnviar(usuario);
+
+        assertThat(enviado).isFalse();
+        assertThat(usuario.obtenerEstado()).isEqualTo("PENDIENTEVERIFICACION");
+        verify(auditoria).registrar(
+                org.mockito.ArgumentMatchers.eq(7L),
+                org.mockito.ArgumentMatchers.eq("CORREOVERIFICACIONFALLIDA"),
+                org.mockito.ArgumentMatchers.eq("USUARIO"),
+                org.mockito.ArgumentMatchers.eq("7"),
+                org.mockito.ArgumentMatchers.eq("FALLIDO"),
+                any());
     }
 
     private ServicioVerificacionCorreo crearServicio(

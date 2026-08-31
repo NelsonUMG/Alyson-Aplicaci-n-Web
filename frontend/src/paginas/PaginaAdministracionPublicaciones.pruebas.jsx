@@ -13,6 +13,7 @@ const apiAdministracion = vi.hoisted(() => ({
   eliminarCategoria: vi.fn(),
   eliminarImagenPublicacion: vi.fn(),
   eliminarPublicacion: vi.fn(),
+  establecerPortadaPublicacion: vi.fn(),
   listarCategoriasAdministradas: vi.fn(),
   listarImagenesPublicacion: vi.fn(),
   listarPublicacionesAdministradas: vi.fn(),
@@ -48,8 +49,10 @@ describe("Administración de noticias", () => {
     });
     apiAdministracion.listarImagenesPublicacion.mockReset().mockResolvedValue([]);
     apiAdministracion.agregarImagenPublicacion.mockReset();
+    apiAdministracion.establecerPortadaPublicacion.mockReset();
     apiAdministracion.actualizarCategoria.mockReset().mockResolvedValue();
     apiAdministracion.crearCategoria.mockReset().mockResolvedValue();
+    apiAdministracion.crearPublicacion.mockReset();
     apiAdministracion.desarchivarPublicacion.mockReset();
     apiAdministracion.eliminarCategoria.mockReset().mockResolvedValue();
     apiAdministracion.eliminarPublicacion.mockReset();
@@ -109,6 +112,76 @@ describe("Administración de noticias", () => {
     await waitFor(() => expect(contenido.style.height).toBe("640px"));
   });
 
+  it("exige una portada y permite agregar varias fotos de galería antes de guardar", async () => {
+    const guardada = {
+      idPublicacion: 7,
+      idCategoriaPublicacion: 1,
+      titulo: "Noticia con portada",
+      resumen: "Resumen de prueba",
+      contenido: "Contenido de prueba",
+      fechaEditorial: null,
+      estado: "BORRADOR",
+      version: 0,
+    };
+    apiAdministracion.crearPublicacion.mockResolvedValue(guardada);
+    apiAdministracion.agregarImagenPublicacion
+      .mockResolvedValueOnce({ idImagenPublicacion: 31 })
+      .mockResolvedValue({ idImagenPublicacion: 32 });
+    apiAdministracion.establecerPortadaPublicacion.mockResolvedValue([]);
+    const vista = render(<MemoryRouter><PaginaAdministracionPublicaciones /></MemoryRouter>);
+    const paginaActual = within(vista.container);
+
+    fireEvent.click(await paginaActual.findByRole("button", { name: "Nueva noticia" }));
+    fireEvent.change(paginaActual.getByLabelText("Título"), { target: { value: guardada.titulo } });
+    fireEvent.change(paginaActual.getByLabelText("Resumen"), { target: { value: guardada.resumen } });
+    fireEvent.change(paginaActual.getByLabelText("Contenido"), { target: { value: guardada.contenido } });
+    const formulario = paginaActual.getByRole("button", { name: "Guardar" }).closest("form");
+    fireEvent.submit(formulario);
+
+    expect(await paginaActual.findByText("La portada de la noticia es obligatoria.")).toBeTruthy();
+    expect(apiAdministracion.crearPublicacion).not.toHaveBeenCalled();
+
+    const archivo = new window.File(["portada"], "portada.jpg", { type: "image/jpeg" });
+    expect(paginaActual.getByRole("heading", { name: "Añadir foto de portada" })).toBeTruthy();
+    expect(paginaActual.getByText("Seleccionar archivo")).toBeTruthy();
+    expect(paginaActual.getByText(/Puedes incluir hasta 20 fotos además de la portada\./)).toBeTruthy();
+    fireEvent.change(paginaActual.getByLabelText("Foto de portada"), { target: { files: [archivo] } });
+    expect(paginaActual.getByText("Cambiar foto")).toBeTruthy();
+    const fotoGaleriaUno = new window.File(["galeria-1"], "galeria-1.jpg", { type: "image/jpeg" });
+    const fotoGaleriaDos = new window.File(["galeria-2"], "galeria-2.png", { type: "image/png" });
+    fireEvent.change(paginaActual.getByLabelText("Fotos de galería"), {
+      target: { files: [fotoGaleriaUno, fotoGaleriaDos] },
+    });
+    await paginaActual.findByRole("img", { name: "Vista previa de galeria-1.jpg" });
+    expect(paginaActual.queryByText(/Texto alternativo/)).toBeNull();
+    fireEvent.submit(formulario);
+
+    await waitFor(() => expect(apiAdministracion.crearPublicacion).toHaveBeenCalledOnce());
+    await waitFor(() => expect(apiAdministracion.agregarImagenPublicacion)
+      .toHaveBeenNthCalledWith(1, 7, archivo));
+    expect(apiAdministracion.agregarImagenPublicacion).toHaveBeenNthCalledWith(2, 7, fotoGaleriaUno);
+    expect(apiAdministracion.agregarImagenPublicacion).toHaveBeenNthCalledWith(3, 7, fotoGaleriaDos);
+    expect(apiAdministracion.establecerPortadaPublicacion).toHaveBeenCalledWith(7, 31);
+    expect(await paginaActual.findByText("Noticia guardada como borrador.")).toBeTruthy();
+  });
+
+  it("limita la galería a veinte fotos adicionales", async () => {
+    const vista = render(<MemoryRouter><PaginaAdministracionPublicaciones /></MemoryRouter>);
+    const paginaActual = within(vista.container);
+    fireEvent.click(await paginaActual.findByRole("button", { name: "Nueva noticia" }));
+    const archivos = Array.from({ length: 21 }, (_, indice) => new window.File(
+      [`foto-${indice + 1}`],
+      `foto-${indice + 1}.jpg`,
+      { type: "image/jpeg" },
+    ));
+
+    fireEvent.change(paginaActual.getByLabelText("Fotos de galería"), { target: { files: archivos } });
+
+    expect(await paginaActual.findByText("Solo se agregaron 20 fotos porque la galería admite hasta 20.")).toBeTruthy();
+    expect(paginaActual.getAllByRole("img", { name: /Vista previa de foto-/ })).toHaveLength(20);
+    expect(paginaActual.getByText("La galería ya está completa.")).toBeTruthy();
+  });
+
   it("impide abrir una noticia nueva cuando no existen categorías activas", async () => {
     apiAdministracion.listarCategoriasAdministradas.mockResolvedValue([]);
     const vista = render(<MemoryRouter><PaginaAdministracionPublicaciones /></MemoryRouter>);
@@ -155,13 +228,13 @@ describe("Administración de noticias", () => {
     expect(paginaActual.getByRole("button", { name: "Guardar categoría" }).disabled).toBe(true);
     expect(apiAdministracion.crearCategoria).not.toHaveBeenCalled();
 
-    fireEvent.change(paginaActual.getByLabelText("Orden de categorías"), { target: { value: "2" } });
+    fireEvent.change(paginaActual.getByLabelText("Orden de categorías"), { target: { value: "10" } });
     fireEvent.click(paginaActual.getByRole("button", { name: "Guardar categoría" }));
 
     await waitFor(() => expect(apiAdministracion.crearCategoria).toHaveBeenCalledWith({
       nombre: "Actividades",
       descripcion: "",
-      ordenVisualizacion: 2,
+      ordenVisualizacion: 10,
       activa: true,
       version: null,
     }));
@@ -256,11 +329,11 @@ describe("Administración de noticias", () => {
     expect(miniatura.getAttribute("src")).toBe("/api/v1/administracion/publicaciones/7/imagenes/31/archivo");
 
     const archivo = new window.File(["imagen"], "parque.png", { type: "image/png" });
-    fireEvent.change(paginaActual.getByLabelText("Archivo PNG o JPEG"), { target: { files: [archivo] } });
+    fireEvent.change(paginaActual.getByLabelText("Fotos de galería"), { target: { files: [archivo] } });
 
     const vistaPrevia = await paginaActual.findByRole("img", { name: "Vista previa de parque.png" });
     expect(vistaPrevia.getAttribute("src")).toMatch(/^data:image\/png;base64,/);
-    expect(paginaActual.getByText("Vista previa · parque.png")).toBeTruthy();
+    expect(paginaActual.getByText("parque.png")).toBeTruthy();
     expect(apiAdministracion.agregarImagenPublicacion).not.toHaveBeenCalled();
   });
 

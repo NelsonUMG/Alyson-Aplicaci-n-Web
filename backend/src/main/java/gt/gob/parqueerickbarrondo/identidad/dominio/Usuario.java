@@ -44,6 +44,18 @@ public class Usuario {
     @Column(name = "FechaNacimiento")
     private LocalDate fechaNacimiento;
 
+    @Column(name = "DpiExtendidoEn", length = 120)
+    private String dpiExtendidoEn;
+
+    @Column(name = "Telefono", length = 24)
+    private String telefono;
+
+    @Column(name = "Direccion", length = 300)
+    private String direccion;
+
+    @Column(name = "ClaveFotoPerfil", length = 200)
+    private String claveFotoPerfil;
+
     @Column(name = "HashContrasena", nullable = false, length = 255)
     private String hashContrasena;
 
@@ -145,6 +157,22 @@ public class Usuario {
         return fechaNacimiento;
     }
 
+    public String obtenerDpiExtendidoEn() {
+        return dpiExtendidoEn;
+    }
+
+    public String obtenerTelefono() {
+        return telefono;
+    }
+
+    public String obtenerDireccion() {
+        return direccion;
+    }
+
+    public String obtenerClaveFotoPerfil() {
+        return claveFotoPerfil;
+    }
+
     public String obtenerHashContrasena() {
         return hashContrasena;
     }
@@ -215,5 +243,32 @@ public class Usuario {
     public void cambiarContrasena(String nuevoHash) {
         hashContrasena = nuevoHash;
         actualizadoEn = Instant.now();
+    }
+
+    public void actualizarPerfil(
+            String nombre,
+            String apellido,
+            String celular,
+            LocalDate fechaNacimiento,
+            String dpiExtendidoEn,
+            String telefono,
+            String direccion) {
+        this.nombre = nombre.strip();
+        this.apellido = apellido.strip();
+        this.celular = celular.strip();
+        this.fechaNacimiento = fechaNacimiento;
+        this.dpiExtendidoEn = dpiExtendidoEn.strip();
+        this.telefono = normalizarOpcional(telefono);
+        this.direccion = normalizarOpcional(direccion);
+        actualizadoEn = Instant.now();
+    }
+
+    public void cambiarFotoPerfil(String nuevaClave) {
+        claveFotoPerfil = normalizarOpcional(nuevaClave);
+        actualizadoEn = Instant.now();
+    }
+
+    private String normalizarOpcional(String valor) {
+        return valor == null || valor.isBlank() ? null : valor.strip();
     }
 }

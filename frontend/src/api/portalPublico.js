@@ -1,4 +1,4 @@
-import { solicitarApi } from "./clienteHttp";
+import { ErrorApi, solicitarApi } from "./clienteHttp";
 
 export function listarCategoriasPublicacion() {
   return solicitarApi("/publico/categorias-publicaciones");
@@ -106,16 +106,49 @@ export async function calcularRecorridoPeatonal(origen, destino) {
     directions_options: { units: "kilometers", language: "es-ES" },
   };
   const parametros = new URLSearchParams({ json: JSON.stringify(solicitud) });
-  const respuesta = await fetch(`${urlBase}?${parametros}`, {
-    headers: {
-      Accept: "application/json",
-      "X-Client-Id": "parque-erick-barrondo-web",
-    },
-  });
-  if (!respuesta.ok) {
-    throw new Error("No fue posible calcular el recorrido peatonal en este momento.");
+  const controlador = new AbortController();
+  let tiempoAgotado = false;
+  const temporizador = window.setTimeout(() => {
+    tiempoAgotado = true;
+    controlador.abort();
+  }, 12000);
+  let respuesta;
+  try {
+    respuesta = await fetch(`${urlBase}?${parametros}`, {
+      headers: {
+        Accept: "application/json",
+        "X-Client-Id": "parque-erick-barrondo-web",
+      },
+      signal: controlador.signal,
+    });
+  } catch (error) {
+    throw new ErrorApi(tiempoAgotado
+      ? "El servicio de rutas tardó demasiado en responder. Intenta nuevamente."
+      : "No fue posible conectar con el servicio de rutas peatonales.", {
+      codigo: tiempoAgotado ? "TIEMPOESPERARUTAAGOTADO" : "SERVICIORUTASNODISPONIBLE",
+      recuperable: true,
+      causa: error,
+    });
+  } finally {
+    window.clearTimeout(temporizador);
   }
-  const contenido = await respuesta.json();
+  if (!respuesta.ok) {
+    throw new ErrorApi("No fue posible calcular el recorrido peatonal en este momento.", {
+      estado: respuesta.status,
+      codigo: "ERRORSERVICIORUTAS",
+      recuperable: true,
+    });
+  }
+  let contenido;
+  try {
+    contenido = await respuesta.json();
+  } catch (error) {
+    throw new ErrorApi("El servicio de rutas devolvió una respuesta que no se pudo procesar.", {
+      codigo: "RESPUESTARUTAINVALIDA",
+      recuperable: true,
+      causa: error,
+    });
+  }
   const viaje = contenido?.trip;
   const tramos = viaje?.legs || [];
   const coordenadas = tramos.flatMap((tramo, indiceTramo) => {

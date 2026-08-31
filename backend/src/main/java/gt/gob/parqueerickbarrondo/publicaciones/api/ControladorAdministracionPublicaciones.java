@@ -13,8 +13,6 @@ import gt.gob.parqueerickbarrondo.publicaciones.api.modelo.SolicitudVersionCateg
 import gt.gob.parqueerickbarrondo.publicaciones.api.modelo.SolicitudVersionPublicacion;
 import gt.gob.parqueerickbarrondo.publicaciones.aplicacion.ServicioAdministracionPublicaciones;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import org.springframework.core.io.Resource;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
@@ -167,12 +165,8 @@ public class ControladorAdministracionPublicaciones {
     public RespuestaImagenAdministrada agregarImagen(
             @PathVariable Long idPublicacion,
             @RequestParam MultipartFile archivo,
-            @RequestParam
-            @NotBlank(message = "El texto alternativo es obligatorio.")
-            @Size(max = 255, message = "El texto alternativo no puede superar 255 caracteres.")
-            String textoAlternativo,
             @AuthenticationPrincipal UsuarioSesion actor) {
-        return servicioAdministracion.agregarImagen(idPublicacion, archivo, textoAlternativo, actor);
+        return servicioAdministracion.agregarImagen(idPublicacion, archivo, actor);
     }
 
     @DeleteMapping("/publicaciones/{idPublicacion}/imagenes/{idImagen}")
@@ -182,5 +176,13 @@ public class ControladorAdministracionPublicaciones {
             @PathVariable Long idImagen,
             @AuthenticationPrincipal UsuarioSesion actor) {
         servicioAdministracion.eliminarImagen(idPublicacion, idImagen, actor);
+    }
+
+    @PutMapping("/publicaciones/{idPublicacion}/imagenes/{idImagen}/portada")
+    public List<RespuestaImagenAdministrada> establecerPortada(
+            @PathVariable Long idPublicacion,
+            @PathVariable Long idImagen,
+            @AuthenticationPrincipal UsuarioSesion actor) {
+        return servicioAdministracion.establecerPortada(idPublicacion, idImagen, actor);
     }
 }

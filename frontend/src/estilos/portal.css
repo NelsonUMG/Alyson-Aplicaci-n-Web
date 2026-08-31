@@ -1599,7 +1599,8 @@
   margin-top: 1.4rem;
 }
 
-.mapa-disponibilidad button {
+.mapa-disponibilidad button,
+.mapa-disponibilidad article {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 0.8rem;
@@ -1611,6 +1612,28 @@
   color: var(--portal-tinta);
   cursor: pointer;
   text-align: left;
+}
+
+.mapa-disponibilidad article {
+  border: 1px solid color-mix(in srgb, var(--color-estado, #a33b32) 35%, #d7dfdb);
+  border-left: 0.3rem solid var(--color-estado, #a33b32);
+}
+
+.portal-galeria-publicacion {
+  margin-top: 2rem;
+}
+
+.portal-galeria-publicacion > div {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1rem;
+}
+
+.portal-galeria-publicacion img {
+  width: 100%;
+  height: 15rem;
+  border-radius: 0.65rem;
+  object-fit: cover;
 }
 
 .mapa-disponibilidad button:hover,
