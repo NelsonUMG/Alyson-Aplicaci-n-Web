@@ -1,5 +1,6 @@
+import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+
 import {
   actualizarArea,
   actualizarCategoriaArea,
@@ -119,7 +120,7 @@ export function PaginaAdministracionAreas() {
   const [categoriaEdicion, establecerCategoriaEdicion] = useState(categoriaVacia);
   const [mostrarCategorias, establecerMostrarCategorias] = useState(false);
   const [areaEdicion, establecerAreaEdicion] = useState(null);
-  const [mostrarListado, establecerMostrarListado] = useState(false);
+  const [mostrarListado, establecerMostrarListado] = useState(true);
   const [filtros, establecerFiltros] = useState({ busqueda: "", estado: "", idCategoria: "" });
   const [imagenAreaPendiente, establecerImagenAreaPendiente] = useState(null);
   const [estado, establecerEstado] = useState({ cargando: true, guardando: false, error: "", mensaje: "" });
@@ -287,25 +288,24 @@ export function PaginaAdministracionAreas() {
 
   return (
     <main className="pagina-administracion pagina-administracion-areas">
-      <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
-      <p className="etiqueta-fase">Administración</p>
-      <div className="encabezado-gestion-areas">
-        <h1>Áreas del parque</h1>
-        <p>Gestiona las categorías, las áreas y su información para el mapa público.</p>
-      </div>
+      <CabeceraAdministracion titulo="Áreas del parque" descripcion="Gestiona las categorías, las áreas y su información para el mapa público." />
       <div className="disposicion-modulo-administracion">
-        <aside className="menu-lateral-administracion">
-          <details open>
-            <summary>Áreas del parque</summary>
+        <nav className="navegacion-modulo-administracion" aria-label="Opciones de Áreas del parque">
         <div className="acciones-superiores-areas">
+<button
+            className={mostrarListado ? "boton-gestion-activo" : "boton-secundario"}
+            type="button"
+            aria-expanded={mostrarListado}
+            onClick={alternarListado}
+          >
+            Listado de áreas
+          </button>
           <button
             className={mostrarCategorias ? "boton-gestion-activo" : "boton-secundario"}
             type="button"
             aria-expanded={mostrarCategorias}
             onClick={alternarCategorias}
-          >
-            Categorías
-          </button>
+          >Nueva categoría</button>
           {puedeActualizar && (
             <button
               className={nuevaAreaActiva ? "boton-gestion-activo" : ""}
@@ -318,17 +318,9 @@ export function PaginaAdministracionAreas() {
               Nueva área
             </button>
           )}
-          <button
-            className={mostrarListado ? "boton-gestion-activo" : "boton-secundario"}
-            type="button"
-            aria-expanded={mostrarListado}
-            onClick={alternarListado}
-          >
-            Listado de áreas
-          </button>
+
         </div>
-          </details>
-        </aside>
+        </nav>
         <div className="contenido-modulo-administracion">
         {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
         {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
@@ -365,10 +357,15 @@ export function PaginaAdministracionAreas() {
         >
           <h2 id="titulo-editar-area">{areaEdicion.idArea ? "Actualizar área" : "Registrar área"}</h2>
           <form className="formulario-administracion formulario-area" onSubmit={guardarArea}>
-            <label>Categoría<select required value={areaEdicion.idCategoriaArea} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, idCategoriaArea: evento.target.value })}><option value="">Selecciona una categoría</option>{categorias.filter((categoria) => categoria.activa || categoria.idCategoriaArea === Number(areaEdicion.idCategoriaArea)).map((categoria) => <option key={categoria.idCategoriaArea} value={categoria.idCategoriaArea}>{categoria.nombre}</option>)}</select></label>
-            <label>Número visible del mapa <span className="indicador-opcional">(opcional)</span><input type="number" min="1" max="9999" value={areaEdicion.numeroVisibleMapa} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, numeroVisibleMapa: evento.target.value })} /></label>
-            <label>Nombre<input required maxLength="150" value={areaEdicion.nombre} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, nombre: evento.target.value })} /></label>
-            <label>Estado<select value={areaEdicion.estado} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, estado: evento.target.value })}>{estadosArea.map((valor) => <option key={valor} value={valor}>{etiquetaEstadoArea(valor)}</option>)}</select></label>
+            <fieldset className="seccion-formulario-area campo-ancho-completo">
+              <legend>1. Identificación y estado</legend>
+              <label>Categoría<select required value={areaEdicion.idCategoriaArea} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, idCategoriaArea: evento.target.value })}><option value="">Selecciona una categoría</option>{categorias.filter((categoria) => categoria.activa || categoria.idCategoriaArea === Number(areaEdicion.idCategoriaArea)).map((categoria) => <option key={categoria.idCategoriaArea} value={categoria.idCategoriaArea}>{categoria.nombre}</option>)}</select></label>
+              <label>Número visible del mapa <span className="indicador-opcional">(opcional)</span><input type="number" min="1" max="9999" value={areaEdicion.numeroVisibleMapa} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, numeroVisibleMapa: evento.target.value })} /></label>
+              <label>Nombre<input required maxLength="150" value={areaEdicion.nombre} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, nombre: evento.target.value })} /></label>
+              <label>Estado<select value={areaEdicion.estado} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, estado: evento.target.value })}>{estadosArea.map((valor) => <option key={valor} value={valor}>{etiquetaEstadoArea(valor)}</option>)}</select></label>
+            </fieldset>
+            <fieldset className="seccion-formulario-area campo-ancho-completo">
+              <legend>2. Ubicación en el mapa</legend>
             <div className="campo-ancho-completo">
               <div className="etiqueta-bloque-formulario">Perímetro <span className="indicador-opcional">(opcional)</span></div>
               <EditorPerimetroArea
@@ -379,6 +376,9 @@ export function PaginaAdministracionAreas() {
                 }))}
               />
             </div>
+            </fieldset>
+            <fieldset className="seccion-formulario-area campo-ancho-completo">
+              <legend>3. Atención al público</legend>
             <label>Motivo del estado {areaEdicion.idArea && areaEdicion.estado === areaEdicion.estadoOriginal && <span className="indicador-opcional">(opcional)</span>}<input required={!areaEdicion.idArea || areaEdicion.estado !== areaEdicion.estadoOriginal} maxLength="500" value={areaEdicion.motivoCambioEstado} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, motivoCambioEstado: evento.target.value })} /></label>
             <label className="campo-ancho-completo">Descripción <span className="indicador-opcional">(opcional)</span><textarea rows="4" value={areaEdicion.descripcion} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, descripcion: evento.target.value })} /></label>
             <div className="campo-ancho-completo">
@@ -393,6 +393,9 @@ export function PaginaAdministracionAreas() {
                 })}
               />
             </div>
+            </fieldset>
+            <fieldset className="seccion-formulario-area campo-ancho-completo">
+              <legend>4. Información interna y publicación</legend>
             <label className="campo-ancho-completo">Observaciones internas <span className="indicador-opcional">(opcional)</span><textarea rows="4" value={areaEdicion.observacionesInternas} onChange={(evento) => establecerAreaEdicion({ ...areaEdicion, observacionesInternas: evento.target.value })} /></label>
             <div className="gestion-imagen-area campo-ancho-completo">
               <h3>Imagen principal</h3>
@@ -414,6 +417,7 @@ export function PaginaAdministracionAreas() {
                 </button>
               )}
             </div>
+            </fieldset>
           </form>
         </section>
       )}

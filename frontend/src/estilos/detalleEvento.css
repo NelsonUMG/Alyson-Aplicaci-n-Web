@@ -1,0 +1,24 @@
+.detalle-evento-cabecera { padding: 2.25rem 0 2rem; background: #f3f7f5; border-bottom: 1px solid #d8e4df; }
+.detalle-evento-cabecera .portal-sobrelinea { margin-top: 1.5rem; }
+.detalle-evento-cabecera h1 { max-width: 950px; margin: .5rem 0 0; font-size: clamp(1.8rem, 3vw, 2.8rem); line-height: 1.2; overflow-wrap: anywhere; }
+.detalle-evento-seccion { padding-top: 2rem; padding-bottom: 3rem; }
+.detalle-evento-resumen { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 2rem; align-items: center; }
+.detalle-evento-resumen.sin-imagen { grid-template-columns: 1fr; }
+.detalle-evento-resumen .portal-imagen-evento { width: 100%; max-height: 350px; height: auto; margin: 0; border-radius: 10px; object-fit: contain; }
+.detalle-evento-resumen .portal-datos-detalle { grid-template-columns: 1fr; gap: 1rem; margin: 0; }
+.detalle-evento-descripcion { margin: 1.5rem 0 2rem; font-size: .95rem; line-height: 1.75; overflow-wrap: anywhere; }
+.detalle-evento-descripcion p { margin: .7rem 0; white-space: pre-line; }
+.detalle-evento-seccion .portal-inscripcion-evento { padding: 1.5rem; border: 1px solid #d6e4de; border-radius: 10px; background: #f6faf8; margin-bottom: 1.5rem; }
+.detalle-evento-seccion .portal-inscripcion-evento h2 { margin: 0 0 1rem; font-size: 1.5rem; }
+.detalle-evento-seccion .portal-inscripcion-evento form { display: grid; gap: .85rem; max-width: 620px; }
+.detalle-evento-seccion .portal-inscripcion-evento form p { margin: 0 0 .5rem; }
+.detalle-evento-seccion .portal-inscripcion-evento form button { justify-self: start; border-radius: 6px; }
+.detalle-evento-seccion .portal-inscripcion-evento input, .detalle-evento-seccion .portal-inscripcion-evento select { min-width: 0; width: 100%; }
+.detalle-evento-seccion .detalle-evento-cancelar { color: #9a3434; background: #fff; border: 1px solid #d7aaaa; }
+.detalle-evento-seccion .detalle-evento-cancelar:hover { background: #fff2f2; }
+.detalle-evento-estado { color: #176d50; }
+@media (max-width: 640px) {
+  .detalle-evento-resumen { grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+  .detalle-evento-cabecera { padding: 1.5rem 0; }
+  .detalle-evento-seccion .portal-inscripcion-evento { padding: 1rem; }
+}

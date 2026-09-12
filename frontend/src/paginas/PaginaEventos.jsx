@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarEventos } from "../api/portalPublico";
 import { obtenerMensajeError } from "../api/clienteHttp";
+import { usarSesion } from "../autenticacion/ContextoSesion";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
 import { formatearTextoEditorial, formatearTextoTecnico } from "../utilidades/formatoTexto";
 
@@ -12,6 +13,7 @@ const formatoFecha = new Intl.DateTimeFormat("es-GT", {
 });
 
 export function PaginaEventos() {
+  const { usuario } = usarSesion();
   const [respuesta, establecerRespuesta] = useState(null);
   const [pagina, establecerPagina] = useState(0);
   const [error, establecerError] = useState("");
@@ -64,27 +66,27 @@ export function PaginaEventos() {
                 <p className="portal-sobrelinea">Próximas actividades</p>
                 <h2>No hay eventos publicados todavía</h2>
                 <p>Cuando una actividad sea confirmada podrás consultar aquí su fecha, ubicación, requisitos y cupos.</p>
-                <Link className="portal-boton portal-boton-verde" to="/registro">Crear una cuenta</Link>
+                {!usuario && <Link className="portal-boton portal-boton-verde" to="/registro">Crear una cuenta</Link>}
               </div>
             </div>
           )}
 
           {eventos.length > 0 && (
-            <div className="portal-listado-publico">
+            <div className="portal-listado-eventos">
               {eventos.map((evento) => (
-                <article className="portal-elemento-publico portal-evento-publico" key={evento.identificadorUrl}>
-                  {evento.urlImagen && <img className="portal-imagen-evento-listado" src={evento.urlImagen} alt={evento.titulo} loading="lazy" />}
-                  <div>
+                <article className={`portal-elemento-publico tarjeta-evento${evento.urlImagen ? "" : " tarjeta-evento-sin-imagen"}`} key={evento.identificadorUrl}>
+                  {evento.urlImagen && <Link className="tarjeta-evento-imagen" to={`/eventos/${evento.identificadorUrl}`} tabIndex={-1} aria-hidden="true"><img src={evento.urlImagen} alt="" loading="lazy" /></Link>}
+                  <div className="tarjeta-evento-contenido">
                     <p className="portal-sobrelinea">{formatearTextoTecnico(evento.estado)}</p>
                     <h2><Link to={`/eventos/${evento.identificadorUrl}`}>{formatearTextoEditorial(evento.titulo)}</Link></h2>
-                    <p>{evento.descripcion}</p>
-                  </div>
+                    <p>{evento.descripcion?.split(/\n\s*\n/)[0]}</p>
                   <dl>
                     <div><dt>Fecha</dt><dd>{formatoFecha.format(new Date(evento.iniciaEn))}</dd></div>
                     <div><dt>Lugar</dt><dd>{evento.lugar || "Información pendiente de actualización"}</dd></div>
                     <div><dt>Cupos disponibles</dt><dd>{evento.cuposDisponibles}</dd></div>
                   </dl>
                   <Link className="portal-enlace-ver" to={`/eventos/${evento.identificadorUrl}`}>Consultar actividad</Link>
+                  </div>
                 </article>
               ))}
             </div>

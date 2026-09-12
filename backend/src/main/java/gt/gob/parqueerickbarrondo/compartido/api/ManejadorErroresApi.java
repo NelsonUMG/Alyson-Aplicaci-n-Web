@@ -44,13 +44,9 @@ public class ManejadorErroresApi {
         var errores = new LinkedHashMap<String, String>();
         excepcion.getBindingResult().getFieldErrors().forEach(error ->
                 errores.putIfAbsent(error.getField(), error.getDefaultMessage()));
-        var detalleCampos = errores.entrySet().stream()
-                .map(entrada -> entrada.getKey() + ": " + entrada.getValue())
-                .collect(java.util.stream.Collectors.joining("; "));
         var mensaje = errores.isEmpty()
                 ? "Los datos enviados no son válidos."
-                : "Corrige los campos indicados: " + detalleCampos
-                        + (detalleCampos.endsWith(".") ? "" : ".");
+                : errores.values().iterator().next();
         var problema = crearProblema(HttpStatus.BAD_REQUEST, "SOLICITUDINVALIDA", mensaje, peticion);
         problema.setProperty("erroresCampos", errores);
         return problema;

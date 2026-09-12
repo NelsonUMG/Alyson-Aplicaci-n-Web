@@ -27,10 +27,12 @@ import { PaginaNoticias } from "../paginas/PaginaNoticias";
 import { PaginaNosotros } from "../paginas/PaginaNosotros";
 import { PaginaPerfil } from "../paginas/PaginaPerfil";
 import { PaginaRegistro } from "../paginas/PaginaRegistro";
+import { PaginaRecuperarContrasena } from "../paginas/PaginaRecuperarContrasena";
 import { PaginaReportesInscripciones } from "../paginas/PaginaReportesInscripciones";
 import { PaginaVerificacionCorreo } from "../paginas/PaginaVerificacionCorreo";
 
 const rutasSinManejador = [
+  { path: "/recuperar-contrasena", element: <PaginaRecuperarContrasena /> },
   {
     element: <EstructuraPortal />,
     children: [

@@ -44,26 +44,22 @@ export function PaginaNosotros() {
         descripcion="Conoce la identidad, propósito y compromiso del Parque Erick Barrondo."
       />
       <section className="portal-seccion">
-        <div className="portal-contenedor nosotros-panel">
+        <div className="portal-contenedor nosotros-panel nosotros-panel-institucional">
           {error && <p className="portal-mensaje-error" role="alert">{error}</p>}
           <div className="nosotros-introduccion">
-            <p className="portal-sobrelinea">Sobre el parque</p>
-            <h2>Un espacio público al servicio de la comunidad</h2>
+            <h2>Sobre nosotros</h2>
             <p>{contenido.resumen}</p>
           </div>
           <div className="nosotros-propositos">
             <article>
-              <span>01</span>
               <h3>Misión</h3>
               <p>{contenido.mision}</p>
             </article>
             <article>
-              <span>02</span>
               <h3>Visión</h3>
               <p>{contenido.vision}</p>
             </article>
             <article>
-              <span>03</span>
               <h3>Valores</h3>
               <p>{contenido.valores}</p>
             </article>

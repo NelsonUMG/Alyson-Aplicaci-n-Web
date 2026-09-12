@@ -1,0 +1,30 @@
+{
+  "idEvento": 8,
+  "titulo": "Demostración | Superclase de yoga",
+  "identificadorUrl": "demostracion-superclase-de-yoga",
+  "descripcion": "Agenda de demostración para probar inscripciones. La temática se basa en la actividad de yoga anunciada para la pista de atletismo y el polideportivo; esta fecha es únicamente de prueba. Fuente: https://guatemala.gob.gt/parque-erick-barrondo-recibira-superclase-de-yoga-por-el-dia-internacional-del-yoga/",
+  "lugar": "Pista de atletismo",
+  "iniciaEn": "2026-10-24T14:00:00Z",
+  "finalizaEn": "2026-10-24T16:00:00Z",
+  "inscripcionAbreEn": "2026-09-01T12:00:00Z",
+  "inscripcionCierraEn": "2026-10-22T23:59:00Z",
+  "capacidadTotal": 80,
+  "cantidadOcupada": 0,
+  "cuposDisponibles": 80,
+  "estado": "PUBLICADO",
+  "esquemaFormularioJson": "{\"campos\":[]}",
+  "configuracionGruposJson": null,
+  "requisitos": [
+    {
+      "idRequisitoEvento": 7,
+      "descripcion": "Aceptar los requisitos de esta actividad de demostración.",
+      "obligatorio": true,
+      "ordenVisualizacion": 0
+    }
+  ],
+  "tieneImagen": false,
+  "urlImagen": null,
+  "creadoEn": "2026-09-12T03:42:12.090906Z",
+  "actualizadoEn": "2026-09-12T03:51:35.463508Z",
+  "version": 3
+}

@@ -37,17 +37,6 @@
 .portal-barra-superior {
   min-height: 2.15rem;
   background: var(--portal-verde-950);
-  color: rgb(255 255 255 / 72%);
-  font-size: 0.76rem;
-  letter-spacing: 0.025em;
-}
-
-.portal-barra-contenido {
-  display: flex;
-  min-height: 2.15rem;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
 }
 
 .portal-navegacion-contenedor {
@@ -533,7 +522,7 @@
   margin: 0.65rem 0 0;
   color: #fff;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(1.65rem, 4vw, 2.75rem);
+  font-size: clamp(1.35rem, 2.4vw, 1.9rem);
   font-weight: 600;
   line-height: 1.2;
 }
@@ -648,9 +637,9 @@
 
 .portal-pie-columnas {
   display: grid;
-  grid-template-columns: 1.4fr 0.7fr 0.9fr;
-  gap: 4rem;
-  padding-block: 4rem;
+  grid-template-columns: 1.15fr 0.7fr 1fr;
+  gap: clamp(2rem, 4vw, 3.5rem);
+  padding-block: 2.5rem 2rem;
 }
 
 .portal-pie .portal-nombre strong {
@@ -661,14 +650,8 @@
   color: rgb(255 255 255 / 48%);
 }
 
-.portal-pie-identidad > p {
-  max-width: 29rem;
-  margin: 1.25rem 0 0;
-  line-height: 1.65;
-}
-
 .portal-pie h2 {
-  margin: 0 0 1rem;
+  margin: 0 0 0.65rem;
   color: #fff;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 1.15rem;
@@ -679,7 +662,7 @@
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.65rem;
+  gap: 0.55rem;
   font-size: 0.85rem;
 }
 
@@ -693,13 +676,39 @@
   margin: 0;
 }
 
+.portal-pie-direccion {
+  max-width: 22rem;
+  margin: 0;
+  font-style: normal;
+  line-height: 1.6;
+}
+
+.portal-pie-contacto {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 0.55rem;
+  row-gap: 0.55rem;
+  margin: 0;
+}
+
+.portal-pie-contacto > div {
+  display: contents;
+}
+
+.portal-pie-contacto dt {
+  color: inherit;
+  font-weight: 400;
+}
+
+.portal-pie-contacto dd {
+  margin: 0;
+}
+
 .portal-firma {
   display: flex;
   width: min(78rem, calc(100% - 3rem));
   margin-inline: auto;
-  justify-content: space-between;
-  gap: 1rem;
-  padding-block: 1rem;
+  padding-block: 0.8rem;
   border-top: 1px solid rgb(255 255 255 / 13%);
   color: rgb(255 255 255 / 45%);
   font-size: 0.72rem;
@@ -1020,6 +1029,7 @@
 
 .portal-filtros-noticias {
   grid-template-columns: minmax(13rem, 1.4fr) minmax(11rem, 0.9fr) repeat(2, minmax(9rem, 0.65fr)) auto;
+  column-gap: clamp(1rem, 2vw, 1.6rem);
   align-items: end;
   margin-bottom: 0;
   padding: clamp(1rem, 3vw, 1.5rem);
@@ -1028,9 +1038,20 @@
   box-shadow: 0 1rem 2.4rem rgb(14 61 47 / 7%);
 }
 
+.portal-filtros-noticias > label {
+  min-width: 0;
+}
+
+.portal-filtros-noticias > label > input,
+.portal-filtros-noticias > label > select {
+  box-sizing: border-box;
+  width: 100%;
+}
+
 .portal-control-con-icono {
   position: relative;
   display: block;
+  width: 100%;
 }
 
 .portal-control-con-icono svg {
@@ -1045,6 +1066,7 @@
 }
 
 .portal-filtros-noticias .portal-control-con-icono input {
+  width: 100%;
   padding-left: 2.55rem;
 }
 
@@ -1585,9 +1607,9 @@
 .mapa-coordenada-seleccionada button {
   min-height: 2.5rem;
   margin-top: 0.35rem;
-  border: 1px solid var(--portal-verde);
+  border: 1px solid var(--portal-verde-800);
   border-radius: 0.3rem;
-  background: var(--portal-verde);
+  background: var(--portal-verde-800);
   color: #fff;
   cursor: pointer;
   font-weight: 750;
@@ -1706,106 +1728,77 @@
   line-height: 1.45;
 }
 
-.mapa-planificador {
+.mapa-ubicacion-actual {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(18rem, 0.9fr);
-  gap: 2rem;
-  margin-top: 2rem;
-  padding: clamp(1.5rem, 4vw, 2.5rem);
-  border: 1px solid var(--portal-linea);
-  background: #fff;
+  gap: 0.65rem;
+  margin-top: 1.35rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--portal-linea);
 }
 
-.mapa-planificador h2 {
-  margin: 0;
-  color: var(--portal-tinta);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(1.8rem, 3vw, 2.5rem);
-  font-weight: 500;
-}
-
-.mapa-planificador p {
-  color: var(--portal-gris);
-  line-height: 1.65;
-}
-
-.mapa-acciones-ubicacion,
-.mapa-formulario-ruta {
-  display: flex;
-  gap: 0.75rem;
-}
-
-.mapa-acciones-ubicacion {
-  flex-wrap: wrap;
-}
-
-.mapa-acciones-ubicacion button,
-.mapa-formulario-ruta button {
-  min-height: 2.9rem;
-  padding: 0.7rem 1rem;
-  border: 1px solid var(--portal-verde);
-  border-radius: 0.35rem;
-  background: var(--portal-verde);
-  color: #fff;
-  font-weight: 750;
-}
-
-.mapa-acciones-ubicacion .boton-secundario {
-  background: #fff;
-  color: var(--portal-verde);
-}
-
-.mapa-formulario-ruta {
-  display: grid;
-  align-content: start;
-}
-
-.mapa-formulario-ruta label {
-  color: var(--portal-tinta);
-  font-size: 0.86rem;
-  font-weight: 750;
-}
-
-.mapa-formulario-ruta select {
-  width: 100%;
-  min-height: 2.9rem;
-  padding: 0.65rem;
-  border: 1px solid var(--portal-linea);
-  background: #fff;
-  color: var(--portal-tinta);
-}
-
-.mapa-formulario-ruta .campo-verificacion {
-  display: flex;
+.mapa-boton-ubicacion {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 2.8rem;
   align-items: center;
-  gap: 0.55rem;
-  margin-block: 0.5rem;
+  gap: 0.5rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--portal-verde-800);
+  border-radius: 0.35rem;
+  background: var(--portal-verde-800);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 750;
 }
 
-.mapa-planificador .mapa-aviso-privacidad-ruta {
-  max-width: 42rem;
-  margin-bottom: 0;
-  font-size: 0.82rem;
+.mapa-boton-ubicacion::before {
+  content: "⌖";
+  font-size: 1.15rem;
+  line-height: 1;
 }
 
-.mapa-resultado-ruta {
-  grid-column: 1 / -1;
-  padding: 1.25rem;
-  border-left: 0.3rem solid var(--portal-dorado);
-  background: #f7f5ef;
+.mapa-boton-ubicacion:hover:not(:disabled),
+.mapa-boton-ubicacion:focus-visible {
+  border-color: var(--portal-verde-700);
+  background: var(--portal-verde-700);
 }
 
-.mapa-resultado-ruta h3 {
-  margin-top: 0;
+.mapa-boton-ubicacion:disabled {
+  cursor: wait;
+  opacity: 0.7;
 }
 
-.mapa-resultado-ruta ol {
-  display: grid;
-  gap: 0.45rem;
-  margin-bottom: 1rem;
-  padding-left: 1.3rem;
-  color: var(--portal-tinta);
+.mapa-ubicacion-actual p {
+  max-width: 35rem;
+  margin: 0;
+  color: var(--portal-gris);
+  font-size: 0.86rem;
   line-height: 1.5;
+}
+
+.mapa-ubicacion-actual .mapa-precision {
+  color: var(--portal-tinta);
+  font-weight: 650;
+}
+
+.mapa-marcador-ubicacion {
+  position: relative;
+  display: block;
+  width: 1.05rem;
+  height: 1.05rem;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #1675af;
+  box-shadow: 0 0 0 1px rgb(8 45 72 / 34%), 0 2px 6px rgb(6 35 56 / 35%);
+}
+
+.mapa-marcador-ubicacion::after {
+  position: absolute;
+  inset: -0.48rem;
+  border: 1px solid rgb(22 117 175 / 72%);
+  border-radius: 50%;
+  background: rgb(22 117 175 / 16%);
+  content: "";
 }
 
 .pagina-tarjeta-imagen {
@@ -1972,7 +1965,6 @@
     width: min(100% - 2rem, 78rem);
   }
 
-  .portal-barra-contenido span:last-child,
   .portal-nombre small {
     display: none;
   }
@@ -2011,8 +2003,7 @@
   .nosotros-panel,
   .pagina-rejilla-tarjetas,
   .eventos-contenido,
-  .mapa-contenido,
-  .mapa-planificador {
+  .mapa-contenido {
     grid-template-columns: 1fr;
   }
 
@@ -2054,7 +2045,7 @@
   }
 
   .portal-pie-columnas {
-    gap: 2.5rem;
+    gap: 1.75rem;
   }
 
   .portal-firma {
@@ -2101,10 +2092,6 @@
 
   .portal-listado-noticias {
     grid-template-columns: 1fr;
-  }
-
-  .portal-barra-contenido {
-    justify-content: center;
   }
 
   .portal-nombre {

@@ -1,0 +1,110 @@
+.inicio-publicaciones .portal-cabecera-seccion h2 {
+  font-size: clamp(1.8rem, 3vw, 2.5rem);
+}
+
+.inicio-publicacion {
+  display: flex;
+  align-items: flex-end;
+  min-height: 26rem;
+}
+
+.inicio-publicacion-texto {
+  position: relative;
+  width: 100%;
+  padding: 1.75rem clamp(1.25rem, 3vw, 2rem) 1.25rem;
+  background: linear-gradient(0deg, rgb(4 27 21 / 94%), rgb(4 27 21 / 80%) 58%, transparent);
+}
+
+.inicio-publicacion-texto > span { font-size: .75rem; }
+.inicio-publicacion h3 { max-width: 42ch; font-size: clamp(1.25rem, 2vw, 1.55rem); line-height: 1.18; }
+.inicio-publicacion p { font-size: .875rem; line-height: 1.45; }
+.inicio-publicacion-enlace { margin-top: .75rem; }
+
+.portal-redes-sociales {
+  align-self: start;
+  position: sticky;
+  top: 1.5rem;
+  padding-top: 1.6rem;
+}
+.noticias-contenido-con-redes { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2rem; align-items: start; }
+.noticias-contenido-principal { min-width: 0; }
+.portal-redes-enlaces { display: flex; flex-direction: row; gap: .75rem; }
+.portal-redes-enlaces a {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  place-items: center;
+  border: 1px solid var(--portal-verde-700);
+  background: #fff;
+  color: var(--portal-verde-900);
+  text-decoration: none;
+  transition: background-color .2s ease, color .2s ease, transform .2s ease;
+}
+.portal-redes-enlaces a svg { width: 1.5rem; height: 1.5rem; }
+.portal-redes-enlaces a:hover, .portal-redes-enlaces a:focus-visible { background: var(--portal-verde-900); color: #fff; transform: translateY(-2px); }
+
+.nosotros-panel-institucional {
+  display: block;
+  max-width: 67rem;
+  padding: 0 0 1.5rem;
+  border: 1px solid var(--portal-linea);
+  background: #fff;
+  text-align: center;
+}
+.nosotros-panel-institucional .nosotros-introduccion h2 {
+  margin: 0;
+  padding: 1rem 1.5rem;
+  background: var(--portal-verde-900);
+  color: #fff;
+  font-size: 1.65rem;
+}
+.nosotros-panel-institucional .nosotros-introduccion > p:last-child { max-width: 56rem; margin: 2rem auto 1rem; padding: 0 1.5rem; }
+.nosotros-panel-institucional .nosotros-propositos { border: 0; }
+.nosotros-panel-institucional .nosotros-propositos article { display: block; max-width: 56rem; margin: auto; padding: 1.35rem 1.5rem; border: 0; }
+.nosotros-panel-institucional .nosotros-propositos h3 { font-size: 1.4rem; }
+.nosotros-panel-institucional .nosotros-propositos p { line-height: 1.8; }
+
+.portal-listado-eventos {
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+.tarjeta-evento {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+  flex: 0 1 calc(50% - .75rem);
+  gap: 1.3rem;
+  padding: 1.25rem;
+  box-shadow: none;
+}
+.tarjeta-evento:only-child { flex-basis: 44rem; }
+.tarjeta-evento-sin-imagen { grid-template-columns: 1fr; }
+.tarjeta-evento-imagen { display: grid; align-items: start; min-width: 0; }
+.tarjeta-evento-imagen img { display: block; width: 100%; height: 19rem; object-fit: contain; object-position: top center; }
+.tarjeta-evento-contenido { min-width: 0; overflow-wrap: anywhere; }
+.tarjeta-evento h2 { font-size: clamp(1.35rem, 1.8vw, 1.65rem); line-height: 1.25; }
+.tarjeta-evento h2 a { text-decoration: none; }
+.tarjeta-evento .portal-sobrelinea { margin: 0 0 .65rem; font-size: .8125rem; }
+.tarjeta-evento-contenido > p:not(.portal-sobrelinea) { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin: .75rem 0; line-height: 1.5; }
+.tarjeta-evento dl { margin: .75rem 0 1rem; }
+.tarjeta-evento dl > div { margin-top: .65rem; }
+.tarjeta-evento dt { font-size: .875rem; color: var(--portal-verde-700); font-weight: 700; }
+.tarjeta-evento dd { margin: .15rem 0 0; font-size: 1rem; }
+.tarjeta-evento .portal-enlace-ver { display: inline-block; font-size: .875rem; }
+.tarjeta-recuperacion h1 { font-size: clamp(2rem, 4vw, 2.6rem); line-height: 1.15; }
+.pagina-registro { position: relative; padding-top: 5rem; }
+
+@media (max-width: 1000px) {
+  .tarjeta-evento { flex-basis: 44rem; }
+  .noticias-contenido-con-redes { grid-template-columns: 1fr; }
+  .portal-redes-sociales { position: static; padding-top: 0; }
+  .portal-redes-enlaces { flex-direction: row; }
+}
+@media (max-width: 540px) {
+  .inicio-publicacion { aspect-ratio: auto; min-height: 27rem; }
+  .tarjeta-evento { grid-template-columns: 1fr; }
+  .tarjeta-evento-imagen img { height: 17rem; }
+  .nosotros-panel-institucional { width: calc(100% - 2rem); }
+}

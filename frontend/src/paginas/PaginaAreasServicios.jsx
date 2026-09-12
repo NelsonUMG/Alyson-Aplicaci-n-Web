@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { listarAreas } from "../api/portalPublico";
 import { obtenerMensajeError } from "../api/clienteHttp";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
-import { formatearTextoEditorial, formatearTextoTecnico } from "../utilidades/formatoTexto";
+import { formatearTextoEditorial } from "../utilidades/formatoTexto";
 
 export function PaginaAreasServicios() {
   const [areas, establecerAreas] = useState([]);
@@ -50,7 +50,6 @@ export function PaginaAreasServicios() {
                   <h2>{formatearTextoEditorial(area.nombre)}</h2>
                   <p>{area.descripcion || "Información pendiente de actualización"}</p>
                   {area.notaDisponibilidad && <p>{area.notaDisponibilidad}</p>}
-                  <span className="pagina-estado-dato">{formatearTextoTecnico(area.estado)}</span>
                 </article>
               ))}
             </div>

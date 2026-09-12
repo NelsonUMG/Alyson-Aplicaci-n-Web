@@ -38,9 +38,9 @@ describe("Administración de usuarios", () => {
     expect(await screen.findByText("No se encontraron usuarios.")).toBeTruthy();
     const acciones = screen.getByLabelText("Administración de empleados y roles");
     expect(within(acciones).getAllByRole("button").map((boton) => boton.textContent)).toEqual([
+      "Listado de usuarios",
       "Crear Roles",
       "Registrar empleado",
-      "Listado de usuarios",
     ]);
     fireEvent.click(screen.getByRole("button", { name: "Registrar empleado" }));
 

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { confirmarCorreo, reenviarVerificacion } from "../api/autenticacion";
 import { MarcaPortal } from "../componentes/EstructuraPortal";
@@ -9,12 +9,16 @@ export function PaginaVerificacionCorreo() {
   const [estado, setEstado] = useState({ verificando: Boolean(token), mensaje: "", error: "" });
   const [correo, setCorreo] = useState("");
   const [reenvio, setReenvio] = useState({ enviando: false, mensaje: "", error: "" });
+  const confirmacion = useRef(null);
 
   useEffect(() => {
     let vigente = true;
     if (!token) return () => { vigente = false; };
 
-    confirmarCorreo(token)
+    if (confirmacion.current?.token !== token) {
+      confirmacion.current = { token, promesa: confirmarCorreo(token) };
+    }
+    confirmacion.current.promesa
       .then((respuesta) => {
         if (vigente) setEstado({ verificando: false, mensaje: respuesta.mensaje, error: "" });
       })

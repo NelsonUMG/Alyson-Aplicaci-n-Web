@@ -48,14 +48,13 @@ export function PaginaMisInscripciones() {
         <div className="contenido-cabecera-inscripciones">
           <Link className="marca-inscripciones" to="/" aria-label="Parque Erick Barrondo · Inicio">
             <span className="emblema-inscripciones"><img src="/imagenes/escudo-guatemala.png" alt="" aria-hidden="true" /></span>
-            <span><strong>Parque Erick Barrondo</strong><small>Portal de gestiones</small></span>
+            <span><strong>Parque Erick Barrondo</strong><small>Atrás</small></span>
           </Link>
           <Link className="cuenta-inscripciones" to="/perfil"><IconoInscripcion tipo="usuario" /><span>Mi cuenta</span><b>U</b></Link>
         </div>
       </header>
 
       <main className="contenido-inscripciones">
-        <nav className="miga-inscripciones" aria-label="Ruta actual"><Link to="/">Inicio</Link><span>›</span><strong>Mis inscripciones</strong></nav>
         <section className="hero-inscripciones">
           <div><p>Cuenta personal</p><h1>Mis inscripciones</h1><span>Consulta tus próximas actividades y el historial de eventos en los que participaste.</span></div>
         </section>

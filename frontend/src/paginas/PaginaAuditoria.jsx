@@ -1,5 +1,6 @@
+import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+
 import { listarEventosAuditoria } from "../api/administracionAuditoria";
 
 const paginaVacia = { contenido: [], pagina: 0, totalPaginas: 0, totalElementos: 0 };
@@ -57,7 +58,7 @@ export function PaginaAuditoria() {
   const [filtros, establecerFiltros] = useState(filtrosVacios);
   const [filtrosAplicados, establecerFiltrosAplicados] = useState(filtrosVacios);
   const [estado, establecerEstado] = useState({ cargando: true, error: "" });
-  const [mostrarListado, establecerMostrarListado] = useState(false);
+  const [mostrarListado, establecerMostrarListado] = useState(true);
 
   async function cargar(parametros, numeroPagina = 0) {
     establecerEstado({ cargando: true, error: "" });
@@ -101,21 +102,15 @@ export function PaginaAuditoria() {
 
   return (
     <main className="pagina-administracion pagina-auditoria">
-      <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
-      <p className="etiqueta-fase">Consulta autorizada</p>
-      <h1>Auditoría del sistema</h1>
-      <p>Consulta operaciones sensibles registradas por el servidor. Los eventos son de solo lectura.</p>
+      <CabeceraAdministracion titulo="Auditoría del sistema" descripcion="Consulta operaciones sensibles registradas por el servidor. Los eventos son de solo lectura." />
       <div className="disposicion-modulo-administracion">
-        <aside className="menu-lateral-administracion">
-          <details open>
-            <summary>Auditoría del sistema</summary>
+        <nav className="navegacion-modulo-administracion" aria-label="Opciones de Auditoría del sistema">
       <div className="acciones-superiores-administracion">
         <button className={mostrarListado ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarListado} onClick={() => establecerMostrarListado(true)}>
           Listado de auditoría
         </button>
       </div>
-          </details>
-        </aside>
+        </nav>
         <div className="contenido-modulo-administracion">
       {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
 

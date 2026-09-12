@@ -4313,35 +4313,6 @@ th {
   justify-content: flex-end;
 }
 
-.resumen-configuracion-evento {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0.5rem;
-  margin-top: 1rem;
-}
-
-.resumen-configuracion-evento span {
-  display: flex;
-  gap: 0.45rem;
-  align-items: center;
-  padding: 0.6rem 0.7rem;
-  border: 1px solid #d8e0dc;
-  border-radius: 0.55rem;
-  background: #f7faf8;
-  color: #42564e;
-  font-size: 0.8rem;
-}
-
-.resumen-configuracion-evento strong {
-  display: grid;
-  width: 1.45rem;
-  height: 1.45rem;
-  place-items: center;
-  border-radius: 50%;
-  background: #155c49;
-  color: #fff;
-}
-
 .seccion-formulario-evento {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4364,8 +4335,7 @@ th {
 
 @media (max-width: 55rem) {
   .pagina-administracion-publicaciones .formulario-publicacion .campo-portada-publicacion,
-  .seccion-formulario-evento,
-  .resumen-configuracion-evento {
+  .seccion-formulario-evento {
     grid-template-columns: 1fr;
   }
 
@@ -4860,20 +4830,6 @@ th {
   padding: 1.2rem clamp(1rem, 3.1vw, 3.5rem) 3.5rem;
 }
 
-.miga-solicitudes {
-  display: flex;
-  align-items: center;
-  gap: .55rem;
-  margin-bottom: 1rem;
-  color: #82918c;
-  font-size: .76rem;
-}
-
-.miga-solicitudes a {
-  color: var(--solicitud-verde);
-  text-decoration: none;
-}
-
 .hero-solicitudes-dashboard {
   position: relative;
   display: flex;
@@ -5345,7 +5301,6 @@ th {
 @media (max-width: 480px) {
   .barra-superior-solicitudes { padding-inline: .8rem; }
   .contenido-aplicacion-solicitudes { padding: .8rem .7rem 2rem; }
-  .miga-solicitudes { padding-inline: .2rem; }
   .hero-solicitudes-dashboard { min-height: 15rem; padding: 1.5rem; border-radius: 1.15rem; }
   .hero-solicitudes-dashboard h1 { font-size: 2.65rem; }
   .hero-solicitudes-dashboard > button { width: 100%; justify-content: center; }
@@ -5501,28 +5456,6 @@ th {
   border-bottom-color: #e4e8e5;
   background: rgba(255, 255, 255, .96);
   box-shadow: none;
-}
-
-.barra-superior-solicitudes .miga-solicitudes {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: .65rem;
-  margin: 0;
-  padding: 0;
-  color: #6f7975;
-  font-size: calc(.62rem + var(--aumento-tipografico-solicitudes));
-}
-
-.barra-superior-solicitudes .miga-solicitudes a {
-  color: var(--solicitud-verde);
-}
-
-.barra-superior-solicitudes .miga-solicitudes strong {
-  margin: 0;
-  font-family: inherit;
-  font-size: calc(.62rem + var(--aumento-tipografico-solicitudes));
-  font-weight: 500;
 }
 
 .acciones-superiores-solicitudes {
@@ -5962,7 +5895,6 @@ th {
   .aplicacion-solicitudes { display: block; }
   .barra-lateral-solicitudes { width: min(15rem, 86vw); }
   .barra-superior-solicitudes { padding-inline: 1rem; }
-  .barra-superior-solicitudes .miga-solicitudes { flex: 1; }
   .acciones-superiores-solicitudes { flex: 0 0 auto; }
   .contenido-aplicacion-solicitudes { padding: .9rem 1rem 2rem; }
   .fila-pestanas-solicitudes { align-items: flex-start; flex-direction: column; }
@@ -6481,20 +6413,6 @@ th {
   width: min(92rem, calc(100% - 2rem));
   margin-inline: auto;
   padding: 1.2rem 0 3rem;
-}
-
-.miga-inscripciones {
-  display: flex;
-  align-items: center;
-  gap: .55rem;
-  margin-bottom: 1rem;
-  color: #71817b;
-  font-size: .75rem;
-}
-
-.miga-inscripciones a {
-  color: #177ca6;
-  text-decoration: none;
 }
 
 .hero-inscripciones {
@@ -7122,20 +7040,6 @@ th {
   width: min(100% - 2rem, 92rem);
   margin: 0 auto;
   padding: 1.2rem 0 4rem;
-}
-
-.miga-perfil-usuario {
-  display: flex;
-  gap: .65rem;
-  align-items: center;
-  margin-bottom: 1rem;
-  color: #778781;
-  font-size: .72rem;
-}
-
-.miga-perfil-usuario a {
-  color: #087a60;
-  text-decoration: none;
 }
 
 .encabezado-perfil-usuario {

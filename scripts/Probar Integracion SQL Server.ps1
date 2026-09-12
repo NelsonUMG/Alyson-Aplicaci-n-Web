@@ -561,42 +561,6 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         throw 'El área confirmada no apareció en el portal público.'
     }
 
-    $datosNodoEntrada = @{
-        idArea = $null
-        tipoNodo = 'ENTRADA'
-        nombre = 'Entrada de integración'
-        latitud = 14.60000000
-        longitud = -90.55000000
-        coordenadasConfirmadas = $true
-        accesible = $true
-        version = $null
-    } | ConvertTo-Json
-    $nodoEntrada = Invoke-RestMethod `
-        -Uri "$urlAdministracion/mapa/nodos" `
-        -Method Post `
-        -ContentType 'application/json' `
-        -Headers $encabezadosCsrf `
-        -Body $datosNodoEntrada `
-        -WebSession $sesionWeb `
-        -TimeoutSec 5
-    $datosNodoIntermedio = @{
-        idArea = $null
-        tipoNodo = 'INTERSECCION'
-        nombre = 'Intersección de integración'
-        latitud = 14.60050000
-        longitud = -90.55050000
-        coordenadasConfirmadas = $true
-        accesible = $true
-        version = $null
-    } | ConvertTo-Json
-    $nodoIntermedio = Invoke-RestMethod `
-        -Uri "$urlAdministracion/mapa/nodos" `
-        -Method Post `
-        -ContentType 'application/json' `
-        -Headers $encabezadosCsrf `
-        -Body $datosNodoIntermedio `
-        -WebSession $sesionWeb `
-        -TimeoutSec 5
     $datosNodoDestino = @{
         idArea = $areaCreada.idArea
         tipoNodo = 'DESTINO'
@@ -642,64 +606,9 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         throw 'La agenda de disponibilidad del área no persistió la reserva creada.'
     }
 
-    $datosConexionUno = @{
-        idNodoOrigen = $nodoEntrada.idNodoMapa
-        idNodoDestino = $nodoIntermedio.idNodoMapa
-        distanciaMetros = 40.00
-        bidireccional = $true
-        accesible = $true
-        cerrada = $false
-        motivoCierre = $null
-        version = $null
-    } | ConvertTo-Json
-    [void](Invoke-RestMethod `
-        -Uri "$urlAdministracion/mapa/conexiones" `
-        -Method Post `
-        -ContentType 'application/json' `
-        -Headers $encabezadosCsrf `
-        -Body $datosConexionUno `
-        -WebSession $sesionWeb `
-        -TimeoutSec 5)
-    $datosConexionDos = @{
-        idNodoOrigen = $nodoIntermedio.idNodoMapa
-        idNodoDestino = $nodoDestino.idNodoMapa
-        distanciaMetros = 60.00
-        bidireccional = $true
-        accesible = $true
-        cerrada = $false
-        motivoCierre = $null
-        version = $null
-    } | ConvertTo-Json
-    [void](Invoke-RestMethod `
-        -Uri "$urlAdministracion/mapa/conexiones" `
-        -Method Post `
-        -ContentType 'application/json' `
-        -Headers $encabezadosCsrf `
-        -Body $datosConexionDos `
-        -WebSession $sesionWeb `
-        -TimeoutSec 5)
-    $datosConexionDirecta = @{
-        idNodoOrigen = $nodoEntrada.idNodoMapa
-        idNodoDestino = $nodoDestino.idNodoMapa
-        distanciaMetros = 50.00
-        bidireccional = $true
-        accesible = $false
-        cerrada = $false
-        motivoCierre = $null
-        version = $null
-    } | ConvertTo-Json
-    $conexionDirecta = Invoke-RestMethod `
-        -Uri "$urlAdministracion/mapa/conexiones" `
-        -Method Post `
-        -ContentType 'application/json' `
-        -Headers $encabezadosCsrf `
-        -Body $datosConexionDirecta `
-        -WebSession $sesionWeb `
-        -TimeoutSec 5
-
     $mapaPublico = Invoke-RestMethod -Uri "$urlApiPublica/mapa" -TimeoutSec 5
-    if ($mapaPublico.nodos.Count -ne 3 -or $mapaPublico.conexiones.Count -ne 3) {
-        throw 'El mapa público no expuso los nodos y conexiones confirmados.'
+    if ($mapaPublico.nodos.Count -ne 1 -or $mapaPublico.conexiones.Count -ne 0) {
+        throw 'El mapa público no expuso el destino confirmado.'
     }
     $nodoAreaPublico = $mapaPublico.nodos |
         Where-Object { $_.idNodoMapa -eq $nodoDestino.idNodoMapa } |
@@ -710,41 +619,6 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         $null -eq $nodoAreaPublico.cambiaEstadoEn) {
         throw 'El mapa público no reflejó la reserva activa con estado y reloj.'
     }
-    $rutaGeneral = Invoke-RestMethod `
-        -Uri "$urlApiPublica/mapa/ruta?origen=$($nodoEntrada.idNodoMapa)&destino=$($nodoDestino.idNodoMapa)&accesible=false" `
-        -TimeoutSec 5
-    $rutaAccesible = Invoke-RestMethod `
-        -Uri "$urlApiPublica/mapa/ruta?origen=$($nodoEntrada.idNodoMapa)&destino=$($nodoDestino.idNodoMapa)&accesible=true" `
-        -TimeoutSec 5
-    if ([decimal]$rutaGeneral.distanciaTotalMetros -ne 50.00 -or
-        [decimal]$rutaAccesible.distanciaTotalMetros -ne 100.00) {
-        throw 'El cálculo de rutas no respetó el grafo o el perfil accesible.'
-    }
-    $datosCierreConexion = @{
-        idNodoOrigen = $conexionDirecta.idNodoOrigen
-        idNodoDestino = $conexionDirecta.idNodoDestino
-        distanciaMetros = $conexionDirecta.distanciaMetros
-        bidireccional = $conexionDirecta.bidireccional
-        accesible = $conexionDirecta.accesible
-        cerrada = $true
-        motivoCierre = 'Cierre temporal de integración.'
-        version = $conexionDirecta.version
-    } | ConvertTo-Json
-    [void](Invoke-RestMethod `
-        -Uri "$urlAdministracion/mapa/conexiones/$($conexionDirecta.idConexionMapa)" `
-        -Method Put `
-        -ContentType 'application/json' `
-        -Headers $encabezadosCsrf `
-        -Body $datosCierreConexion `
-        -WebSession $sesionWeb `
-        -TimeoutSec 5)
-    $rutaSinConexionCerrada = Invoke-RestMethod `
-        -Uri "$urlApiPublica/mapa/ruta?origen=$($nodoEntrada.idNodoMapa)&destino=$($nodoDestino.idNodoMapa)&accesible=false" `
-        -TimeoutSec 5
-    if ([decimal]$rutaSinConexionCerrada.distanciaTotalMetros -ne 100.00) {
-        throw 'Una conexión cerrada fue utilizada por el cálculo de rutas.'
-    }
-
     $datosAreaActualizada = @{
         idCategoriaArea = $areaCreada.idCategoriaArea
         codigo = $areaCreada.codigo

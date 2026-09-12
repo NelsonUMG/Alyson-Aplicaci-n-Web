@@ -64,11 +64,6 @@ export function AvisosSistema({ children }) {
           <div>
             <strong>{conexion.tipoError || "Servicio temporalmente no disponible"}</strong>
             <p>{conexion.mensaje}</p>
-            <details className="detalle-aviso-soporte">
-              <summary>Información para soporte</summary>
-              <p><b>{conexion.codigoSoporte}</b>{conexion.referencia ? ` · ${conexion.referencia}` : ""}</p>
-              <p>{conexion.detalleSoporte}</p>
-            </details>
           </div>
           <button type="button" onClick={comprobarConexion} disabled={comprobando}>
             {comprobando ? "Comprobando…" : "Reintentar conexión"}
@@ -81,11 +76,6 @@ export function AvisosSistema({ children }) {
           <div>
             <strong>{errorInesperado.tipoError}</strong>
             <p>{errorInesperado.mensaje}</p>
-            <details className="detalle-aviso-soporte">
-              <summary>Información para soporte</summary>
-              <p><b>{errorInesperado.codigoSoporte}</b>{errorInesperado.referencia ? ` · ${errorInesperado.referencia}` : ""}</p>
-              <p>{errorInesperado.detalleSoporte}</p>
-            </details>
           </div>
           <button type="button" onClick={() => establecerErrorInesperado(null)}>Cerrar</button>
         </section>

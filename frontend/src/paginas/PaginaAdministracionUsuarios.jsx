@@ -1,5 +1,6 @@
+import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+
 import {
   actualizarRolesUsuario,
   crearEmpleado,
@@ -33,7 +34,7 @@ export function PaginaAdministracionUsuarios() {
   const [roles, setRoles] = useState([]);
   const [permisos, setPermisos] = useState([]);
   const [seleccion, setSeleccion] = useState(null);
-  const [panelActivo, setPanelActivo] = useState("");
+  const [panelActivo, setPanelActivo] = useState("listado");
   const [datosEmpleado, setDatosEmpleado] = useState(datosEmpleadoIniciales);
   const [datosRol, setDatosRol] = useState(datosRolIniciales);
   const [estado, setEstado] = useState({ cargando: true, guardando: false, error: "", mensaje: "" });
@@ -228,14 +229,18 @@ export function PaginaAdministracionUsuarios() {
 
   return (
     <main className="pagina-administracion pagina-administracion-usuarios">
-      <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
-      <p className="etiqueta-fase">Administración</p>
-      <h1>Usuarios y roles</h1>
+      <CabeceraAdministracion titulo="Usuarios y roles" descripcion="Administra el acceso del personal, sus roles y permisos." />
       <div className="disposicion-modulo-administracion">
-        <aside className="menu-lateral-administracion">
-          <details open>
-            <summary>Usuarios y roles</summary>
+        <nav className="navegacion-modulo-administracion" aria-label="Opciones de Usuarios y roles">
       <div className="acciones-gestion-usuarios" aria-label="Administración de empleados y roles">
+<button
+          className={panelActivo === "listado" ? "boton-gestion-activo" : "boton-secundario"}
+          type="button"
+          aria-expanded={panelActivo === "listado"}
+          onClick={() => mostrarPanel("listado")}
+        >
+          Listado de usuarios
+        </button>
         <button
           className={panelActivo === "rol" ? "boton-gestion-activo" : "boton-secundario"}
           type="button"
@@ -254,17 +259,9 @@ export function PaginaAdministracionUsuarios() {
         >
           Registrar empleado
         </button>
-        <button
-          className={panelActivo === "listado" ? "boton-gestion-activo" : "boton-secundario"}
-          type="button"
-          aria-expanded={panelActivo === "listado"}
-          onClick={() => mostrarPanel("listado")}
-        >
-          Listado de usuarios
-        </button>
+
       </div>
-          </details>
-        </aside>
+        </nav>
         <div className="contenido-modulo-administracion">
       {!estado.cargando && rolesParaEmpleado.length === 0 && (
         <p id="aviso-sin-roles-empleado" className="nota-formulario-administracion" role="status">

@@ -3,6 +3,10 @@ package gt.gob.parqueerickbarrondo.identidad.aplicacion;
 public class CredencialesInvalidasException extends RuntimeException {
 
     public CredencialesInvalidasException() {
-        super("El correo o la contraseña no son válidos.");
+        this("La contraseña es incorrecta. Vuelve a intentarlo.");
+    }
+
+    public CredencialesInvalidasException(String mensaje) {
+        super(mensaje);
     }
 }

@@ -71,6 +71,7 @@ export function PaginaRegistro() {
 
   return (
     <main className="pagina-formulario pagina-registro">
+      <Link className="enlace-regreso enlace-regreso-inicio-sesion" to="/iniciar-sesion">← Volver a iniciar sesión</Link>
       <section className="tarjeta-formulario tarjeta-formulario-amplia tarjeta-registro" aria-labelledby="titulo-registro">
         <header className="cabecera-registro">
           <div className="marca-identidad-acceso"><MarcaPortal mostrarDerechos={false} /></div>
@@ -80,7 +81,7 @@ export function PaginaRegistro() {
             ? "Completa tu información para identificar correctamente tu registro en el parque."
             : etapa === 2
               ? "Configura el correo y la contraseña que utilizarás para ingresar."
-              : "Enviamos un enlace a la dirección que registraste. Debes confirmarla antes de iniciar sesión."}</p>
+              : "Tu cuenta se creará cuando confirmes tu correo. Revisa el resultado del envío a continuación."}</p>
           {etapa < 3 && (
             <ol className="indicador-etapas-registro" aria-label="Progreso del registro">
               <li className={etapa === 1 ? "activo" : "completado"} aria-current={etapa === 1 ? "step" : undefined}>1<span>Datos personales</span></li>

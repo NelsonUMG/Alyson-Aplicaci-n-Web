@@ -1,5 +1,6 @@
+import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+
 import {
   actualizarEvento,
   agregarImagenEvento,
@@ -210,7 +211,7 @@ export function PaginaAdministracionEventos() {
   const [pagina, establecerPagina] = useState(paginaVacia);
   const [filtros, establecerFiltros] = useState({ busqueda: "", estado: "", orden: "ACTUALIZACION" });
   const [eventoEdicion, establecerEventoEdicion] = useState(null);
-  const [mostrarListado, establecerMostrarListado] = useState(false);
+  const [mostrarListado, establecerMostrarListado] = useState(true);
   const [inscripciones, establecerInscripciones] = useState(paginaVacia);
   const [imagenesSecundarias, establecerImagenesSecundarias] = useState([]);
   const [filtrosInscripcion, establecerFiltrosInscripcion] = useState({ busqueda: "", estado: "" });
@@ -515,21 +516,16 @@ export function PaginaAdministracionEventos() {
 
   return (
     <main className="pagina-administracion pagina-administracion-eventos">
-      <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
-      <p className="etiqueta-fase">Administración</p>
-      <h1>Eventos y cursos</h1>
-      <p>Crea la actividad, configura la inscripción y publícala cuando esté lista.</p>
+      <CabeceraAdministracion titulo="Eventos y cursos" descripcion="Crea la actividad, configura la inscripción y publícala cuando esté lista." />
 
       <div className="disposicion-modulo-administracion">
-        <aside className="menu-lateral-administracion">
-          <details open>
-            <summary>Eventos y cursos</summary>
+        <nav className="navegacion-modulo-administracion" aria-label="Opciones de Eventos y cursos">
       <div className="acciones-superiores-administracion">
+<button className={mostrarListado ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarListado} onClick={alternarListado}>Listado de eventos</button>
         {puedeCrear && <button className={eventoEdicion && !eventoEdicion.idEvento ? "boton-gestion-activo" : ""} type="button" aria-expanded={Boolean(eventoEdicion && !eventoEdicion.idEvento)} onClick={nuevoEvento}>Nuevo evento</button>}
-        <button className={mostrarListado ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarListado} onClick={alternarListado}>Listado de eventos</button>
+
       </div>
-          </details>
-        </aside>
+        </nav>
         <div className="contenido-modulo-administracion">
       {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
       {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
@@ -584,12 +580,6 @@ export function PaginaAdministracionEventos() {
             <div><h2 id="titulo-edicion-evento">{eventoEdicion.idEvento ? "Editar evento" : "Nuevo evento"}</h2><p>Estado actual: {formatearTextoTecnico(eventoEdicion.estado)}</p></div>
             {eventoEdicion.idEvento && <span>{eventoEdicion.cantidadOcupada} ocupados · {eventoEdicion.capacidadTotal - eventoEdicion.cantidadOcupada} disponibles</span>}
           </div>
-          <div className="resumen-configuracion-evento" aria-label="Secciones del formulario">
-            <span><strong>1</strong> Información</span>
-            <span><strong>2</strong> Horarios</span>
-            <span><strong>3</strong> Requisitos</span>
-            <span><strong>4</strong> Imágenes</span>
-          </div>
           <form className="formulario-administracion formulario-evento" onSubmit={guardarEvento}>
             <fieldset className="campo-ancho seccion-formulario-evento">
               <legend>Información principal</legend>
@@ -609,7 +599,7 @@ export function PaginaAdministracionEventos() {
               <div className="cabecera-panel-administracion">
                 <div>
                   <h3>Grupos, edades y horarios</h3>
-                  <p>Agrega grupos solo si la actividad maneja horarios o edades diferentes.</p>
+                  <p>Crea grupos solo si hay edades u horarios distintos.</p>
                 </div>
                 {puedeEditarFormulario && <button type="button" disabled={(eventoEdicion.grupos || []).length >= 20} onClick={agregarGrupo}>Agregar grupo</button>}
               </div>
@@ -630,14 +620,14 @@ export function PaginaAdministracionEventos() {
                     {puedeEditarFormulario && <button className="boton-peligro" type="button" onClick={() => eliminarGrupo(indiceGrupo)}>Quitar grupo</button>}
                   </fieldset>
                 ))}
-                {(eventoEdicion.grupos || []).length === 0 && <p>Sin grupos: la actividad conservará un solo horario general.</p>}
+                {(eventoEdicion.grupos || []).length === 0 && <p>Se aplicará un solo horario general.</p>}
               </div>
             </div>
             <div className="campo-ancho constructor-formulario-evento">
               <div className="cabecera-panel-administracion">
                 <div>
                   <h3>Requisitos para la inscripción</h3>
-                  <p>Solicita únicamente los datos necesarios para inscribirse.</p>
+                  <p>Solicita solo la información necesaria para inscribirse.</p>
                 </div>
                 {puedeEditarFormulario && (
                   <button type="button" disabled={camposFormularioEvento.length >= 30} onClick={agregarCampoFormulario}>Crear requisito</button>
@@ -748,22 +738,6 @@ export function PaginaAdministracionEventos() {
                   <input aria-label="Archivo de imagen secundaria" name="archivoSecundario" type="file" accept="image/png,image/jpeg" required />
                   <button type="submit" disabled={estado.guardando || imagenesSecundarias.length >= 8}>Agregar imagen secundaria</button>
                 </form>
-              </section>
-            </div>
-          )}
-          {!eventoEdicion.idEvento && puedeCrear && (
-            <div className="gestion-imagen-evento gestion-imagen-evento-pendiente">
-              <section className="bloque-imagen-evento">
-                <div>
-                  <h3>Imagen principal</h3>
-                  <p>Disponible después de guardar.</p>
-                </div>
-              </section>
-              <section className="bloque-imagen-evento">
-                <div>
-                  <h3>Imágenes secundarias</h3>
-                  <p>Disponible después de guardar.</p>
-                </div>
               </section>
             </div>
           )}

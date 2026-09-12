@@ -1,113 +1,94 @@
 package gt.gob.parqueerickbarrondo.identidad.aplicacion;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-import java.time.LocalDate;
-import java.util.Optional;
-import java.util.Set;
-
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+import java.time.*;
+import java.util.*;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudRegistroCuenta;
-import gt.gob.parqueerickbarrondo.identidad.dominio.Rol;
-import gt.gob.parqueerickbarrondo.identidad.dominio.Usuario;
-import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioRol;
-import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioUsuario;
+import gt.gob.parqueerickbarrondo.identidad.dominio.*;
+import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 class ServicioRegistroCuentaPruebas {
+    final RepositorioUsuario usuarios = mock(RepositorioUsuario.class);
+    final RepositorioRol roles = mock(RepositorioRol.class);
+    final RepositorioRegistroPendiente pendientes = mock(RepositorioRegistroPendiente.class);
+    final PasswordEncoder codificador = mock(PasswordEncoder.class);
+    final EnviadorCorreoVerificacion correo = mock(EnviadorCorreoVerificacion.class);
+    final ServicioRegistroCuenta servicio = new ServicioRegistroCuenta(usuarios, roles, pendientes, codificador,
+            new NormalizadorCorreo(), new PoliticaContrasena(12), mock(ServicioAuditoria.class), correo, 24, 5);
 
-    @Test
-    void rechazaLaConfirmacionDeContrasenaDistinta() {
-        var repositorioUsuario = mock(RepositorioUsuario.class);
-        var servicio = crearServicio(repositorioUsuario);
-
-        assertThatThrownBy(() -> servicio.registrar(solicitudValida("Otra contrasena segura")))
-                .isInstanceOf(SolicitudInvalidaException.class)
-                .hasMessageContaining("no coinciden");
-
-        verify(repositorioUsuario, never()).saveAndFlush(org.mockito.ArgumentMatchers.any());
+    @Test void guardaUnaSolicitudSinCrearUsuarioNiAsignarRoles() {
+        when(codificador.encode(anyString())).thenReturn("hash-seguro");
+        assertThat(servicio.registrar(solicitud("Contrasena larga de prueba"))).isTrue();
+        var captura = ArgumentCaptor.forClass(RegistroPendiente.class);
+        verify(pendientes).saveAndFlush(captura.capture());
+        var datos = captura.getValue().crearUsuarioVerificado(Instant.now());
+        assertThat(datos.obtenerDpi()).isEqualTo("1234567890101");
+        assertThat(datos.obtenerCelular()).isEqualTo("55551234");
+        assertThat(datos.obtenerHashContrasena()).isEqualTo("hash-seguro");
+        assertThat(datos.obtenerFechaNacimiento()).isEqualTo(LocalDate.of(1995, 4, 10));
+        verify(usuarios, never()).saveAndFlush(any());
+        verifyNoInteractions(roles);
+        verify(correo).enviar(eq("persona@ejemplo.com"), eq("Persona"), anyString());
     }
-
-    @Test
-    void rechazaUnDpiYaRegistrado() {
-        var repositorioUsuario = mock(RepositorioUsuario.class);
-        when(repositorioUsuario.existsByDpi("1234567890101")).thenReturn(true);
-        var servicio = crearServicio(repositorioUsuario);
-
-        assertThatThrownBy(() -> servicio.registrar(solicitudValida("Contrasena larga de prueba")))
+    @Test void soloCreaElUsuarioVerificadoAlConfirmarElToken() {
+        var pendiente = pendiente(Instant.now().plusSeconds(3600));
+        when(pendientes.findByHashToken(any())).thenReturn(Optional.of(pendiente));
+        when(roles.findByCodigo("USUARIOREGISTRADO"))
+                .thenReturn(Optional.of(new Rol("USUARIOREGISTRADO", "Usuario", "", Set.of())));
+        when(usuarios.saveAndFlush(any())).thenAnswer(i -> {
+            Usuario u = i.getArgument(0); ReflectionTestUtils.setField(u, "idUsuario", 7L); return u;
+        });
+        assertThat(servicio.confirmarPendiente("token")).isTrue();
+        var captura = ArgumentCaptor.forClass(Usuario.class);
+        verify(usuarios).saveAndFlush(captura.capture());
+        assertThat(captura.getValue().estaActivo()).isTrue();
+        assertThat(captura.getValue().obtenerCorreoVerificadoEn()).isNotNull();
+        assertThat(captura.getValue().obtenerRoles()).hasSize(1);
+        verify(pendientes).delete(pendiente);
+    }
+    @Test void rechazaUnTokenVencidoSinCrearCuenta() {
+        when(pendientes.findByHashToken(any())).thenReturn(Optional.of(pendiente(Instant.now().minusSeconds(1))));
+        assertThatThrownBy(() -> servicio.confirmarPendiente("token")).isInstanceOf(SolicitudInvalidaException.class);
+        verify(usuarios, never()).saveAndFlush(any());
+    }
+    @Test void compruebaDeNuevoLaUnicidadDelDpiAlConfirmar() {
+        when(pendientes.findByHashToken(any())).thenReturn(Optional.of(pendiente(Instant.now().plusSeconds(3600))));
+        when(usuarios.existsByDpi("1234567890101")).thenReturn(true);
+        assertThatThrownBy(() -> servicio.confirmarPendiente("token"))
                 .isInstanceOf(ConflictoDatosException.class)
-                .hasMessageContaining("DPI/CUI");
-
-        verify(repositorioUsuario, never()).saveAndFlush(org.mockito.ArgumentMatchers.any());
+                .hasMessage("El DPI o CUI ya está registrado. Por favor, inicia sesión con tu correo registrado.");
+        verify(usuarios, never()).saveAndFlush(any());
     }
-
-    @Test
-    void guardaLosDatosPersonalesYUnicamenteElHashDeLaContrasena() {
-        var repositorioUsuario = mock(RepositorioUsuario.class);
-        var repositorioRol = mock(RepositorioRol.class);
-        var codificador = mock(PasswordEncoder.class);
-        var auditoria = mock(ServicioAuditoria.class);
-        var verificacionCorreo = mock(ServicioVerificacionCorreo.class);
-        when(repositorioRol.findByCodigo("USUARIOREGISTRADO"))
-                .thenReturn(Optional.of(new Rol("USUARIOREGISTRADO", "Usuario registrado", "", Set.of())));
-        when(codificador.encode("Contrasena larga de prueba")).thenReturn("{bcrypt}hash-seguro");
-        when(repositorioUsuario.saveAndFlush(org.mockito.ArgumentMatchers.any(Usuario.class)))
-                .thenAnswer(invocacion -> {
-                    Usuario usuario = invocacion.getArgument(0);
-                    ReflectionTestUtils.setField(usuario, "idUsuario", 7L);
-                    return usuario;
-                });
-        var servicio = new ServicioRegistroCuenta(
-                repositorioUsuario,
-                repositorioRol,
-                codificador,
-                new NormalizadorCorreo(),
-                new PoliticaContrasena(12),
-                auditoria,
-                verificacionCorreo);
-
-        servicio.registrar(solicitudValida("Contrasena larga de prueba"));
-
-        var usuarioGuardado = ArgumentCaptor.forClass(Usuario.class);
-        verify(repositorioUsuario).saveAndFlush(usuarioGuardado.capture());
-        assertThat(usuarioGuardado.getValue().obtenerDpi()).isEqualTo("1234567890101");
-        assertThat(usuarioGuardado.getValue().obtenerCelular()).isEqualTo("55551234");
-        assertThat(usuarioGuardado.getValue().obtenerFechaNacimiento()).isEqualTo(LocalDate.of(1995, 4, 10));
-        assertThat(usuarioGuardado.getValue().obtenerHashContrasena()).isEqualTo("{bcrypt}hash-seguro");
-        assertThat(usuarioGuardado.getValue().obtenerHashContrasena())
-                .isNotEqualTo("Contrasena larga de prueba");
-        assertThat(usuarioGuardado.getValue().obtenerEstado()).isEqualTo("PENDIENTEVERIFICACION");
-        assertThat(usuarioGuardado.getValue().obtenerCorreoVerificadoEn()).isNull();
-        verify(verificacionCorreo).crearYEnviar(usuarioGuardado.getValue());
+    @Test void rechazaUnaConfirmacionDistinta() {
+        assertThatThrownBy(() -> servicio.registrar(solicitud("Otra contraseña"))).isInstanceOf(SolicitudInvalidaException.class);
+        verifyNoInteractions(pendientes);
     }
-
-    private ServicioRegistroCuenta crearServicio(RepositorioUsuario repositorioUsuario) {
-        return new ServicioRegistroCuenta(
-                repositorioUsuario,
-                mock(RepositorioRol.class),
-                mock(PasswordEncoder.class),
-                new NormalizadorCorreo(),
-                new PoliticaContrasena(12),
-                mock(ServicioAuditoria.class),
-                mock(ServicioVerificacionCorreo.class));
+    @Test void conservaSoloLaSolicitudSiFallaSmtp() {
+        doThrow(new IllegalStateException("SMTP")).when(correo).enviar(any(), any(), any());
+        assertThat(servicio.registrar(solicitud("Contrasena larga de prueba"))).isFalse();
+        verify(usuarios, never()).saveAndFlush(any());
+        verify(pendientes).saveAndFlush(any());
     }
-
-    private SolicitudRegistroCuenta solicitudValida(String confirmacion) {
-        return new SolicitudRegistroCuenta(
-                "1234567890101",
-                "Persona",
-                "Prueba",
-                "55551234",
-                LocalDate.of(1995, 4, 10),
-                "persona@ejemplo.com",
-                "Contrasena larga de prueba",
-                confirmacion);
+    @Test void limitaReenviosDeUnRegistroReciente() {
+        when(pendientes.findByCorreo("persona@ejemplo.com"))
+                .thenReturn(Optional.of(pendiente(Instant.now().plusSeconds(3600))));
+        assertThat(servicio.reenviarPendiente("Persona@Ejemplo.com")).isTrue();
+        verifyNoInteractions(correo);
+    }
+    private RegistroPendiente pendiente(Instant expira) {
+        var p = new RegistroPendiente("persona@ejemplo.com", "Persona", "Prueba", "1234567890101", "55551234",
+                LocalDate.of(1995, 4, 10), "hash-seguro");
+        p.renovarToken(new byte[32], Instant.now(), expira);
+        return p;
+    }
+    private SolicitudRegistroCuenta solicitud(String confirmacion) {
+        return new SolicitudRegistroCuenta("1234567890101", "Persona", "Prueba", "55551234",
+                LocalDate.of(1995, 4, 10), "persona@ejemplo.com", "Contrasena larga de prueba", confirmacion);
     }
 }

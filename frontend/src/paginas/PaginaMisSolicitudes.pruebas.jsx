@@ -170,15 +170,15 @@ describe("Solicitudes del usuario", () => {
 
     fireEvent.click(within(screen.getByRole("main")).getByRole("button", { name: "Nueva solicitud" }));
 
-    expect(await screen.findByRole("heading", { name: "¿Qué trámite deseas realizar?" })).toBeTruthy();
+    expect(await screen.findByRole("heading", { name: "Trámites disponibles" })).toBeTruthy();
     const dialogo = screen.getByRole("dialog", { name: "Nueva solicitud" });
-    expect(within(dialogo).getByText("Categoría padre")).toBeTruthy();
-    expect(within(dialogo).getAllByText("Trámite hijo")).toHaveLength(2);
+    expect(within(dialogo).queryByText("Categoría padre")).toBeNull();
+    expect(within(dialogo).queryByText("Trámite hijo")).toBeNull();
     expect(within(dialogo).getByText("Reserva de canchas")).toBeTruthy();
     expect(within(dialogo).getByText("Reserva de áreas recreativas")).toBeTruthy();
-    expect(within(dialogo).getByRole("button", { name: "Reservas y uso de instalaciones" })).toBeTruthy();
+    expect(within(dialogo).getByRole("option", { name: "Reservas y uso de instalaciones" })).toBeTruthy();
     expect(within(dialogo).queryByText("Denuncias y quejas")).toBeNull();
-    expect(within(dialogo).queryByRole("button", { name: "Atención ciudadana" })).toBeNull();
+    expect(within(dialogo).queryByRole("option", { name: "Atención ciudadana" })).toBeNull();
   });
 
   it("abre denuncias desde el menú y solicita únicamente el trámite relacionado y la descripción", async () => {
@@ -226,7 +226,7 @@ describe("Solicitudes del usuario", () => {
     fireEvent.click(within(screen.getByRole("main")).getByRole("button", { name: "Nueva solicitud" }));
     fireEvent.click(await screen.findByRole("button", { name: /Reserva de canchas/ }));
 
-    expect(await screen.findByText("Documentos y requisitos solicitados")).toBeTruthy();
+    expect(await screen.findByText("Documentos que necesitas")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Iniciar solicitud/ }));
     fireEvent.change(screen.getByLabelText(/Nombre completo/), { target: { value: "Ana López" } });
     fireEvent.change(screen.getByLabelText(/DPI - CUI/), { target: { value: "1234567890101" } });

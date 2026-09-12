@@ -73,6 +73,20 @@ public class ServicioAutenticacion {
                 peticion.getHeader("User-Agent"));
         protectorIntentos.verificarPermitido(huellas, idCorrelacion);
 
+        var usuarioRegistrado = repositorioUsuario.findByCorreoNormalizado(correo).orElse(null);
+        if (usuarioRegistrado == null) {
+            registrarIntentoFallido(huellas, "CORREONEXISTE", idCorrelacion);
+            throw new CredencialesInvalidasException("El correo no existe.");
+        }
+        if (!usuarioRegistrado.estaActivo()) {
+            registrarIntentoFallido(huellas, "CUENTANODISPONIBLE", idCorrelacion);
+            throw new CredencialesInvalidasException("La cuenta no está activa. Revisa tu correo o comunícate con el parque.");
+        }
+        if (!codificadorContrasena.matches(solicitud.contrasena(), usuarioRegistrado.obtenerHashContrasena())) {
+            registrarIntentoFallido(huellas, "CONTRASENAINCORRECTA", idCorrelacion);
+            throw new CredencialesInvalidasException("La contraseña es incorrecta. Vuelve a intentarlo.");
+        }
+
         try {
             var autenticacion = administradorAutenticacion.authenticate(
                     UsernamePasswordAuthenticationToken.unauthenticated(correo, solicitud.contrasena()));
@@ -105,12 +119,19 @@ public class ServicioAutenticacion {
             return convertirPerfil(usuarioSesion);
         }
         catch (AuthenticationException excepcion) {
-            plantillaTransacciones.executeWithoutResult(estado -> {
-                protectorIntentos.registrar(null, huellas, "FALLIDO", "CREDENCIALESINVALIDAS", idCorrelacion);
-                servicioAuditoria.registrar(null, "INICIOSESION", "SESION", null, "FALLIDO", idCorrelacion);
-            });
-            throw new CredencialesInvalidasException();
+            registrarIntentoFallido(huellas, "CONTRASENAINCORRECTA", idCorrelacion);
+            throw new CredencialesInvalidasException("La contraseña es incorrecta. Vuelve a intentarlo.");
         }
+    }
+
+    private void registrarIntentoFallido(
+            ProtectorIntentosInicioSesion.HuellasIntento huellas,
+            String motivo,
+            String idCorrelacion) {
+        plantillaTransacciones.executeWithoutResult(estado -> {
+            protectorIntentos.registrar(null, huellas, "FALLIDO", motivo, idCorrelacion);
+            servicioAuditoria.registrar(null, "INICIOSESION", "SESION", null, "FALLIDO", idCorrelacion);
+        });
     }
 
     public RespuestaPerfil obtenerPerfil(UsuarioSesion usuarioSesion) {

@@ -127,32 +127,6 @@ async function leerProblema(respuesta) {
   }
 }
 
-function crearMensajeErrorDetallado({ estado, codigo, detalle, metodo, ruta, operacion, problema }) {
-  const inicio = operacion
-    ? `No se pudo ${operacion}.`
-    : "No se pudo completar la operación solicitada.";
-  const identificacion = `El servidor respondió HTTP ${estado} (${codigo}) al ejecutar ${metodo} ${ruta}.`;
-
-  if (estado === 405) {
-    const metodosPermitidos = Array.isArray(problema?.metodosPermitidos) && problema.metodosPermitidos.length
-      ? ` Esta ruta solo admite: ${problema.metodosPermitidos.join(", ")}.`
-      : "";
-    return `${inicio} ${identificacion}${metodosPermitidos} Verifica que el frontend y el backend correspondan a la misma versión y reinicia el backend después de compilar cambios de API.`;
-  }
-
-  const recomendaciones = {
-    400: "Revisa los campos señalados y corrige sus valores antes de intentarlo nuevamente.",
-    401: "La sesión puede haber vencido; vuelve a iniciar sesión y repite la operación.",
-    403: "La cuenta autenticada no posee el permiso requerido para esta acción.",
-    404: "Verifica que el recurso todavía exista y que la versión desplegada incluya esta ruta.",
-    409: "Los datos fueron modificados o ya existe un registro incompatible; recarga la información antes de guardar.",
-    413: "Selecciona un archivo de menor tamaño y vuelve a cargarlo.",
-    415: "Usa uno de los formatos admitidos por la operación.",
-    429: "Espera a que finalice el periodo de bloqueo antes de repetir el intento.",
-  };
-  return [inicio, detalle, identificacion, recomendaciones[estado]].filter(Boolean).join(" ");
-}
-
 function crearErrorRespuesta(respuesta, problema, contexto) {
   const estado = respuesta.status;
   const codigo = problema?.codigo || `HTTP${estado}`;
@@ -166,16 +140,7 @@ function crearErrorRespuesta(respuesta, problema, contexto) {
   const detalleSeguro = estado >= 500 ? diagnostico.mensajeUsuario : detalleApi;
   const metodo = problema?.metodo || contexto.metodo;
   const ruta = problema?.ruta || contexto.ruta;
-  const mensajeUsuario = crearMensajeErrorDetallado({
-    estado,
-    codigo,
-    detalle: detalleSeguro,
-    metodo,
-    ruta,
-    operacion: contexto.operacion,
-    problema,
-  });
-  return new ErrorApi(mensajeUsuario, {
+  return new ErrorApi(detalleSeguro, {
     estado,
     codigo,
     problema,
@@ -191,13 +156,9 @@ function crearErrorRespuesta(respuesta, problema, contexto) {
 }
 
 function crearErrorConexion(error, tiempoAgotado, contexto) {
-  const prefijo = contexto.operacion
-    ? `No se pudo ${contexto.operacion}.`
-    : "No se pudo completar la operación solicitada.";
-  const identificacion = `Operación: ${contexto.metodo} ${contexto.ruta}.`;
   if (tiempoAgotado) {
     const diagnostico = diagnosticarError({ codigo: "TIEMPOESPERAAGOTADO" });
-    return new ErrorApi(`${prefijo} ${diagnostico.mensajeUsuario} ${identificacion}`, {
+    return new ErrorApi(diagnostico.mensajeUsuario, {
       codigo: "TIEMPOESPERAAGOTADO",
       codigoSoporte: diagnostico.codigoSoporte,
       tipoError: diagnostico.tipo,
@@ -221,7 +182,7 @@ function crearErrorConexion(error, tiempoAgotado, contexto) {
     });
   }
   const diagnostico = diagnosticarError({ codigo: "SERVIDORNODISPONIBLE" });
-  return new ErrorApi(`${prefijo} ${diagnostico.mensajeUsuario} ${identificacion}`, {
+  return new ErrorApi(diagnostico.mensajeUsuario, {
       codigo: "SERVIDORNODISPONIBLE",
       codigoSoporte: diagnostico.codigoSoporte,
       tipoError: diagnostico.tipo,

@@ -31,13 +31,13 @@ export function resolverSolicitud(idSolicitud, decision, respuesta, version) {
 
 export function listarCatalogoTramitesAdministrado() {
   return solicitarApi("/administracion/solicitudes/catalogo", {
-    descripcionOperacion: "cargar los trámites hijo del catálogo",
+    descripcionOperacion: "cargar los trámites del catálogo",
   });
 }
 
 export function listarCategoriasTramitesAdministradas() {
   return solicitarApi("/administracion/solicitudes/catalogo/categorias", {
-    descripcionOperacion: "cargar las categorías padre del catálogo",
+    descripcionOperacion: "cargar las categorías generales del catálogo",
   });
 }
 
@@ -45,7 +45,7 @@ export function crearCategoriaTramiteAdministrada(datos) {
   return solicitarApi("/administracion/solicitudes/catalogo/categorias", {
     method: "POST",
     body: JSON.stringify(datos),
-    descripcionOperacion: `crear la categoría padre «${datos.nombre || "sin nombre"}»`,
+    descripcionOperacion: `crear la categoría general «${datos.nombre || "sin nombre"}»`,
   });
 }
 
@@ -53,7 +53,7 @@ export function crearTramiteAdministrado(datos) {
   return solicitarApi("/administracion/solicitudes/catalogo", {
     method: "POST",
     body: JSON.stringify(datos),
-    descripcionOperacion: `crear el trámite hijo «${datos.nombre || "sin nombre"}»`,
+    descripcionOperacion: `crear el trámite «${datos.nombre || "sin nombre"}»`,
   });
 }
 
@@ -61,7 +61,7 @@ export function actualizarTramiteAdministrado(idTramite, datos) {
   return solicitarApi(`/administracion/solicitudes/catalogo/${idTramite}`, {
     method: "PUT",
     body: JSON.stringify(datos),
-    descripcionOperacion: `guardar los cambios del trámite hijo #${idTramite}`,
+    descripcionOperacion: `guardar los cambios del trámite #${idTramite}`,
   });
 }
 
@@ -71,6 +71,6 @@ export function actualizarPortadaTramite(idTramite, archivo) {
   return solicitarApi(`/administracion/solicitudes/catalogo/${idTramite}/portada`, {
     method: "POST",
     body: formulario,
-    descripcionOperacion: `cargar la portada del trámite hijo #${idTramite}`,
+    descripcionOperacion: `cargar la portada del trámite #${idTramite}`,
   });
 }

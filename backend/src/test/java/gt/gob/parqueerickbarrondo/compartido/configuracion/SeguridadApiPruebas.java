@@ -8,6 +8,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import gt.gob.parqueerickbarrondo.compartido.api.ManejadorErroresApi;
 import gt.gob.parqueerickbarrondo.compartido.api.ManejadorErroresSeguridad;
@@ -17,6 +19,7 @@ import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioAutenticacion;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioRegistroCuenta;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioPerfilUsuario;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioVerificacionCorreo;
+import gt.gob.parqueerickbarrondo.identidad.aplicacion.CredencialesInvalidasException;
 import gt.gob.parqueerickbarrondo.identidad.seguridad.ManejadorCierreSesion;
 import gt.gob.parqueerickbarrondo.identidad.seguridad.ServicioDetallesUsuario;
 import org.junit.jupiter.api.Test;
@@ -104,7 +107,24 @@ class SeguridadApiPruebas {
                 .andExpect(status().isBadRequest())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_PROBLEM_JSON))
                 .andExpect(jsonPath("$.codigo").value("SOLICITUDINVALIDA"))
-                .andExpect(jsonPath("$.detail").value("El DPI o CUI debe contener exactamente 13 números."));
+                .andExpect(jsonPath("$.detail").value(
+                        "El DPI o CUI debe contener exactamente 13 números."))
+                .andExpect(jsonPath("$.erroresCampos.dpi").value(
+                        "El DPI o CUI debe contener exactamente 13 números."));
+    }
+
+    @Test
+    void devuelveElErrorEspecificoDeContrasenaSinDetallesTecnicos() throws Exception {
+        when(servicioAutenticacion.iniciarSesion(any(), any(), any()))
+                .thenThrow(new CredencialesInvalidasException("La contraseña es incorrecta. Vuelve a intentarlo."));
+
+        clienteApi.perform(post("/api/v1/autenticacion/iniciar-sesion")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"correo\":\"persona@ejemplo.com\",\"contrasena\":\"incorrecta\",\"mantenerSesionActiva\":false}"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.codigo").value("CREDENCIALESINVALIDAS"))
+                .andExpect(jsonPath("$.detail").value("La contraseña es incorrecta. Vuelve a intentarlo."));
     }
 
     @Test
@@ -113,7 +133,6 @@ class SeguridadApiPruebas {
                 .andExpect(header().string("Content-Security-Policy", Matchers.allOf(
                         Matchers.containsString("script-src 'self'"),
                         Matchers.containsString("https://tiles.openfreemap.org"),
-                        Matchers.containsString("https://valhalla1.openstreetmap.de"),
                         Matchers.containsString("frame-ancestors 'none'"))))
                 .andExpect(header().string("X-Content-Type-Options", "nosniff"))
                 .andExpect(header().string("Referrer-Policy", "strict-origin-when-cross-origin"))

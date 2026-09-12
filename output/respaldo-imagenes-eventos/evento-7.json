@@ -1,0 +1,30 @@
+{
+  "idEvento": 7,
+  "titulo": "Demostración | Curso deportivo gratuito",
+  "identificadorUrl": "demostracion-curso-deportivo-gratuito",
+  "descripcion": "Agenda de demostración para probar inscripciones. Se inspira en la nota pública sobre cursos deportivos gratuitos en el Parque Erick Barrondo; la fecha indicada aquí no constituye una convocatoria oficial. Fuente: https://guatemala.gob.gt/parque-erick-barrondo-inicia-cursos-deportivos-gratuitos/",
+  "lugar": "Polideportivo",
+  "iniciaEn": "2026-10-03T14:00:00Z",
+  "finalizaEn": "2026-10-03T17:00:00Z",
+  "inscripcionAbreEn": "2026-09-01T12:00:00Z",
+  "inscripcionCierraEn": "2026-10-01T23:59:00Z",
+  "capacidadTotal": 60,
+  "cantidadOcupada": 1,
+  "cuposDisponibles": 59,
+  "estado": "PUBLICADO",
+  "esquemaFormularioJson": "{\"campos\":[]}",
+  "configuracionGruposJson": null,
+  "requisitos": [
+    {
+      "idRequisitoEvento": 6,
+      "descripcion": "Aceptar los requisitos de esta actividad de demostración.",
+      "obligatorio": true,
+      "ordenVisualizacion": 0
+    }
+  ],
+  "tieneImagen": false,
+  "urlImagen": null,
+  "creadoEn": "2026-09-12T03:42:12.056898Z",
+  "actualizadoEn": "2026-09-12T03:43:12.778361Z",
+  "version": 2
+}

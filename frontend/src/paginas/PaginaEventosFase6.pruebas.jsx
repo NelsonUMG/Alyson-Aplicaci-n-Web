@@ -1,5 +1,5 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const apiPortal = vi.hoisted(() => ({ consultarEvento: vi.fn() }));
@@ -38,6 +38,7 @@ vi.mock("../autenticacion/ContextoSesion", () => ({
 
 import { PaginaAdministracionEventos } from "./PaginaAdministracionEventos";
 import { PaginaDetalleEvento } from "./PaginaDetalleEvento";
+import { ErrorApi } from "../api/clienteHttp";
 
 afterEach(() => cleanup());
 
@@ -67,6 +68,7 @@ describe("Inscripciones de eventos", () => {
   beforeEach(() => {
     apiPortal.consultarEvento.mockReset().mockResolvedValue(eventoPublico);
     apiInscripciones.consultarInscripcionEvento.mockReset().mockResolvedValue(null);
+    apiInscripciones.cancelarInscripcionEvento.mockReset();
     apiInscripciones.inscribirEnEvento.mockReset().mockResolvedValue({
       idInscripcionEvento: 20,
       idEvento: 7,
@@ -83,6 +85,7 @@ describe("Inscripciones de eventos", () => {
     );
 
     const boton = await screen.findByRole("button", { name: "Confirmar inscripción" });
+    expect(apiInscripciones.inscribirEnEvento).not.toHaveBeenCalled();
     const dpi = screen.getByLabelText("DPI/CUI del participante *");
     expect(dpi.getAttribute("pattern")).toBe("[0-9]{13}");
     fireEvent.change(dpi, { target: { value: "1234567890101" } });
@@ -140,13 +143,62 @@ describe("Inscripciones de eventos", () => {
     expect(await screen.findByRole("heading", { name: "Grupos y horarios" })).toBeTruthy();
     expect(screen.getByText(/Martes/)).toBeTruthy();
     expect(screen.getByText(/Jueves/)).toBeTruthy();
-    fireEvent.change(screen.getByLabelText("Grupo o categoría *"), { target: { value: "adolescentes" } });
+    fireEvent.change(await screen.findByLabelText("Grupo o categoría *"), { target: { value: "adolescentes" } });
     fireEvent.change(screen.getByLabelText("DPI/CUI del participante *"), { target: { value: "1234567890101" } });
     fireEvent.click(screen.getByRole("button", { name: "Confirmar inscripción" }));
 
     await waitFor(() => expect(apiInscripciones.inscribirEnEvento).toHaveBeenCalledWith(
       7, expect.any(String), { campo_1: "1234567890101" }, "adolescentes",
     ));
+  });
+
+  it("espera la consulta y permite cancelar una inscripción que ya existía", async () => {
+    let resolverConsulta;
+    apiInscripciones.consultarInscripcionEvento.mockReturnValue(new Promise((resolver) => { resolverConsulta = resolver; }));
+    apiInscripciones.cancelarInscripcionEvento.mockResolvedValue({ estado: "CANCELADA", cuposDisponibles: 13 });
+    render(<MemoryRouter initialEntries={["/eventos/curso-atletismo"]}><Routes><Route path="/eventos/:identificadorUrl" element={<PaginaDetalleEvento />} /></Routes></MemoryRouter>);
+    await screen.findByText("Consultando tu inscripción…");
+    expect(screen.queryByRole("button", { name: "Confirmar inscripción" })).toBeNull();
+    expect(apiInscripciones.inscribirEnEvento).not.toHaveBeenCalled();
+    resolverConsulta({ estado: "CONFIRMADA", confirmadaEn: "2026-09-11T18:00:00Z" });
+    const cancelar = await screen.findByRole("button", { name: "Cancelar mi inscripción" });
+    expect(screen.queryByRole("button", { name: "Confirmar inscripción" })).toBeNull();
+    expect(apiInscripciones.cancelarInscripcionEvento).not.toHaveBeenCalled();
+    fireEvent.change(screen.getByLabelText("Motivo de cancelación (opcional)"), { target: { value: "Cambio de horario" } });
+    fireEvent.click(cancelar);
+    await screen.findByText("La inscripción fue cancelada.");
+    expect(apiInscripciones.cancelarInscripcionEvento).toHaveBeenCalledWith(7, "Cambio de horario");
+    expect(screen.getByText("13 de 30")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Confirmar inscripción" })).toBeTruthy();
+  });
+
+  it("no ofrece inscribir cuando falla la consulta y permite reintentar", async () => {
+    apiInscripciones.consultarInscripcionEvento.mockRejectedValueOnce(new Error("Conexión fallida"));
+    render(<MemoryRouter initialEntries={["/eventos/curso-atletismo"]}><Routes><Route path="/eventos/:identificadorUrl" element={<PaginaDetalleEvento />} /></Routes></MemoryRouter>);
+    const reintentar = await screen.findByRole("button", { name: "Reintentar" });
+    expect(screen.queryByRole("button", { name: "Confirmar inscripción" })).toBeNull();
+    fireEvent.click(reintentar);
+    expect(await screen.findByRole("button", { name: "Confirmar inscripción" })).toBeTruthy();
+    expect(apiInscripciones.inscribirEnEvento).not.toHaveBeenCalled();
+  });
+
+  it("ofrece confirmar ante una inscripción inexistente sin crearla al consultar", async () => {
+    apiInscripciones.consultarInscripcionEvento.mockRejectedValue(new ErrorApi("Sin inscripción", { estado: 404 }));
+    render(<MemoryRouter initialEntries={["/eventos/curso-atletismo"]}><Routes><Route path="/eventos/:identificadorUrl" element={<PaginaDetalleEvento />} /></Routes></MemoryRouter>);
+    expect(await screen.findByRole("button", { name: "Confirmar inscripción" })).toBeTruthy();
+    expect(apiInscripciones.inscribirEnEvento).not.toHaveBeenCalled();
+  });
+
+  it("no arrastra la inscripción del evento anterior al cambiar de actividad", async () => {
+    apiPortal.consultarEvento.mockResolvedValueOnce(eventoPublico).mockResolvedValue({ ...eventoPublico, idEvento: 8, titulo: "Yoga", identificadorUrl: "yoga" });
+    apiInscripciones.consultarInscripcionEvento.mockResolvedValueOnce({ estado: "CONFIRMADA" }).mockResolvedValue(null);
+    render(<MemoryRouter initialEntries={["/eventos/curso-atletismo"]}><Link to="/eventos/yoga">Otra actividad</Link><Routes><Route path="/eventos/:identificadorUrl" element={<PaginaDetalleEvento />} /></Routes></MemoryRouter>);
+    await screen.findByRole("button", { name: "Cancelar mi inscripción" });
+    fireEvent.click(screen.getByRole("link", { name: "Otra actividad" }));
+    await screen.findByRole("heading", { name: "Yoga" });
+    expect(await screen.findByRole("button", { name: "Confirmar inscripción" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Cancelar mi inscripción" })).toBeNull();
+    expect(apiInscripciones.inscribirEnEvento).not.toHaveBeenCalled();
   });
 });
 

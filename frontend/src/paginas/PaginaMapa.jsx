@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import * as maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import trabajadorMapLibre from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
-import { calcularRecorridoPeatonal, consultarMapa } from "../api/portalPublico";
+import { consultarMapa } from "../api/portalPublico";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
 import { formatearTextoTecnico } from "../utilidades/formatoTexto";
 
@@ -10,13 +10,20 @@ const mapaVacio = { nodos: [], conexiones: [], areas: [], actualizadoEn: null };
 maplibregl.setWorkerUrl(trabajadorMapLibre);
 const coordenadaParque = [-90.5410824, 14.6391786];
 const estiloOpenFreeMap = "https://tiles.openfreemap.org/styles/liberty";
-const identificadorFuenteRuta = "ruta-parque";
-const identificadorCapaRuta = "ruta-parque";
 const identificadorFuenteSatelite = "vista-satelital";
 const identificadorCapaSatelite = "vista-satelital";
 const mosaicosSatelitales = "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
 
 const estadosBloqueados = new Set(["ENMANTENIMIENTO", "CERRADA", "FUERADESERVICIO", "PENDIENTECONFIRMACION"]);
+
+function coordenadasUbicacionValidas(latitud, longitud) {
+  return Number.isFinite(latitud)
+    && Number.isFinite(longitud)
+    && latitud >= -90
+    && latitud <= 90
+    && longitud >= -180
+    && longitud <= 180;
+}
 
 function obtenerEstadoNodo(nodo) {
   return nodo.estadoCalculadoArea || nodo.estadoArea || "DISPONIBLE";
@@ -47,43 +54,6 @@ function textoReloj(nodo, ahora) {
   return obtenerEstadoNodo(nodo) === "ENUSO" ? `Libre en ${formatearDuracion(diferencia)}` : "";
 }
 
-function distanciaEntrePuntos(latitudUno, longitudUno, latitudDos, longitudDos) {
-  const radianes = (grados) => grados * Math.PI / 180;
-  const diferenciaLatitud = radianes(latitudDos - latitudUno);
-  const diferenciaLongitud = radianes(longitudDos - longitudUno);
-  const valor = Math.sin(diferenciaLatitud / 2) ** 2
-    + Math.cos(radianes(latitudUno)) * Math.cos(radianes(latitudDos))
-    * Math.sin(diferenciaLongitud / 2) ** 2;
-  return 6371000 * 2 * Math.atan2(Math.sqrt(valor), Math.sqrt(1 - valor));
-}
-
-function obtenerCentroArea(area) {
-  if (area?.latitudCentro != null && area?.longitudCentro != null) {
-    return { latitud: Number(area.latitudCentro), longitud: Number(area.longitudCentro) };
-  }
-  if (area?.latitud != null && area?.longitud != null) {
-    return { latitud: Number(area.latitud), longitud: Number(area.longitud) };
-  }
-  const perimetro = area?.perimetro || [];
-  if (perimetro.length === 0) return null;
-  const suma = perimetro.reduce((acumulado, vertice) => ({
-    latitud: acumulado.latitud + Number(vertice.latitud),
-    longitud: acumulado.longitud + Number(vertice.longitud),
-  }), { latitud: 0, longitud: 0 });
-  return {
-    latitud: Number((suma.latitud / perimetro.length).toFixed(8)),
-    longitud: Number((suma.longitud / perimetro.length).toFixed(8)),
-  };
-}
-
-function formatearTiempoRecorrido(segundos) {
-  const minutos = Math.max(1, Math.round(Number(segundos) / 60));
-  if (minutos < 60) return `${minutos} min`;
-  const horas = Math.floor(minutos / 60);
-  const minutosRestantes = minutos % 60;
-  return minutosRestantes > 0 ? `${horas} h ${minutosRestantes} min` : `${horas} h`;
-}
-
 function crearContenidoPopupParque() {
   const contenido = document.createElement("div");
   contenido.className = "mapa-popup-parque";
@@ -106,50 +76,34 @@ function crearContenidoMarcadorParque() {
   return marcador;
 }
 
-function coleccionVacia() {
-  return { type: "FeatureCollection", features: [] };
+function crearContenidoMarcadorUbicacion() {
+  const marcador = document.createElement("span");
+  marcador.className = "mapa-marcador-ubicacion";
+  marcador.setAttribute("role", "img");
+  marcador.setAttribute("aria-label", "Tu ubicación actual");
+  return marcador;
 }
 
 function MapaInteractivo({
   mapa,
-  ruta,
   tipoVista,
-  solicitudUbicacion,
+  ubicacion,
   alCambiarTipoVista,
-  alActualizarUbicacion,
-  alCambiarSeguimiento,
-  alErrorUbicacion,
   alErrorMapa,
 }) {
   const contenedor = useRef(null);
   const instanciaMapa = useRef(null);
-  const geolocalizador = useRef(null);
   const marcadorParque = useRef(null);
+  const marcadorUbicacion = useRef(null);
   const ajusteInicial = useRef(false);
-  const ultimaRutaAjustada = useRef(null);
   const panelInformacion = useRef(null);
-  const acciones = useRef({
-    alActualizarUbicacion,
-    alCambiarSeguimiento,
-    alErrorUbicacion,
-    alErrorMapa,
-  });
+  const acciones = useRef({ alErrorMapa });
   const [mapaListo, establecerMapaListo] = useState(false);
   const [informacionAbierta, establecerInformacionAbierta] = useState(false);
 
   useEffect(() => {
-    acciones.current = {
-      alActualizarUbicacion,
-      alCambiarSeguimiento,
-      alErrorUbicacion,
-      alErrorMapa,
-    };
-  }, [
-    alActualizarUbicacion,
-    alCambiarSeguimiento,
-    alErrorUbicacion,
-    alErrorMapa,
-  ]);
+    acciones.current = { alErrorMapa };
+  }, [alErrorMapa]);
 
   useEffect(() => {
     if (!contenedor.current) return undefined;
@@ -175,26 +129,6 @@ function MapaInteractivo({
       visualizePitch: true,
     }), "top-right");
 
-    const controlUbicacion = new maplibregl.GeolocateControl({
-      positionOptions: { enableHighAccuracy: true },
-      trackUserLocation: true,
-      showUserLocation: true,
-      showAccuracyCircle: true,
-      fitBoundsOptions: { maxZoom: 18 },
-    });
-    geolocalizador.current = controlUbicacion;
-    controlUbicacion.on("geolocate", (evento) => {
-      acciones.current.alActualizarUbicacion({
-        latitud: evento.coords.latitude,
-        longitud: evento.coords.longitude,
-        precision: evento.coords.accuracy,
-      });
-    });
-    controlUbicacion.on("trackuserlocationstart", () => acciones.current.alCambiarSeguimiento(true));
-    controlUbicacion.on("trackuserlocationend", () => acciones.current.alCambiarSeguimiento(false));
-    controlUbicacion.on("error", () => acciones.current.alErrorUbicacion());
-    mapaCreado.addControl(controlUbicacion, "top-right");
-
     marcadorParque.current = new maplibregl.Marker({
       element: crearContenidoMarcadorParque(),
       anchor: "bottom",
@@ -219,20 +153,6 @@ function MapaInteractivo({
         source: identificadorFuenteSatelite,
         layout: { visibility: "visible" },
       }, primeraCapaEtiquetas);
-      mapaCreado.addSource(identificadorFuenteRuta, {
-        type: "geojson",
-        data: coleccionVacia(),
-      });
-      mapaCreado.addLayer({
-        id: identificadorCapaRuta,
-        type: "line",
-        source: identificadorFuenteRuta,
-        paint: {
-          "line-color": "#e09b31",
-          "line-opacity": 0.95,
-          "line-width": 6,
-        },
-      });
       establecerMapaListo(true);
     };
 
@@ -241,17 +161,11 @@ function MapaInteractivo({
     return () => {
       mapaCreado.off("load", manejarCarga);
       marcadorParque.current?.remove();
-      geolocalizador.current = null;
+      marcadorUbicacion.current?.remove();
       instanciaMapa.current = null;
       mapaCreado.remove();
     };
   }, []);
-
-  useEffect(() => {
-    if (!mapaListo || solicitudUbicacion === 0 || !geolocalizador.current) return;
-    const activado = geolocalizador.current.trigger();
-    if (!activado) acciones.current.alErrorUbicacion();
-  }, [mapaListo, solicitudUbicacion]);
 
   useEffect(() => {
     if (!mapaListo || !instanciaMapa.current) return;
@@ -271,33 +185,36 @@ function MapaInteractivo({
     const mapaCreado = instanciaMapa.current;
     if (!mapaListo || !mapaCreado) return;
 
-    const camino = (ruta?.coordenadas || []).map((coordenada) => [
-      Number(coordenada[0]),
-      Number(coordenada[1]),
-    ]);
-    mapaCreado.getSource(identificadorFuenteRuta)?.setData({
-      type: "FeatureCollection",
-      features: camino.length > 1 ? [{
-        type: "Feature",
-        properties: {},
-        geometry: { type: "LineString", coordinates: camino },
-      }] : [],
-    });
-
-    if (camino.length > 1 && ultimaRutaAjustada.current !== ruta) {
-      const limitesRuta = new maplibregl.LngLatBounds(camino[0], camino[0]);
-      camino.slice(1).forEach((coordenada) => limitesRuta.extend(coordenada));
-      mapaCreado.fitBounds(limitesRuta, { padding: 70, maxZoom: 18 });
-      ultimaRutaAjustada.current = ruta;
-    }
-
     if (!ajusteInicial.current && mapa.nodos.length > 0) {
       const limites = new maplibregl.LngLatBounds(coordenadaParque, coordenadaParque);
       mapa.nodos.forEach((nodo) => limites.extend([Number(nodo.longitud), Number(nodo.latitud)]));
       mapaCreado.fitBounds(limites, { padding: 55, maxZoom: 17 });
       ajusteInicial.current = true;
     }
-  }, [mapaListo, mapa.nodos, ruta]);
+  }, [mapaListo, mapa.nodos]);
+
+  useEffect(() => {
+    const mapaCreado = instanciaMapa.current;
+    if (!mapaListo || !mapaCreado || !ubicacion) return;
+
+    if (!coordenadasUbicacionValidas(ubicacion.latitud, ubicacion.longitud)) {
+      acciones.current.alErrorMapa("La ubicación recibida no contiene coordenadas válidas. Activa el GPS nuevamente.");
+      return;
+    }
+
+    const coordenadas = [ubicacion.longitud, ubicacion.latitud];
+    if (!marcadorUbicacion.current) {
+      marcadorUbicacion.current = new maplibregl.Marker({
+        element: crearContenidoMarcadorUbicacion(),
+        anchor: "center",
+      })
+        .setLngLat(coordenadas)
+        .addTo(mapaCreado);
+    } else {
+      marcadorUbicacion.current.setLngLat(coordenadas);
+    }
+    mapaCreado.flyTo({ center: coordenadas, zoom: 17, essential: true });
+  }, [mapaListo, ubicacion]);
 
   return (
     <div className="mapa-visor">
@@ -381,15 +298,12 @@ function MapaInteractivo({
 
 export function PaginaMapa() {
   const [mapa, establecerMapa] = useState(mapaVacio);
-  const [seleccion, establecerSeleccion] = useState({ destino: "" });
-  const [ruta, establecerRuta] = useState(null);
-  const [ubicacion, establecerUbicacion] = useState(null);
-  const [solicitudUbicacion, establecerSolicitudUbicacion] = useState(0);
   const [tipoVista, establecerTipoVista] = useState("satelite");
   const [momentoActual, establecerMomentoActual] = useState(() => Date.now());
-  const [solicitudRecorrido, establecerSolicitudRecorrido] = useState(0);
-  const [estado, establecerEstado] = useState({ cargando: true, calculandoRuta: false, error: "", ubicando: false });
-  const ultimaUbicacionCalculada = useRef(null);
+  const [error, establecerError] = useState("");
+  const [ubicacion, establecerUbicacion] = useState(null);
+  const [estadoUbicacion, establecerEstadoUbicacion] = useState("inactiva");
+  const [errorUbicacion, establecerErrorUbicacion] = useState("");
 
   useEffect(() => {
     let vigente = true;
@@ -398,11 +312,11 @@ export function PaginaMapa() {
         const respuesta = await consultarMapa();
         if (vigente) {
           establecerMapa(respuesta);
-          establecerEstado((actual) => ({ ...actual, cargando: false, error: "" }));
+          establecerError("");
         }
       } catch (error) {
         if (vigente && !silencioso) {
-          establecerEstado((actual) => ({ ...actual, cargando: false, error: error.message }));
+          establecerError(error.message);
         }
       }
     }
@@ -422,106 +336,41 @@ export function PaginaMapa() {
   const alertasAreas = useMemo(() => (mapa.areas || []).filter((area) => (
     ["ENUSO", "ENMANTENIMIENTO"].includes(obtenerEstadoNodo(area))
   )), [mapa.areas]);
-  const destinosMapa = useMemo(() => {
-    const destinos = new Map();
-    mapa.nodos.forEach((nodo) => {
-      if (!nodo.idArea || destinos.has(nodo.idArea)) return;
-      destinos.set(nodo.idArea, {
-        idArea: nodo.idArea,
-        nombreArea: nodo.nombreArea || nodo.nombre,
-        latitud: nodo.latitud,
-        longitud: nodo.longitud,
-      });
-    });
-    alertasAreas.forEach((area) => {
-      if (!destinos.has(area.idArea)) destinos.set(area.idArea, area);
-    });
-    return [...destinos.values()].sort((primero, segundo) => (
-      primero.nombreArea.localeCompare(segundo.nombreArea, "es-GT")
-    ));
-  }, [alertasAreas, mapa.nodos]);
 
-  useEffect(() => {
-    const idArea = Number(seleccion.destino);
-    const areaDestino = destinosMapa.find((area) => area.idArea === idArea);
-    const destino = obtenerCentroArea(areaDestino);
-    if (!ubicacion || !destino) return undefined;
-
-    const anterior = ultimaUbicacionCalculada.current;
-    const desplazamiento = anterior
-      ? distanciaEntrePuntos(
-          anterior.latitud,
-          anterior.longitud,
-          ubicacion.latitud,
-          ubicacion.longitud,
-        )
-      : Number.POSITIVE_INFINITY;
-    if (anterior?.idArea === idArea
-        && anterior.solicitud === solicitudRecorrido
-        && desplazamiento < 15) return undefined;
-
-    ultimaUbicacionCalculada.current = {
-      idArea,
-      latitud: ubicacion.latitud,
-      longitud: ubicacion.longitud,
-      solicitud: solicitudRecorrido,
-    };
-    let vigente = true;
-    establecerEstado((actual) => ({ ...actual, calculandoRuta: true, error: "" }));
-    calcularRecorridoPeatonal(ubicacion, destino)
-      .then((recorrido) => {
-        if (!vigente) return;
-        establecerRuta({ ...recorrido, idArea, nombreDestino: areaDestino.nombreArea });
-        establecerEstado((actual) => ({ ...actual, calculandoRuta: false, error: "" }));
-      })
-      .catch((error) => {
-        if (!vigente) return;
-        establecerRuta(null);
-        establecerEstado((actual) => ({ ...actual, calculandoRuta: false, error: error.message }));
-      });
-    return () => {
-      vigente = false;
-    };
-  }, [destinosMapa, seleccion.destino, solicitudRecorrido, ubicacion]);
-
-  function cambiarDestino(evento) {
-    const destino = evento.target.value;
-    establecerSeleccion({ destino });
-    establecerRuta(null);
-    ultimaUbicacionCalculada.current = null;
-    if (!destino) return;
-    establecerSolicitudRecorrido((actual) => actual + 1);
-    if (!ubicacion) alternarUbicacion();
-  }
-
-  function alternarUbicacion() {
-    establecerEstado((actual) => ({ ...actual, error: "" }));
-    establecerSolicitudUbicacion((actual) => actual + 1);
-  }
-
-  function actualizarUbicacion(nuevaUbicacion) {
-    establecerUbicacion(nuevaUbicacion);
-    establecerEstado((actual) => ({ ...actual, ubicando: true, error: "" }));
-  }
-
-  function cambiarSeguimiento(ubicando) {
-    establecerEstado((actual) => ({ ...actual, ubicando }));
-  }
-
-  function mostrarErrorUbicacion() {
-    establecerEstado((actual) => ({
-      ...actual,
-      ubicando: false,
-      error: "No fue posible obtener tu ubicación. Revisa el permiso del navegador e intenta nuevamente.",
-    }));
-  }
-
-  function solicitarRuta(evento) {
-    evento.preventDefault();
-    establecerEstado((actual) => ({ ...actual, error: "" }));
-    ultimaUbicacionCalculada.current = null;
-    establecerSolicitudRecorrido((actual) => actual + 1);
-    if (!ubicacion) alternarUbicacion();
+  function solicitarUbicacion() {
+    if (!window.navigator.geolocation) {
+      establecerErrorUbicacion("Este navegador no permite consultar tu ubicación actual.");
+      return;
+    }
+    establecerEstadoUbicacion("solicitando");
+    establecerErrorUbicacion("");
+    window.navigator.geolocation.getCurrentPosition(
+      (posicion) => {
+        const latitud = Number(posicion?.coords?.latitude);
+        const longitud = Number(posicion?.coords?.longitude);
+        if (!coordenadasUbicacionValidas(latitud, longitud)) {
+          establecerEstadoUbicacion("inactiva");
+          establecerErrorUbicacion("El GPS devolvió una ubicación inválida. Verifica la señal e inténtalo nuevamente.");
+          return;
+        }
+        establecerUbicacion({
+          latitud,
+          longitud,
+          precision: posicion.coords.accuracy,
+        });
+        establecerEstadoUbicacion("activa");
+      },
+      (errorGeolocalizacion) => {
+        const mensajes = {
+          1: "No autorizaste el acceso a tu ubicación. Puedes habilitarlo desde los permisos del navegador.",
+          2: "No fue posible determinar tu ubicación en este momento.",
+          3: "La ubicación tardó demasiado. Intenta nuevamente.",
+        };
+        establecerEstadoUbicacion("inactiva");
+        establecerErrorUbicacion(mensajes[errorGeolocalizacion.code] || "No fue posible obtener tu ubicación actual.");
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
   }
 
   return (
@@ -529,20 +378,16 @@ export function PaginaMapa() {
       <CabeceraPagina
         etiqueta="Orientación"
         titulo="Mapa del parque"
-        descripcion="Ubica las áreas y traza recorridos peatonales desde tu posición."
+        descripcion="Consulta el mapa y los avisos actuales de las áreas del parque."
       />
       <section className="portal-seccion">
         <div className="portal-contenedor mapa-contenido">
           <MapaInteractivo
             mapa={mapa}
-            ruta={ruta}
             tipoVista={tipoVista}
-            solicitudUbicacion={solicitudUbicacion}
+            ubicacion={ubicacion}
             alCambiarTipoVista={establecerTipoVista}
-            alActualizarUbicacion={actualizarUbicacion}
-            alCambiarSeguimiento={cambiarSeguimiento}
-            alErrorUbicacion={mostrarErrorUbicacion}
-            alErrorMapa={(mensaje) => establecerEstado((actual) => ({ ...actual, error: mensaje }))}
+            alErrorMapa={establecerError}
           />
           <aside className="mapa-informacion">
             <p className="portal-sobrelinea">Mapa interactivo</p>
@@ -552,6 +397,25 @@ export function PaginaMapa() {
                 ? "Solo se muestran las áreas que están en uso o en mantenimiento."
                 : "No hay áreas en uso ni en mantenimiento en este momento."}
             </p>
+            <div className="mapa-ubicacion-actual">
+              <button
+                className="mapa-boton-ubicacion"
+                type="button"
+                onClick={solicitarUbicacion}
+                disabled={estadoUbicacion === "solicitando"}
+              >
+                {estadoUbicacion === "solicitando" ? "Activando GPS…" : "Activar GPS"}
+              </button>
+              <p>
+                Al continuar, el navegador solicitará permiso para usar el GPS o la ubicación del dispositivo.
+              </p>
+              {ubicacion && (
+                <p className="mapa-precision" role="status">
+                  Ubicación actual mostrada en el mapa · precisión aproximada de {Math.round(ubicacion.precision)} metros.
+                </p>
+              )}
+            </div>
+            {errorUbicacion && <p className="portal-mensaje-error" role="alert">{errorUbicacion}</p>}
             {alertasAreas.length > 0 && (
               <div className="mapa-disponibilidad" aria-live="polite">
                 {alertasAreas.map((elemento) => (
@@ -567,49 +431,8 @@ export function PaginaMapa() {
                 ))}
               </div>
             )}
+            {error && <p className="portal-mensaje-error" role="alert">{error}</p>}
           </aside>
-        </div>
-        <div className="portal-contenedor mapa-planificador">
-          <div>
-            <p className="portal-sobrelinea">Orientación dentro del parque</p>
-            <h2>Cómo llegar a una cancha</h2>
-            <p>Selecciona el destino. El GPS tomará tu ubicación actual y el recorrido peatonal aparecerá directamente sobre el mapa.</p>
-            <div className="mapa-acciones-ubicacion">
-              <button type="button" onClick={alternarUbicacion}>{estado.ubicando ? "Detener ubicación" : "Usar mi ubicación"}</button>
-            </div>
-            {ubicacion && (
-              <p className="mapa-precision" role="status">
-                Ubicación obtenida con precisión aproximada de {Math.round(ubicacion.precision)} metros.
-              </p>
-            )}
-            <p className="mapa-aviso-privacidad-ruta">
-              Para calcular el camino, las coordenadas se envían temporalmente al servicio de rutas Valhalla con datos de OpenStreetMap. Esta aplicación no las guarda.
-            </p>
-            {estado.error && <p className="portal-mensaje-error" role="alert">{estado.error}</p>}
-          </div>
-          <form className="mapa-formulario-ruta" onSubmit={solicitarRuta}>
-            <label htmlFor="mapa-destino">Destino</label>
-            <select id="mapa-destino" required value={seleccion.destino} onChange={cambiarDestino}>
-              <option value="">Selecciona una cancha o área</option>
-              {destinosMapa.map((area) => (
-                <option key={area.idArea} value={area.idArea}>
-                  {area.nombreArea}
-                </option>
-              ))}
-            </select>
-            <button type="submit" disabled={estado.calculandoRuta || !seleccion.destino || destinosMapa.length === 0}>
-              {estado.calculandoRuta ? "Calculando recorrido..." : ruta ? "Actualizar recorrido" : "Marcar recorrido"}
-            </button>
-          </form>
-          {ruta && (
-            <div className="mapa-resultado-ruta" role="status">
-              <h3>Recorrido hacia {ruta.nombreDestino}</h3>
-              <p>Distancia aproximada: {Number(ruta.distanciaTotalMetros).toLocaleString("es-GT")} metros.</p>
-              <p>Tiempo estimado caminando: {formatearTiempoRecorrido(ruta.duracionTotalSegundos)}.</p>
-              <ol>{ruta.instrucciones.map((paso, indice) => <li key={`${indice}-${paso.instruccion}`}>{paso.instruccion}</li>)}</ol>
-              <small>Ruta calculada con {ruta.proveedor}.</small>
-            </div>
-          )}
         </div>
       </section>
     </>

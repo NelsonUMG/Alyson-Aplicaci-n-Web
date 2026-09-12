@@ -1,0 +1,218 @@
+/* Perfil del personal administrativo: acceso rápido y contexto claro. */
+.pagina-perfil-administracion {
+  width: min(76rem, 100%);
+  padding-bottom: clamp(3rem, 7vw, 5.5rem);
+  color: #1d342b;
+}
+
+.pagina-perfil-administracion .enlace-regreso {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  color: #245b49;
+  font-size: .9375rem;
+  text-decoration-thickness: 1px;
+}
+
+.pagina-perfil-administracion .cabecera-perfil-administracion {
+  align-items: center;
+  margin-top: 1.25rem;
+  padding: 1.5rem 0 1.75rem;
+  border-bottom: 1px solid #d8e2dc;
+}
+
+.identidad-perfil-administracion {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.avatar-perfil-administracion {
+  display: grid;
+  width: 3.75rem;
+  height: 3.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  background: #164d3d;
+  color: #fff;
+}
+
+.avatar-perfil-administracion svg {
+  width: 2.15rem;
+  height: 2.15rem;
+}
+
+.pagina-perfil-administracion .etiqueta-perfil-administracion {
+  margin: 0 0 .3rem;
+  color: #467061;
+  font-size: .75rem;
+  letter-spacing: .11em;
+}
+
+.pagina-perfil-administracion h1 {
+  margin: 0;
+  color: #173429;
+  font-family: inherit;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 650;
+  letter-spacing: -.04em;
+  line-height: 1.05;
+}
+
+.pagina-perfil-administracion .correo-perfil-administracion {
+  margin: .45rem 0 0;
+  color: #52675f;
+  font-size: .9375rem;
+  overflow-wrap: anywhere;
+}
+
+.pagina-perfil-administracion .cabecera-perfil-administracion > .boton-secundario {
+  min-height: 2.75rem;
+  padding-inline: 1rem;
+  border-color: #164d3d;
+  border-radius: .3rem;
+  color: #164d3d;
+  font-size: .875rem;
+  font-weight: 650;
+}
+
+.pagina-perfil-administracion .panel-modulos-administracion {
+  margin-top: 2rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.cabecera-modulos-perfil {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #d8e2dc;
+}
+
+.cabecera-modulos-perfil p {
+  margin: 0 0 .25rem;
+  color: #4c7465;
+  font-size: .75rem;
+  font-weight: 750;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+
+.cabecera-modulos-perfil h2 {
+  margin: 0;
+  color: #1d342b;
+  font-size: clamp(1.35rem, 2.5vw, 1.75rem);
+  font-weight: 650;
+  letter-spacing: -.025em;
+}
+
+.cabecera-modulos-perfil > div > span {
+  display: block;
+  margin-top: .35rem;
+  color: #60736c;
+  font-size: .9375rem;
+}
+
+.contador-modulos-perfil {
+  flex: 0 0 auto;
+  padding: .45rem .7rem;
+  border: 1px solid #cbdad2;
+  border-radius: 999px;
+  background: #f5f9f6;
+  color: #376153;
+  font-size: .8125rem;
+  font-weight: 650;
+}
+
+.pagina-perfil-administracion .modulos-administracion {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .85rem;
+  margin-top: 1.25rem;
+}
+
+.pagina-perfil-administracion .tarjeta-modulo {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  min-height: 0;
+  align-items: center;
+  gap: .85rem;
+  padding: 1rem;
+  border: 1px solid #d8e2dc;
+  border-radius: .4rem;
+  background: #fff;
+  color: #1d342b;
+  font-weight: 400;
+  text-align: left;
+  transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.pagina-perfil-administracion .tarjeta-modulo:hover,
+.pagina-perfil-administracion .tarjeta-modulo:focus-visible {
+  transform: translateY(-2px);
+  border-color: #78a895;
+  background: #fff;
+  box-shadow: 0 .55rem 1.2rem rgb(26 76 59 / 10%);
+}
+
+.pagina-perfil-administracion .icono-modulo {
+  width: 3.25rem;
+  height: 3.25rem;
+  border: 1px solid #dce8e1;
+  border-radius: .35rem;
+  background: #f3f8f5;
+  color: #25624e;
+}
+
+.pagina-perfil-administracion .icono-modulo svg {
+  width: 2rem;
+  height: 2rem;
+}
+
+.contenido-tarjeta-modulo {
+  display: grid;
+  gap: .2rem;
+  min-width: 0;
+}
+
+.contenido-tarjeta-modulo strong {
+  color: #1d342b;
+  font-size: .9375rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.contenido-tarjeta-modulo small {
+  color: #60736c;
+  font-size: .8125rem;
+  line-height: 1.4;
+}
+
+.flecha-tarjeta-modulo {
+  color: #4d7968;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+@media (max-width: 900px) {
+  .pagina-perfil-administracion .modulos-administracion {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .pagina-perfil-administracion .cabecera-perfil-administracion,
+  .cabecera-modulos-perfil {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .pagina-perfil-administracion .modulos-administracion {
+    grid-template-columns: 1fr;
+  }
+}

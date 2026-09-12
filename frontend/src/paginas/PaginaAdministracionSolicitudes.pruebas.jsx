@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 const api = vi.hoisted(() => ({
   consultarSolicitudAdministrada: vi.fn(),
@@ -34,7 +34,18 @@ const detalle = {
   },
 };
 
+// jsdom no implementa los métodos del diálogo nativo del navegador.
+beforeAll(() => {
+  Object.defineProperties(window.HTMLDialogElement.prototype, {
+    showModal: { configurable: true, value() { this.setAttribute("open", ""); } },
+    close: { configurable: true, value() { this.removeAttribute("open"); } },
+  });
+});
+
 beforeEach(() => {
+  api.actualizarTramiteAdministrado.mockImplementation(async (idTramite, datos) => ({
+    ...datos, idTramite, categoria: "Reservas y uso de instalaciones", version: datos.version + 1, urlPortada: null,
+  }));
   api.listarCategoriasTramitesAdministradas.mockResolvedValue([
     { idCategoria: 1, codigo: "RESERVASINSTALACIONES", nombre: "Reservas y uso de instalaciones", ordenVisualizacion: 1, activa: true },
   ]);
@@ -73,54 +84,124 @@ beforeEach(() => {
   api.resolverSolicitud.mockResolvedValue({ ...detalle, estado: "APROBADA", version: 3, resolucion: "Disponible en el horario solicitado." });
 });
 
-afterEach(() => { cleanup(); vi.clearAllMocks(); });
+afterEach(() => { cleanup(); vi.resetAllMocks(); });
 
 describe("Administración de solicitudes", () => {
-  it("organiza el módulo de nuevas solicitudes por categoría padre y trámite hijo", async () => {
+  it("filtra trámites por nombre sin tildes y permite recuperar el listado", async () => {
     render(<MemoryRouter><PaginaAdministracionSolicitudes /></MemoryRouter>);
-
-    expect(await screen.findByRole("heading", { name: "Módulo de nuevas solicitudes" })).toBeTruthy();
-    const navegacion = screen.getByRole("navigation", { name: "Categorías padre y trámites hijo configurados" });
-    expect(within(navegacion).getByRole("heading", { name: "Reservas y uso de instalaciones" })).toBeTruthy();
-    expect(within(navegacion).getAllByText("Trámite hijo")).toHaveLength(2);
-    fireEvent.click(within(navegacion).getByRole("button", { name: /Reserva de canchas/ }));
-    expect(screen.getByLabelText("Categoría padre")).toBeTruthy();
-    expect(screen.getByLabelText("Nombre del trámite hijo")).toBeTruthy();
-    expect(screen.getByLabelText(/Campos y requisitos solicitados/)).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Categorías y trámites" }));
+    expect(await screen.findByRole("button", { name: "Editar Reserva de canchas" })).toBeTruthy();
+    fireEvent.change(screen.getByRole("searchbox", { name: "Buscar trámite" }), { target: { value: "areas" } });
+    expect(screen.queryByRole("button", { name: "Editar Reserva de canchas" })).toBeNull();
+    expect(screen.getByRole("button", { name: "Editar Reserva de áreas recreativas" })).toBeTruthy();
+    fireEvent.change(screen.getByRole("searchbox"), { target: { value: "inexistente" } });
+    expect(screen.getByText("No encontramos ese trámite")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Ver todos los trámites" }));
+    expect(screen.getByRole("button", { name: "Editar Reserva de canchas" })).toBeTruthy();
   });
 
-  it("crea una categoría padre y vincula dentro de ella un trámite hijo", async () => {
+  it("crea una categoría y un trámite vinculado mediante los tres pasos", async () => {
     render(<MemoryRouter><PaginaAdministracionSolicitudes /></MemoryRouter>);
-
-    fireEvent.click(await screen.findByRole("button", { name: /Nueva categoría padre/ }));
-    fireEvent.change(screen.getByLabelText("Nombre de la categoría padre"), {
-      target: { value: "Actividades deportivas" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Crear categoría y continuar" }));
-
-    await waitFor(() => expect(api.crearCategoriaTramiteAdministrada).toHaveBeenCalledWith({
-      nombre: "Actividades deportivas",
-    }));
-    expect(await screen.findByRole("heading", { name: "Configura el nuevo trámite" })).toBeTruthy();
-    expect(screen.getByLabelText("Categoría padre").value).toBe("3");
-
-    fireEvent.change(screen.getByLabelText("Nombre del trámite hijo"), { target: { value: "Curso de natación" } });
-    fireEvent.change(screen.getByLabelText("Resumen"), { target: { value: "Inscripción al curso." } });
-    fireEvent.change(screen.getByLabelText("Acerca de este trámite"), { target: { value: "Información del curso." } });
-    fireEvent.change(screen.getByLabelText(/Campos y requisitos solicitados/), { target: { value: "Tener 12 años" } });
-    fireEvent.change(screen.getByLabelText(/Documentos solicitados/), { target: { value: "DPI" } });
-    fireEvent.click(screen.getByRole("button", { name: "Crear trámite hijo" }));
-
+    fireEvent.click(screen.getByRole("button", { name: "Categorías y trámites" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Nueva categoría general" }));
+    fireEvent.change(screen.getByLabelText("Nombre de la categoría general"), { target: { value: "Actividades deportivas" } });
+    fireEvent.click(screen.getByRole("button", { name: "Crear categoría" }));
+    await waitFor(() => expect(api.crearCategoriaTramiteAdministrada).toHaveBeenCalledWith({ nombre: "Actividades deportivas" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Agregar primer trámite" }));
+    expect(screen.getByLabelText("Categoría general").value).toBe("3");
+    fireEvent.change(screen.getByLabelText("Nombre del trámite"), { target: { value: "Curso de natación" } });
+    fireEvent.change(screen.getByLabelText("Descripción breve"), { target: { value: "Inscripción al curso." } });
+    fireEvent.change(screen.getByLabelText("Información del trámite"), { target: { value: "Información del curso." } });
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    expect(api.crearTramiteAdministrado).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Agregar requisito" }));
+    fireEvent.change(screen.getByLabelText("Requisito 1"), { target: { value: "Tener 12 años" } });
+    fireEvent.click(screen.getByRole("button", { name: "Agregar documento" }));
+    fireEvent.change(screen.getByLabelText("Documento 1"), { target: { value: "DPI" } });
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    expect(api.crearTramiteAdministrado).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole("button", { name: "Crear trámite" }));
     await waitFor(() => expect(api.crearTramiteAdministrado).toHaveBeenCalledWith(expect.objectContaining({
-      idCategoria: 3,
-      nombre: "Curso de natación",
-      requisitos: ["Tener 12 años"],
-      documentosRequeridos: ["DPI"],
+      idCategoria: 3, nombre: "Curso de natación", requisitos: ["Tener 12 años"], documentosRequeridos: ["DPI"],
     })));
+    expect(await screen.findByRole("button", { name: "Editar Curso de natación" })).toBeTruthy();
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("edita conservando versión y datos al volver entre pasos", async () => {
+    render(<MemoryRouter><PaginaAdministracionSolicitudes /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "Categorías y trámites" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Editar Reserva de canchas" }));
+    fireEvent.change(screen.getByLabelText("Nombre del trámite"), { target: { value: "Reserva de cancha deportiva" } });
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Quitar requisito 1" }));
+    fireEvent.click(screen.getByRole("button", { name: "Anterior" }));
+    expect(screen.getByLabelText("Nombre del trámite").value).toBe("Reserva de cancha deportiva");
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    expect(screen.queryByLabelText("Requisito 1")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("checkbox", { name: /Mostrar en el catálogo/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar cambios" }));
+    await waitFor(() => expect(api.actualizarTramiteAdministrado).toHaveBeenCalledWith(1, expect.objectContaining({
+      nombre: "Reserva de cancha deportiva", requisitos: [], documentosRequeridos: ["DPI"], activo: false, requiereReserva: true, version: 0,
+    })));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(screen.queryByText("Visibilidad")).toBeNull();
+    expect(screen.queryByText("Oculto")).toBeNull();
+    expect(api.crearTramiteAdministrado).not.toHaveBeenCalled();
+  });
+
+  it("conserva el formulario y permite reintentar si falla el guardado", async () => {
+    api.actualizarTramiteAdministrado.mockRejectedValueOnce(new Error("No fue posible guardar el trámite."));
+    render(<MemoryRouter><PaginaAdministracionSolicitudes /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "Categorías y trámites" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Editar Reserva de canchas" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Guardar cambios" }));
+    expect(await screen.findByRole("alert")).toBeTruthy();
+    expect(screen.getByLabelText("Costo").value).toBe("Sin costo");
+    fireEvent.click(screen.getByRole("button", { name: "Guardar cambios" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    expect(api.actualizarTramiteAdministrado).toHaveBeenCalledTimes(2);
+  });
+
+  it("informa de un fallo de portada sin repetir el guardado del trámite", async () => {
+    api.actualizarPortadaTramite.mockRejectedValueOnce(new Error("Falló la imagen"));
+    render(<MemoryRouter><PaginaAdministracionSolicitudes /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "Categorías y trámites" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Editar Reserva de canchas" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Continuar" }));
+    const archivo = new window.File(["imagen"], "portada.png", { type: "image/png" });
+    fireEvent.change(screen.getByLabelText(/Imagen de portada/), { target: { files: [archivo] } });
+    fireEvent.click(screen.getByRole("button", { name: "Guardar cambios" }));
+    expect(await screen.findByText(/la portada no se pudo cargar/)).toBeTruthy();
+    expect(api.actualizarPortadaTramite).toHaveBeenCalledWith(1, archivo);
+    expect(api.actualizarTramiteAdministrado).toHaveBeenCalledTimes(1);
+    expect(screen.queryByRole("dialog")).toBeNull();
+  });
+
+  it("permite crear la primera categoría y cerrar sin enviar datos", async () => {
+    api.listarCategoriasTramitesAdministradas.mockResolvedValue([]);
+    api.listarCatalogoTramitesAdministrado.mockResolvedValue([]);
+    render(<MemoryRouter><PaginaAdministracionSolicitudes /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "Categorías y trámites" }));
+    const crear = await screen.findByRole("button", { name: "Crear categoría general" });
+    expect(screen.getByRole("button", { name: "Nuevo trámite" }).disabled).toBe(true);
+    crear.focus();
+    fireEvent.click(crear);
+    expect(screen.getByRole("dialog", { name: "Nueva categoría general" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Cerrar formulario" }));
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(crear);
+    expect(api.crearCategoriaTramiteAdministrada).not.toHaveBeenCalled();
   });
 
   it("permite revisar disponibilidad y registrar una respuesta", async () => {
     render(<MemoryRouter><PaginaAdministracionSolicitudes /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "Categorías y trámites" }));
+    fireEvent.click(screen.getByRole("button", { name: "Solicitudes recibidas" }));
     fireEvent.click(await screen.findByRole("button", { name: /Solicitud #8/ }));
 
     expect(await screen.findByRole("heading", { name: "Uso de cancha o instalación" })).toBeTruthy();
@@ -154,6 +235,8 @@ describe("Administración de solicitudes", () => {
       },
     });
     render(<MemoryRouter><PaginaAdministracionSolicitudes /></MemoryRouter>);
+    fireEvent.click(screen.getByRole("button", { name: "Categorías y trámites" }));
+    fireEvent.click(screen.getByRole("button", { name: "Solicitudes recibidas" }));
     fireEvent.click(await screen.findByRole("button", { name: /Solicitud #9/ }));
 
     const detalleDenuncia = (await screen.findByRole("heading", { name: "Denuncias y quejas" })).closest("section");

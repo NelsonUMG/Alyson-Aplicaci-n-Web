@@ -65,8 +65,8 @@ public class EnviadorCorreoVerificacionSmtp implements EnviadorCorreoVerificacio
 
     private String crearTextoPlano(String nombre, String enlace, String urlPublicaEfectiva) {
         return "Hola " + nombre + ",\n\n"
-                + "Tu cuenta fue creada. Solo falta presionar el botón \"Confirmar mi cuenta\" "
-                + "para activar tu cuenta del Parque Erick Barrondo.\n\n"
+                + "Confirma tu correo presionando el botón \"Confirmar mi cuenta\" "
+                + "para crear tu cuenta del Parque Erick Barrondo.\n\n"
                 + "Confirmar mi cuenta:\n"
                 + enlace + "\n\n"
                 + "Tienes " + duracionHoras + " horas para completar la activación.\n"
@@ -108,7 +108,7 @@ public class EnviadorCorreoVerificacionSmtp implements EnviadorCorreoVerificacio
                               <td style="padding:38px 42px 34px;background:#0d493b;">
                                 <h1 style="margin:0 0 14px;font-size:30px;line-height:1.2;color:#ffffff;">Confirmación de correo</h1>
                                 <p style="margin:0 0 10px;font-size:16px;line-height:1.6;color:#ffffff;">Hola, <strong>{{NOMBRE}}</strong>.</p>
-                                <p style="max-width:510px;margin:0;font-size:15px;line-height:1.7;color:#d6e7e1;">Tu cuenta fue creada. Solo falta presionar el botón <strong>“Confirmar mi cuenta”</strong> para activar tu cuenta del Parque Erick Barrondo.</p>
+                                <p style="max-width:510px;margin:0;font-size:15px;line-height:1.7;color:#d6e7e1;">Confirma tu correo presionando el botón <strong>“Confirmar mi cuenta”</strong> para crear tu cuenta del Parque Erick Barrondo.</p>
                               </td>
                             </tr>
                             <tr>

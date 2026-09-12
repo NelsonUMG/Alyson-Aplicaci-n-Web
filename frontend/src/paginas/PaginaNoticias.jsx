@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { listarCategoriasPublicacion, listarPublicaciones } from "../api/portalPublico";
 import { obtenerMensajeError } from "../api/clienteHttp";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
+import { RedesSocialesParque } from "../componentes/RedesSocialesParque";
 import { formatearTextoEditorial } from "../utilidades/formatoTexto";
 
 const filtrosIniciales = {
@@ -121,10 +122,11 @@ export function PaginaNoticias() {
       </section>
 
       <section className="portal-seccion portal-seccion-noticias-listado">
-        <div className="portal-contenedor">
+        <div className="portal-contenedor noticias-contenido-con-redes">
+          <div className="noticias-contenido-principal">
           <div className="portal-cabecera-listado-noticias">
             <p className="portal-sobrelinea">Información oficial</p>
-            <h2>Últimas publicaciones recientes</h2>
+            <h2>Últimas publicaciones</h2>
           </div>
           {errorCategorias && <p className="portal-mensaje-error" role="alert">{errorCategorias}</p>}
           {error && <p className="portal-mensaje-error" role="alert">{error}</p>}
@@ -172,6 +174,8 @@ export function PaginaNoticias() {
               >Siguiente</button>
             </nav>
           )}
+          </div>
+          <RedesSocialesParque />
         </div>
       </section>
     </>

@@ -10,11 +10,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 
-import gt.gob.parqueerickbarrondo.areas.dominio.ConexionMapa;
 import gt.gob.parqueerickbarrondo.areas.dominio.NodoMapa;
 import gt.gob.parqueerickbarrondo.areas.dominio.ReservaArea;
 import gt.gob.parqueerickbarrondo.areas.dominio.VerticeAreaMapa;
-import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioConexionMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioNodoMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioReservaArea;
 import gt.gob.parqueerickbarrondo.identidad.dominio.Usuario;
@@ -35,8 +33,6 @@ class ServicioMapaPublicoPruebas {
     @Mock
     private RepositorioNodoMapa repositorioNodo;
     @Mock
-    private RepositorioConexionMapa repositorioConexion;
-    @Mock
     private RepositorioReservaArea repositorioReserva;
     @Mock
     private RepositorioArea repositorioArea;
@@ -44,46 +40,12 @@ class ServicioMapaPublicoPruebas {
     @InjectMocks
     private ServicioMapaPublico servicioMapa;
 
-    private NodoMapa origen;
-    private NodoMapa intermedio;
     private NodoMapa destino;
-    private ConexionMapa conexionDirecta;
-    private ConexionMapa conexionPrimerTramo;
-    private ConexionMapa conexionSegundoTramo;
 
     @BeforeEach
     void prepararGrafo() {
-        origen = nodo(1L, "Entrada", true);
-        intermedio = nodo(2L, "Intersección", true);
         destino = nodo(3L, "Cancha", true, "DESTINO");
-        conexionDirecta = conexion(11L, origen, destino, "50.00", false);
-        conexionPrimerTramo = conexion(12L, origen, intermedio, "30.00", true);
-        conexionSegundoTramo = conexion(13L, intermedio, destino, "30.00", true);
-        when(repositorioNodo.buscarPublicos()).thenReturn(List.of(origen, intermedio, destino));
-        when(repositorioConexion.buscarTodas()).thenReturn(List.of(
-                conexionDirecta, conexionPrimerTramo, conexionSegundoTramo));
-    }
-
-    @Test
-    void calculaPorElGrafoYRespetaElPerfilAccesible() {
-        var rutaGeneral = servicioMapa.calcularRuta(1L, 3L, false);
-        var rutaAccesible = servicioMapa.calcularRuta(1L, 3L, true);
-
-        assertThat(rutaGeneral.distanciaTotalMetros()).isEqualByComparingTo("50.00");
-        assertThat(rutaGeneral.pasos()).extracting("idNodoMapa").containsExactly(1L, 3L);
-        assertThat(rutaAccesible.distanciaTotalMetros()).isEqualByComparingTo("60.00");
-        assertThat(rutaAccesible.pasos()).extracting("idNodoMapa").containsExactly(1L, 2L, 3L);
-    }
-
-    @Test
-    void excluyeUnaConexionCerradaDelCalculo() {
-        conexionDirecta.actualizar(
-                origen, destino, new BigDecimal("50.00"), true, false, true, "Trabajo en pista");
-
-        var ruta = servicioMapa.calcularRuta(1L, 3L, false);
-
-        assertThat(ruta.distanciaTotalMetros()).isEqualByComparingTo("60.00");
-        assertThat(ruta.pasos()).extracting("idNodoMapa").containsExactly(1L, 2L, 3L);
+        when(repositorioNodo.buscarPublicos()).thenReturn(List.of(destino));
     }
 
     @Test
@@ -147,19 +109,6 @@ class ServicioMapaPublicoPruebas {
         ReflectionTestUtils.setField(nodo, "idNodoMapa", id);
         ReflectionTestUtils.setField(nodo, "version", 0L);
         return nodo;
-    }
-
-    private ConexionMapa conexion(
-            Long id,
-            NodoMapa nodoOrigen,
-            NodoMapa nodoDestino,
-            String distancia,
-            boolean accesible) {
-        var conexion = new ConexionMapa(
-                nodoOrigen, nodoDestino, new BigDecimal(distancia), true, accesible, false, null);
-        ReflectionTestUtils.setField(conexion, "idConexionMapa", id);
-        ReflectionTestUtils.setField(conexion, "version", 0L);
-        return conexion;
     }
 
     private Area area(Long id, String codigo, String nombre, String estado) {

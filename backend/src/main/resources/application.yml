@@ -102,7 +102,7 @@ seguridad:
   intentos:
     clave-huellas: ${SEGURIDADCLAVEHUELLAS}
     maximos: ${SEGURIDADMAXIMOINTENTOS:5}
-    ventana-minutos: ${SEGURIDADVENTANAMINUTOS:15}
+    ventana-minutos: ${SEGURIDADVENTANAMINUTOS:10}
   contrasena:
     longitud-minima: ${SEGURIDADLONGITUDMINIMACONTRASENA:12}
 

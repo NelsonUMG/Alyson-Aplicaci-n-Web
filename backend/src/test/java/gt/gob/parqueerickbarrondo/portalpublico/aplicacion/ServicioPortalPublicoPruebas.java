@@ -75,6 +75,22 @@ class ServicioPortalPublicoPruebas {
     }
 
     @Test
+    void cambiaLaUrlPublicaAlActualizarLaPortadaParaEvitarLaImagenAnteriorEnCache() {
+        var evento = org.mockito.Mockito.mock(Evento.class);
+        when(evento.obtenerIdentificadorUrl()).thenReturn("patinaje");
+        when(evento.obtenerClaveImagen()).thenReturn("portada.jpg");
+        when(evento.obtenerVersion()).thenReturn(4L, 5L);
+        when(repositorioEvento.buscarAgendaPublica(anySet(), any(Instant.class), any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(evento), PageRequest.of(0, 10), 1));
+
+        var anterior = servicioPortalPublico.listarEventos(0, 10).contenido().getFirst().urlImagen();
+        var actualizada = servicioPortalPublico.listarEventos(0, 10).contenido().getFirst().urlImagen();
+
+        assertThat(anterior).isEqualTo("/api/v1/publico/eventos/patinaje/imagen?v=4");
+        assertThat(actualizada).isEqualTo("/api/v1/publico/eventos/patinaje/imagen?v=5");
+    }
+
+    @Test
     void noExponeCoordenadasQueNoHanSidoConfirmadas() {
         var categoria = org.mockito.Mockito.mock(CategoriaArea.class);
         when(categoria.obtenerCodigo()).thenReturn("DEPORTIVA");

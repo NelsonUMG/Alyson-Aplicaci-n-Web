@@ -1,7 +1,24 @@
 import { recordarTokenCsrf, solicitarApi } from "./clienteHttp";
 
+export async function solicitarRecuperacion(correo) {
+  await prepararCsrf();
+  return solicitarApi("/autenticacion/recuperar-contrasena", { method: "POST", body: JSON.stringify({ correo }) });
+}
+
+export async function restablecerContrasena(datos) {
+  await prepararCsrf();
+  return solicitarApi("/autenticacion/restablecer-contrasena", { method: "POST", body: JSON.stringify(datos) });
+}
+
 export async function prepararCsrf() {
-  const respuesta = await solicitarApi("/autenticacion/csrf");
+  let respuesta;
+  try {
+    respuesta = await solicitarApi("/autenticacion/csrf");
+  } catch (error) {
+    if (error.estado !== 401) throw error;
+    // La primera petición elimina una sesión revocada al recuperar la contraseña.
+    respuesta = await solicitarApi("/autenticacion/csrf");
+  }
   recordarTokenCsrf(respuesta.token);
   return respuesta;
 }

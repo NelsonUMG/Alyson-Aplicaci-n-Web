@@ -1,0 +1,202 @@
+/* Área de solicitudes: catálogo de trabajo y formularios guiados. */
+.estructura-administracion .pagina-administracion.pagina-administracion-solicitudes {
+  --catalogo-tinta: #203247;
+  --catalogo-secundario: #596a7a;
+  --catalogo-acento: #165e83;
+  --catalogo-borde: #dce3e9;
+}
+
+.pagina-administracion-solicitudes [hidden] { display: none !important; }
+.pagina-administracion-solicitudes svg { flex: 0 0 auto; }
+.pagina-administracion-solicitudes button:disabled { cursor: not-allowed; }
+.pagina-administracion-solicitudes button:focus-visible,
+.pagina-administracion-solicitudes input:focus-visible,
+.pagina-administracion-solicitudes select:focus-visible,
+.pagina-administracion-solicitudes textarea:focus-visible { outline: 3px solid #83b9d3; outline-offset: 3px; }
+.pagina-administracion-solicitudes .solicitudes-admin-vistas { display: flex; flex-wrap: wrap; gap: 1.75rem; border-bottom: 1px solid #dce3e9; margin-bottom: 1.75rem; }
+.pagina-administracion-solicitudes .solicitudes-admin-vistas button { display: inline-flex; align-items: center; gap: .55rem; padding: .75rem 0 1rem; border: 0; border-bottom: 3px solid transparent; background: transparent; color: #596a7a; font-size: .9375rem; font-weight: 550; }
+.pagina-administracion-solicitudes .solicitudes-admin-vistas button[aria-pressed="true"] { border-bottom-color: #165e83; color: #165e83; font-weight: 700; }
+.pagina-administracion-solicitudes .catalogo-barra-herramientas { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
+.pagina-administracion-solicitudes .catalogo-barra-herramientas h2 { margin: 0 0 .3rem; font-size: 1.2rem; font-weight: 650; color: #203247; }
+.pagina-administracion-solicitudes .catalogo-barra-herramientas p { margin: 0; color: #596a7a; font-size: .9375rem; }
+
+.pagina-administracion-solicitudes .catalogo-boton-principal,
+.pagina-administracion-solicitudes .catalogo-boton-secundario,
+.pagina-administracion-solicitudes .catalogo-boton-texto,
+.pagina-administracion-solicitudes .catalogo-boton-icono {
+  display: inline-flex; min-height: 2.75rem; align-items: center; justify-content: center; gap: .5rem;
+  padding: .6rem 1rem; border: 1px solid transparent; font-family: inherit; font-size: .875rem; font-weight: 600; line-height: 1.35;
+  transition: background-color .15s, border-color .15s; cursor: pointer;
+}
+.pagina-administracion-solicitudes .catalogo-boton-principal { background: #165e83; color: #fff; border-color: #165e83; }
+.pagina-administracion-solicitudes .catalogo-boton-principal:hover:not(:disabled) { background: #104767; border-color: #104767; }
+.pagina-administracion-solicitudes .catalogo-boton-secundario { background: #fff; border-color: #cbd6df; color: #334c61; }
+.pagina-administracion-solicitudes .catalogo-boton-secundario:hover:not(:disabled) { background: #eff5f8; border-color: #8fa9bd; }
+.pagina-administracion-solicitudes .catalogo-boton-texto,
+.pagina-administracion-solicitudes .catalogo-boton-icono { background: transparent; color: #165e83; }
+.pagina-administracion-solicitudes .catalogo-boton-texto:hover:not(:disabled),
+.pagina-administracion-solicitudes .catalogo-boton-icono:hover:not(:disabled) { background: #eaf2f7; }
+.pagina-administracion-solicitudes .catalogo-boton-icono { padding: .6rem; min-width: 2.75rem; }
+.pagina-administracion-solicitudes .catalogo-espacio-trabajo { display: grid; grid-template-columns: 16.5rem minmax(0, 1fr); min-height: 28rem; border: 1px solid #dce3e9; }
+.pagina-administracion-solicitudes .catalogo-categorias { min-width: 0; padding: 1.25rem .75rem; border-right: 1px solid #dce3e9; background: #f7f9fb; }
+.pagina-administracion-solicitudes .catalogo-categorias-titulo { display: flex; align-items: baseline; justify-content: space-between; gap: .5rem; padding: 0 .5rem .85rem; }
+.pagina-administracion-solicitudes .catalogo-categorias-titulo h3 { margin: 0; font-size: .875rem; font-weight: 650; }
+.pagina-administracion-solicitudes .catalogo-categorias-titulo > span { color: #65778a; font-size: .8125rem; font-variant-numeric: tabular-nums; }
+.pagina-administracion-solicitudes .catalogo-categorias nav { display: grid; gap: .25rem; }
+.pagina-administracion-solicitudes .catalogo-categorias nav > button { display: flex; width: 100%; min-height: 3.1rem; gap: .65rem; align-items: center; padding: .65rem .6rem; border: 1px solid transparent; background: transparent; text-align: left; font-size: .875rem; color: #45596c; font-weight: 500; line-height: 1.4; }
+.pagina-administracion-solicitudes .catalogo-categorias nav > button > span { flex: 1; overflow-wrap: anywhere; }
+.pagina-administracion-solicitudes .catalogo-categorias nav > button > span small { display: block; font-size: .8125rem; }
+.pagina-administracion-solicitudes .catalogo-categorias nav > button > small { color: #60778c; font-size: .8125rem; }
+.pagina-administracion-solicitudes .catalogo-categorias nav > button:hover { background: #edf2f6; }
+.pagina-administracion-solicitudes .catalogo-categorias nav > button[aria-pressed="true"] { color: #134e70; border-color: #ccdfeb; background: #e7f0f6; font-weight: 650; }
+.pagina-administracion-solicitudes .catalogo-agregar-categoria { width: 100%; margin-top: 1rem; justify-content: flex-start; padding-inline: .5rem; border-top: 1px solid #dce3e9; padding-top: 1rem; }
+.pagina-administracion-solicitudes .catalogo-contenido { min-width: 0; background: #fff; }
+.pagina-administracion-solicitudes .catalogo-cabecera-listado { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem; padding: 1.5rem; }
+.pagina-administracion-solicitudes .catalogo-cabecera-listado > div { flex: 1 1 12rem; }
+.pagina-administracion-solicitudes .catalogo-cabecera-listado h3 { margin: .25rem 0 .3rem; font-size: 1.15rem; font-weight: 650; line-height: 1.4; overflow-wrap: anywhere; }
+.pagina-administracion-solicitudes .catalogo-cabecera-listado p { margin: 0; font-size: .875rem; color: #596a7a; }
+.pagina-administracion-solicitudes p.catalogo-ruta { color: #65778a; font-size: .8125rem; }
+.pagina-administracion-solicitudes .catalogo-buscador { display: flex; min-width: 0; flex: 1 1 12rem; max-width: 17rem; align-items: center; gap: .5rem; padding: 0 .75rem; border: 1px solid #000; background: #fff; color: #6a7c8c; }
+.pagina-administracion-solicitudes .catalogo-buscador input { width: 100%; min-width: 0; height: 2.75rem; border: 0; background: transparent; color: #203247; font: inherit; font-size: .875rem; }
+.estructura-administracion .pagina-administracion-solicitudes .catalogo-buscador input { border: 0 !important; box-shadow: none; }
+.pagina-administracion-solicitudes .catalogo-buscador:focus-within { border-color: #000; outline: none; }
+.estructura-administracion .pagina-administracion-solicitudes .catalogo-buscador input:focus-visible { outline: none; }
+.pagina-administracion-solicitudes .catalogo-encabezado-filas,
+.pagina-administracion-solicitudes .catalogo-listado > li { display: grid; grid-template-columns: minmax(0, 1fr) 5.75rem; gap: 1rem; align-items: center; padding: 1rem 1.5rem; }
+.pagina-administracion-solicitudes .catalogo-encabezado-filas { padding-block: .65rem; border-block: 1px solid #e4e9ee; background: #fafbfd; color: #65778a; font-size: .8125rem; }
+.pagina-administracion-solicitudes .catalogo-listado { margin: 0; padding: 0; list-style: none; }
+.pagina-administracion-solicitudes .catalogo-listado > li { min-height: 7rem; border-bottom: 1px solid #e8edf1; }
+.pagina-administracion-solicitudes .catalogo-listado > li:hover { background: #fcfdff; }
+.pagina-administracion-solicitudes .catalogo-fila-identidad { display: flex; min-width: 0; align-items: flex-start; gap: .75rem; }
+.pagina-administracion-solicitudes .catalogo-icono-tramite { display: grid; flex: 0 0 auto; place-items: center; width: 2.5rem; height: 2.75rem; border: 1px solid #dce5ec; color: #668297; background: #f8fafc; }
+.pagina-administracion-solicitudes .catalogo-fila-identidad h4 { margin: 0; color: #233b50; font-size: 1rem; line-height: 1.45; font-weight: 600; overflow-wrap: anywhere; }
+.pagina-administracion-solicitudes .catalogo-fila-identidad p { margin: .25rem 0; color: #596a7a; font-size: .875rem; line-height: 1.5; overflow-wrap: anywhere; }
+.pagina-administracion-solicitudes .catalogo-fila-identidad small { color: #66798b; font-size: .8125rem; }
+.pagina-administracion-solicitudes .catalogo-visibilidad { display: inline-flex; justify-self: start; align-items: center; gap: .4rem; color: #415a6b; font-size: .8125rem; }
+.pagina-administracion-solicitudes .catalogo-visibilidad::before { content: ""; width: .4rem; height: .4rem; background: #8794a1; }
+.pagina-administracion-solicitudes .catalogo-visibilidad.es-publico { color: #216848; }
+.pagina-administracion-solicitudes .catalogo-visibilidad.es-publico::before { background: #319367; }
+.pagina-administracion-solicitudes .catalogo-listado .catalogo-boton-secundario { padding-inline: .55rem; }
+.pagina-administracion-solicitudes .catalogo-pie-listado { margin: 0; padding: .9rem 1.5rem; color: #65778a; font-size: .8125rem; }
+.pagina-administracion-solicitudes .catalogo-vacio { display: flex; min-height: 19rem; padding: 2rem 1.5rem; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+.pagina-administracion-solicitudes .catalogo-vacio > svg { width: 2rem; height: 2rem; margin-bottom: .8rem; color: #7890a3; }
+.pagina-administracion-solicitudes .catalogo-vacio h4 { margin: 0; font-size: 1.1rem; font-weight: 650; }
+.pagina-administracion-solicitudes .catalogo-vacio p { max-width: 27rem; margin: .65rem 0 1.25rem; color: #596a7a; font-size: .9375rem; }
+.pagina-administracion-solicitudes .catalogo-aviso { display: flex; align-items: flex-start; gap: .6rem; margin: 0 0 1.25rem; padding: .9rem 1rem; font-size: .9375rem; line-height: 1.5; border: 1px solid; }
+.pagina-administracion-solicitudes .catalogo-aviso-exito { background: #f0f8f3; border-color: #cbe3d3; color: #25563c; }
+.pagina-administracion-solicitudes .catalogo-aviso-error { background: #fff4f2; border-color: #efc7bf; color: #843b31; }
+.pagina-administracion-solicitudes .catalogo-cargando { padding: 3rem 1rem; text-align: center; color: #596a7a; border: 1px solid #dce3e9; }
+
+.pagina-administracion-solicitudes .dialogo-catalogo { width: min(45rem, calc(100% - 2rem)); max-height: calc(100dvh - 3rem); margin: auto; padding: 0; border: 1px solid #c9d6e1; background: #fff; color: #203247; box-shadow: 0 24px 80px #10283d30; font: inherit; overflow-y: auto; overscroll-behavior: contain; }
+.pagina-administracion-solicitudes .dialogo-catalogo-compacto { width: min(33rem, calc(100% - 2rem)); }
+.pagina-administracion-solicitudes .dialogo-catalogo::backdrop { background: #11263d80; }
+.pagina-administracion-solicitudes .dialogo-catalogo-cabecera { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1.5rem 1.75rem 1.25rem; border-bottom: 1px solid #dce3e9; }
+.pagina-administracion-solicitudes .dialogo-catalogo-cabecera h2 { margin: 0 0 .35rem; font-size: 1.35rem; font-weight: 650; color: #203247; }
+.pagina-administracion-solicitudes .dialogo-catalogo-cabecera p { margin: 0; color: #596a7a; font-size: .9375rem; }
+.pagina-administracion-solicitudes .dialogo-catalogo-cabecera > button { flex: 0 0 auto; margin: -.25rem -.5rem 0 0; }
+.pagina-administracion-solicitudes .dialogo-catalogo > .catalogo-aviso { margin: 1rem 1.75rem 0; }
+.pagina-administracion-solicitudes .dialogo-catalogo-cuerpo { padding: 1.5rem 1.75rem; }
+.pagina-administracion-solicitudes .dialogo-catalogo-pie { display: flex; position: sticky; bottom: 0; align-items: center; justify-content: space-between; gap: 1rem; padding: 1rem 1.75rem; border-top: 1px solid #dce3e9; background: #fff; }
+.pagina-administracion-solicitudes .dialogo-catalogo-pie > span { color: #687b8b; font-size: .8125rem; max-width: 21rem; }
+.pagina-administracion-solicitudes .catalogo-campos { display: grid; gap: 1.2rem; min-width: 0; margin: 0; padding: 0; border: 0; }
+.pagina-administracion-solicitudes .catalogo-campo { display: grid; gap: .45rem; color: #334c61; font-size: .875rem; font-weight: 600; }
+.pagina-administracion-solicitudes .catalogo-campo input,
+.pagina-administracion-solicitudes .catalogo-campo textarea,
+.pagina-administracion-solicitudes .catalogo-campo select,
+.pagina-administracion-solicitudes .catalogo-elemento-editable input { width: 100%; min-width: 0; min-height: 2.75rem; padding: .65rem .8rem; border: 1px solid #bdccd8; background: #fff; color: #203247; font: inherit; font-size: 1rem; font-weight: 400; line-height: 1.45; }
+.pagina-administracion-solicitudes .catalogo-campo textarea { resize: vertical; }
+.estructura-administracion .pagina-administracion-solicitudes .catalogo-campo :is(input:not([type="file"]), select, textarea) { border-color: #000; }
+.pagina-administracion-solicitudes .catalogo-campo input::placeholder,
+.pagina-administracion-solicitudes .catalogo-campo textarea::placeholder { color: #758492; }
+.pagina-administracion-solicitudes .catalogo-campo input[type="file"] { padding: .6rem; font-size: .875rem; }
+.pagina-administracion-solicitudes .catalogo-campo input[type="file"]::file-selector-button { margin-right: .75rem; padding: .5rem; background: #eef3f7; color: #334c61; border: 1px solid #cbd6df; font: inherit; }
+.pagina-administracion-solicitudes .catalogo-opcional { color: #687b8b; font-size: .8125rem; font-weight: 400; }
+.pagina-administracion-solicitudes .catalogo-ejemplo-jerarquia { display: flex; align-items: flex-start; gap: .75rem; padding: 1rem; margin-top: 1.25rem; background: #f4f7fa; color: #526b80; }
+.pagina-administracion-solicitudes .catalogo-ejemplo-jerarquia strong { display: block; color: #334c61; font-size: .9375rem; overflow-wrap: anywhere; }
+.pagina-administracion-solicitudes .catalogo-ejemplo-jerarquia span { display: block; margin-top: .35rem; color: #596a7a; font-size: .875rem; }
+.pagina-administracion-solicitudes .catalogo-pasos { display: flex; padding: 1rem 1.75rem; margin: 0; list-style: none; gap: 1rem; justify-content: space-between; border-bottom: 1px solid #e2e9ee; background: #fafbfd; }
+.pagina-administracion-solicitudes .catalogo-pasos li { display: flex; align-items: center; gap: .5rem; color: #65778a; font-size: .8125rem; }
+.pagina-administracion-solicitudes .catalogo-pasos li > span { display: grid; flex: 0 0 auto; width: 1.75rem; height: 1.75rem; place-items: center; border: 1px solid #cbd6df; font-size: .8125rem; }
+.pagina-administracion-solicitudes .catalogo-pasos li > span svg { width: 1rem; height: 1rem; }
+.pagina-administracion-solicitudes .catalogo-pasos li[aria-current="step"] { color: #165e83; font-weight: 650; }
+.pagina-administracion-solicitudes .catalogo-pasos li[aria-current="step"] > span { background: #165e83; color: #fff; border-color: #165e83; }
+.pagina-administracion-solicitudes .catalogo-pasos .paso-completo > span { color: #216848; border-color: #bad8c7; background: #eff8f3; }
+.pagina-administracion-solicitudes .catalogo-ayuda-paso { margin: 0 0 1.2rem; color: #65778a; font-size: .875rem; }
+.pagina-administracion-solicitudes .catalogo-lista-editable { display: grid; gap: .65rem; min-width: 0; margin: 0; padding: 0 0 1.1rem; border: 0; border-bottom: 1px solid #e2e9ee; }
+.pagina-administracion-solicitudes .catalogo-lista-editable legend { margin-bottom: .35rem; padding: 0; font-weight: 600; font-size: .9375rem; }
+.pagina-administracion-solicitudes .catalogo-lista-editable p { margin: 0; color: #65778a; font-size: .875rem; }
+.pagina-administracion-solicitudes .catalogo-elemento-editable { display: flex; align-items: center; gap: .5rem; }
+.pagina-administracion-solicitudes .catalogo-elemento-editable > span { flex: 0 0 1.25rem; color: #65778a; font-size: .875rem; }
+.pagina-administracion-solicitudes .catalogo-lista-editable > button { justify-self: start; margin-left: -.6rem; padding: .5rem .6rem; }
+.pagina-administracion-solicitudes .catalogo-opcion { display: flex; align-items: flex-start; gap: .75rem; padding: 1rem; border: 1px solid #dce3e9; background: #fafbfd; cursor: pointer; }
+.pagina-administracion-solicitudes .catalogo-opcion input { width: 1.15rem; height: 1.15rem; flex: 0 0 auto; margin: .15rem 0 0; accent-color: #165e83; }
+.pagina-administracion-solicitudes .catalogo-opcion strong { display: block; font-size: .9375rem; font-weight: 600; }
+.pagina-administracion-solicitudes .catalogo-opcion small { display: block; margin-top: .3rem; font-size: .875rem; color: #596a7a; }
+.pagina-administracion-solicitudes .catalogo-dos-campos { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.pagina-administracion-solicitudes .catalogo-resumen-guardado { padding: 1rem 1.25rem; background: #f4f8fb; border-left: 3px solid #7cabc4; overflow-wrap: anywhere; }
+.pagina-administracion-solicitudes .catalogo-resumen-guardado > span { font-size: .8125rem; color: #59748a; }
+.pagina-administracion-solicitudes .catalogo-resumen-guardado h3 { margin: .3rem 0 .5rem; font-size: 1.05rem; }
+.pagina-administracion-solicitudes .catalogo-resumen-guardado p { margin: .5rem 0; font-size: .9375rem; color: #596a7a; }
+.pagina-administracion-solicitudes .catalogo-resumen-guardado small { color: #526b80; font-size: .8125rem; }
+.solo-lectores-catalogo { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .panel-edicion { margin: 0 0 1.5rem; padding: 1.5rem; border: 1px solid #dce3e9; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja h2 { font-size: 1.2rem; color: #203247; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .cabecera-panel-administracion { text-align: left; justify-content: flex-start; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .cabecera-panel-administracion p { margin: .35rem 0; color: #596a7a; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .filtros-administracion { display: grid; grid-template-columns: minmax(0, 1fr) minmax(10rem, .5fr) auto; align-items: end; gap: 1rem; padding: 1rem 0 1.5rem; margin: 0; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja label { display: grid; gap: .4rem; font-size: .875rem; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja input,
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja select,
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja textarea { width: 100%; padding: .65rem .8rem; min-height: 2.75rem; border: 1px solid #bdccd8; background: #fff; color: #203247; font: inherit; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja button { min-height: 2.75rem; padding: .6rem 1rem; font-size: .875rem; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .filtros-administracion button,
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .formulario-resolucion-solicitud button { background: #165e83; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .cabecera-listado-administracion,
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .lista-tabular-administracion > button { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, .7fr); gap: 1rem; padding: 1rem; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .lista-tabular-administracion > button { min-height: 6rem; background: #fff; color: #334c61; border-bottom: 1px solid #e2e9ee; text-align: left; line-height: 1.5; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .lista-tabular-administracion > button:hover,
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .lista-tabular-administracion > button.seleccionado { background: #edf5fa; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .lista-tabular-administracion small { display: block; margin-top: .25rem; color: #596a7a; font-size: .8125rem; overflow-wrap: anywhere; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .acciones-paginacion { display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 1rem; margin-top: 1.5rem; font-size: .875rem; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .acciones-paginacion button { background: #fff; color: #334c61; border: 1px solid #cbd6df; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .detalle-solicitud-administrada dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; padding: 1rem; background: #f7f9fb; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .detalle-solicitud-administrada dt { color: #596a7a; font-size: .875rem; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .detalle-solicitud-administrada dd { margin: .35rem 0 0; overflow-wrap: anywhere; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .formulario-resolucion-solicitud { display: grid; gap: 1rem; }
+.pagina-administracion-solicitudes .solicitudes-admin-bandeja .formulario-resolucion-solicitud > button { justify-self: end; }
+
+@media (max-width: 900px) {
+  .pagina-administracion-solicitudes .catalogo-espacio-trabajo { grid-template-columns: 13.5rem minmax(0, 1fr); }
+  .pagina-administracion-solicitudes .catalogo-encabezado-filas { display: none; }
+  .pagina-administracion-solicitudes .catalogo-listado > li { grid-template-columns: 1fr auto; gap: .65rem; }
+  .pagina-administracion-solicitudes .catalogo-fila-identidad { grid-column: 1 / -1; }
+  .pagina-administracion-solicitudes .catalogo-visibilidad { margin-left: 3.25rem; }
+  .pagina-administracion-solicitudes .catalogo-buscador { max-width: none; }
+}
+@media (max-width: 650px) {
+  .pagina-administracion-solicitudes .catalogo-espacio-trabajo { grid-template-columns: 1fr; }
+  .pagina-administracion-solicitudes .catalogo-categorias { border-right: 0; border-bottom: 1px solid #dce3e9; }
+  .pagina-administracion-solicitudes .catalogo-categorias nav { max-height: 13rem; overflow-y: auto; }
+  .pagina-administracion-solicitudes .catalogo-barra-herramientas { flex-direction: column; align-items: stretch; }
+  .pagina-administracion-solicitudes .solicitudes-admin-vistas { gap: 1rem; }
+  .pagina-administracion-solicitudes .solicitudes-admin-vistas button { gap: .4rem; font-size: .875rem; }
+  .pagina-administracion-solicitudes .catalogo-cabecera-listado,
+  .pagina-administracion-solicitudes .catalogo-listado > li { padding: 1rem; }
+  .pagina-administracion-solicitudes .dialogo-catalogo { max-height: calc(100dvh - 1rem); width: calc(100% - 1rem); }
+  .pagina-administracion-solicitudes .dialogo-catalogo-cabecera,
+  .pagina-administracion-solicitudes .dialogo-catalogo-cuerpo,
+  .pagina-administracion-solicitudes .dialogo-catalogo-pie { padding: 1rem; }
+  .pagina-administracion-solicitudes .catalogo-pasos { padding: 1rem; gap: .6rem; }
+  .pagina-administracion-solicitudes .catalogo-pasos li { flex: 1; align-items: flex-start; flex-direction: column; }
+  .pagina-administracion-solicitudes .catalogo-dos-campos { grid-template-columns: 1fr; }
+  .pagina-administracion-solicitudes .dialogo-catalogo-pie > span { max-width: 10rem; }
+  .pagina-administracion-solicitudes .solicitudes-admin-bandeja .filtros-administracion { grid-template-columns: 1fr; }
+  .pagina-administracion-solicitudes .solicitudes-admin-bandeja .cabecera-listado-administracion { display: none; }
+  .pagina-administracion-solicitudes .solicitudes-admin-bandeja .lista-tabular-administracion > button,
+  .pagina-administracion-solicitudes .solicitudes-admin-bandeja .detalle-solicitud-administrada dl { grid-template-columns: 1fr; }
+  .pagina-administracion-solicitudes .solicitudes-admin-bandeja .panel-edicion { padding: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pagina-administracion-solicitudes button { transition: none; }
+}

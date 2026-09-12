@@ -50,8 +50,8 @@ describe("Administración de áreas", () => {
   it("carga el inventario y abre el formulario completo de una nueva área", async () => {
     render(<MemoryRouter><PaginaAdministracionAreas /></MemoryRouter>);
 
-    await screen.findByRole("button", { name: "Categorías" });
-    fireEvent.click(screen.getByRole("button", { name: "Categorías" }));
+    await screen.findByRole("button", { name: "Nueva categoría" });
+    fireEvent.click(screen.getByRole("button", { name: "Nueva categoría" }));
     const selectorCategoria = screen.getByLabelText("Seleccionar categoría existente");
     expect(within(selectorCategoria).getByRole("option", { name: "Deporte" })).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Nueva área" }));
@@ -128,8 +128,8 @@ describe("Administración de áreas", () => {
       version: 1,
     });
     render(<MemoryRouter><PaginaAdministracionAreas /></MemoryRouter>);
-    await screen.findByRole("button", { name: "Categorías" });
-    fireEvent.click(screen.getByRole("button", { name: "Categorías" }));
+    await screen.findByRole("button", { name: "Nueva categoría" });
+    fireEvent.click(screen.getByRole("button", { name: "Nueva categoría" }));
     screen.getByLabelText("Seleccionar categoría existente");
     fireEvent.click(screen.getByRole("button", { name: "Nueva área" }));
     const formulario = within(screen.getByRole("region", { name: "Registrar área" }));

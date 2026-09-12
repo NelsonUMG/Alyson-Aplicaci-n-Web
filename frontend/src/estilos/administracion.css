@@ -1,0 +1,402 @@
+/* Medidas y presentación compartidas por todos los módulos administrativos. */
+.estructura-administracion {
+  --administracion-ancho: 76rem;
+  --administracion-margen: clamp(1rem, 3vw, 2.5rem);
+  --administracion-tinta: #203247;
+  --administracion-secundario: #596a7a;
+  --administracion-acento: #165e83;
+  --administracion-borde: #dce3e9;
+  color: var(--administracion-tinta);
+  background: #fff;
+}
+
+/* La barra y el contenido comparten exactamente el mismo ancho y margen. */
+.estructura-administracion .contenido-barra-superior-administracion,
+.estructura-administracion > .pagina-administracion {
+  width: min(var(--administracion-ancho), 100%);
+  max-width: none;
+  margin-inline: auto;
+  padding-inline: var(--administracion-margen);
+  box-sizing: border-box;
+}
+.estructura-administracion .contenido-barra-superior-administracion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  min-height: 3.5rem;
+}
+.estructura-administracion .marca-barra-administracion {
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  gap: .5rem;
+  min-height: 2.75rem;
+  padding: .5rem 0;
+  font-family: inherit;
+  font-size: .9375rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+.estructura-administracion .marca-barra-administracion:hover { background: transparent; text-decoration: underline; text-underline-offset: .25rem; }
+.estructura-administracion .marca-barra-administracion svg { flex: 0 0 auto; }
+.estructura-administracion .sesion-barra-administracion {
+  padding: 0;
+  gap: .75rem;
+  min-width: 0;
+  font-size: .875rem;
+}
+.estructura-administracion .sesion-barra-administracion > span { min-width: 0; max-width: 25ch; padding: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.estructura-administracion .sesion-barra-administracion > button { min-height: 2.75rem; padding: .5rem 0 .5rem .75rem; flex: 0 0 auto; }
+.estructura-administracion > .pagina-administracion {
+  padding-block: 2rem 4rem;
+  color: var(--administracion-tinta);
+  background: #fff;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.estructura-administracion .cabecera-modulo-administracion { margin: 0 0 1.75rem; }
+.estructura-administracion .cabecera-modulo-administracion h1 {
+  max-width: none;
+  margin: 0;
+  color: var(--administracion-tinta);
+  font-family: inherit;
+  font-size: clamp(1.7rem, 3vw, 2.1rem);
+  font-weight: 650;
+  letter-spacing: -.035em;
+  line-height: 1.25;
+  text-align: left;
+}
+.estructura-administracion .cabecera-modulo-administracion > p { max-width: 75ch; margin: .65rem 0 0; color: var(--administracion-secundario); font-size: 1rem; }
+
+/* Las opciones permanecen junto al título y el área de trabajo ocupa todo el ancho. */
+.estructura-administracion .disposicion-modulo-administracion {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.75rem;
+  width: 100%;
+  min-height: 0;
+  margin: 0;
+  background: #fff;
+  box-shadow: none;
+}
+.estructura-administracion .navegacion-modulo-administracion {
+  min-width: 0;
+  border-bottom: 1px solid var(--administracion-borde);
+}
+.estructura-administracion .navegacion-modulo-administracion > div {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: .25rem 1.75rem;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+}
+.estructura-administracion .navegacion-modulo-administracion button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-height: 3.2rem;
+  margin: 0;
+  padding: .75rem 0 1rem;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: transparent;
+  color: var(--administracion-secundario);
+  font: inherit;
+  font-size: .9375rem;
+  font-weight: 550;
+  text-align: left;
+  white-space: normal;
+}
+.estructura-administracion .navegacion-modulo-administracion .boton-gestion-activo {
+  padding-inline: 0;
+  border: 0 !important;
+  border-bottom: 3px solid #165e83 !important;
+  background: transparent !important;
+  color: #165e83 !important;
+  font-weight: 700;
+}
+.estructura-administracion .navegacion-modulo-administracion .boton-gestion-activo:hover:not(:disabled) { background: transparent !important; color: #165e83; }
+.estructura-administracion .navegacion-modulo-administracion button:hover:not(:disabled) { color: var(--administracion-acento); background: #f7fafc; }
+.estructura-administracion .navegacion-modulo-administracion button:disabled { color: #758493; cursor: not-allowed; }
+.estructura-administracion .contenido-modulo-administracion {
+  display: grid;
+  justify-items: stretch;
+  gap: 1.5rem;
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+}
+.estructura-administracion .contenido-modulo-administracion > * { width: 100%; max-width: 100%; min-width: 0; margin-inline: 0; }
+.estructura-administracion .contenido-modulo-administracion > .panel-edicion,
+.estructura-administracion .contenido-modulo-administracion .disposicion-principal-areas > .panel-edicion {
+  width: 100%;
+  max-width: none;
+  min-height: 0;
+  margin: 0;
+  padding: 1.5rem;
+  border: 1px solid var(--administracion-borde);
+  background: #fff;
+  box-shadow: none;
+}
+.estructura-administracion .contenido-modulo-administracion h2 { margin: 0 0 .7rem; color: var(--administracion-tinta); font-size: 1.2rem; font-weight: 650; }
+.estructura-administracion .contenido-modulo-administracion h3 { color: var(--administracion-tinta); font-size: 1rem; font-weight: 650; }
+.estructura-administracion .contenido-modulo-administracion .cabecera-panel-administracion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: .75rem;
+  margin-bottom: 1.25rem;
+  text-align: left;
+}
+.estructura-administracion .contenido-modulo-administracion .cabecera-panel-administracion p { margin: .35rem 0 0; color: var(--administracion-secundario); font-size: .9375rem; }
+.estructura-administracion .contenido-modulo-administracion .cabecera-panel-administracion h2 { margin-bottom: 0; }
+
+/* Controles legibles, con estados y acciones consistentes. */
+.estructura-administracion .contenido-modulo-administracion :is(.formulario-administracion, .formulario-administracion-usuarios) { gap: .85rem; }
+.estructura-administracion .pagina-administracion .contenido-modulo-administracion :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]), select, textarea) {
+  min-width: 0;
+  min-height: 2.75rem;
+  padding: .65rem .8rem;
+  border: 1px solid #bdccd8;
+  background: #fff;
+  color: var(--administracion-tinta);
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1.45;
+}
+.estructura-administracion .pagina-administracion .contenido-modulo-administracion textarea { min-height: 5.5rem; resize: vertical; }
+.estructura-administracion .contenido-modulo-administracion :is(label, legend) { color: #334c61; font-size: .875rem; line-height: 1.5; }
+.estructura-administracion .contenido-modulo-administracion input:is([type="checkbox"], [type="radio"]) { accent-color: var(--administracion-acento); }
+.estructura-administracion .contenido-modulo-administracion button:not(:where(.editor-perimetro-area button)) {
+  min-height: 2.75rem;
+  padding: .6rem 1rem;
+  border: 1px solid transparent;
+  background: var(--administracion-acento);
+  color: #fff;
+  font-size: .875rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.estructura-administracion .contenido-modulo-administracion button:disabled { cursor: not-allowed; }
+.estructura-administracion .contenido-modulo-administracion :is(.boton-secundario, .acciones-paginacion button, .paginacion button, .boton-tabla) {
+  border-color: #cbd6df;
+  background: #fff;
+  color: #334c61;
+}
+.estructura-administracion .contenido-modulo-administracion .boton-peligro { border-color: #e0b7b2; background: #fff; color: #a13c32; }
+.estructura-administracion .contenido-modulo-administracion .enlace-principal { display: inline-flex; min-height: 2.75rem; align-items: center; padding: .6rem 1rem; background: var(--administracion-acento); color: #fff; font-size: .875rem; }
+.estructura-administracion .pagina-administracion :is(button, a, input, select, textarea):focus-visible { outline: 3px solid #83b9d3; outline-offset: 3px; }
+.estructura-administracion .barra-superior-administracion :is(a, button):focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.estructura-administracion .contenido-modulo-administracion :is(.mensaje-error, .mensaje-exito, .nota-formulario-administracion) { margin: 0; padding: .9rem 1rem; border: 1px solid; font-size: .9375rem; }
+.estructura-administracion .contenido-modulo-administracion .mensaje-error { border-color: #efc7bf; background: #fff4f2; color: #843b31; }
+.estructura-administracion .contenido-modulo-administracion .mensaje-exito { border-color: #cbe3d3; background: #f0f8f3; color: #25563c; }
+.estructura-administracion .contenido-modulo-administracion .nota-formulario-administracion { border-color: #cddfe9; background: #f2f7fb; color: #3f6078; }
+
+/* Listados y tablas con encabezados discretos y separación entre registros. */
+.estructura-administracion .contenido-modulo-administracion .filtros-administracion { align-items: end; gap: 1rem; margin-block: 1rem 1.5rem; }
+.estructura-administracion .contenido-modulo-administracion .cabecera-listado-administracion { padding: .75rem 1rem; border-color: var(--administracion-borde); background: #f7f9fb; color: #596f82; font-size: .8125rem; font-weight: 550; }
+.estructura-administracion .contenido-modulo-administracion .lista-tabular-administracion { border-color: var(--administracion-borde); }
+.estructura-administracion .contenido-modulo-administracion :is(.lista-tabular-administracion, .lista-areas-administracion) > button {
+  min-height: 4.5rem;
+  padding: 1rem;
+  border: 0;
+  border-bottom: 1px solid #e2e9ee;
+  background: #fff;
+  color: #334c61;
+  text-align: left;
+  box-shadow: none;
+}
+.estructura-administracion .contenido-modulo-administracion :is(.lista-tabular-administracion, .lista-areas-administracion) > button:hover { background: #f4f8fb; }
+.estructura-administracion .contenido-modulo-administracion :is(.lista-tabular-administracion, .lista-areas-administracion) > button.seleccionado { background: #eaf3f9; box-shadow: inset 3px 0 var(--administracion-acento); }
+.estructura-administracion .contenido-modulo-administracion :is(.lista-tabular-administracion, .lista-areas-administracion) strong { font-size: .9375rem; font-weight: 600; }
+.estructura-administracion .contenido-modulo-administracion :is(.lista-tabular-administracion, .lista-areas-administracion) small { color: #596a7a; font-size: .8125rem; line-height: 1.5; overflow-wrap: anywhere; }
+.estructura-administracion .contenido-modulo-administracion .tabla-contenedor { max-width: 100%; overflow-x: auto; }
+.estructura-administracion .contenido-modulo-administracion :is(th, td) { padding: .9rem 1rem; border-color: #e2e9ee; color: #334c61; font-size: .875rem; line-height: 1.5; }
+.estructura-administracion .contenido-modulo-administracion th { background: #f7f9fb; color: #596f82; font-weight: 600; }
+.estructura-administracion .contenido-modulo-administracion tr.fila-seleccionada td { background: #eaf3f9; }
+.estructura-administracion .contenido-modulo-administracion tr.fila-seleccionada td:first-child { box-shadow: inset 3px 0 var(--administracion-acento); }
+.estructura-administracion .contenido-modulo-administracion .acciones-paginacion { gap: 1rem; margin-top: 1.25rem; font-size: .875rem; }
+.estructura-administracion .contenido-modulo-administracion :is(.selector-administracion, .formulario-cambio-estado, .gestion-imagen-evento, .panel-imagenes-publicacion) { padding: 1rem; border-color: var(--administracion-borde); background: #fafbfd; }
+.estructura-administracion .contenido-modulo-administracion .formulario-institucional { max-width: 100%; }
+.estructura-administracion .contenido-modulo-administracion .seccion-contenido-institucional {
+  display: grid;
+  gap: .7rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--administracion-borde);
+  background: #fafcfd;
+}
+.estructura-administracion .contenido-modulo-administracion .seccion-contenido-institucional legend {
+  padding-inline: .35rem;
+  color: var(--administracion-tinta);
+  font-size: .9375rem;
+  font-weight: 650;
+}
+.estructura-administracion .pagina-administracion-areas .seccion-formulario-area {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0;
+  padding: 1.15rem;
+  border: 1px solid #dce3e9;
+  border-radius: .3rem;
+  background: #fff;
+}
+.estructura-administracion .pagina-administracion-areas .seccion-formulario-area legend {
+  padding-inline: .35rem;
+  color: var(--administracion-tinta);
+  font-size: .9375rem;
+  font-weight: 650;
+}
+.estructura-administracion .pagina-administracion-areas .seccion-formulario-area > .campo-ancho-completo {
+  grid-column: 1 / -1;
+}
+.estructura-administracion .pagina-administracion-eventos :is(.seccion-formulario-evento, .constructor-grupos-evento, .constructor-formulario-evento) {
+  border-color: #dce3e9;
+  border-radius: .3rem;
+  background: #fff;
+}
+.estructura-administracion .pagina-administracion-eventos .seccion-formulario-evento legend {
+  color: #203247;
+}
+.estructura-administracion .pagina-administracion-eventos :is(.constructor-grupos-evento, .constructor-formulario-evento) {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  margin-block: .25rem;
+  background: #fafbfd;
+}
+.estructura-administracion .pagina-administracion-eventos :is(.constructor-grupos-evento, .constructor-formulario-evento) .cabecera-panel-administracion p {
+  color: #596a7a;
+}
+.estructura-administracion .pagina-administracion-eventos .grupo-evento {
+  border-color: #dce3e9;
+  border-radius: .25rem;
+  background: #fff;
+}
+.estructura-administracion .pagina-administracion-eventos .horario-grupo-evento {
+  background: #f7f9fb;
+}
+.estructura-administracion .pagina-administracion-eventos .bloque-imagen-evento {
+  border-color: #dce3e9;
+  background: #fafbfd;
+}
+
+/* Paleta común para los bloques de captura: azul grisáceo, igual a Solicitudes. */
+.estructura-administracion .pagina-administracion :is(
+  .selector-administracion,
+  .formulario-cambio-estado,
+  .gestion-imagen-evento,
+  .gestion-imagen-area,
+  .panel-imagenes-publicacion,
+  .campo-portada-publicacion,
+  .campo-galeria-publicacion,
+  .vista-previa-carga-publicacion,
+  .formulario-reserva-area,
+  .formulario-mapa,
+  .requisitos-administracion,
+  .constructor-formulario-evento,
+  .constructor-grupos-evento,
+  .bloque-imagen-evento
+) {
+  border-color: #dce3e9;
+  background: #fafbfd;
+}
+.estructura-administracion .pagina-administracion :is(
+  .lista-categorias-administracion,
+  .lista-elementos-administracion
+) > button {
+  border-color: #dce3e9;
+  color: #334c61;
+}
+.estructura-administracion .pagina-administracion :is(
+  .lista-categorias-administracion,
+  .lista-elementos-administracion
+) > button.seleccionado {
+  border-color: #ccdfeb;
+  background: #e7f0f6;
+  color: #134e70;
+}
+.estructura-administracion .pagina-administracion .grupo-permisos-administracion h3,
+.estructura-administracion .pagina-administracion :is(
+  .nota-formulario-administracion,
+  .selector-administracion > p,
+  .lista-seleccion-administracion small,
+  .panel-imagenes-publicacion small,
+  .vista-previa-carga-publicacion figcaption,
+  .formulario-area .gestion-imagen-area small,
+  .campo-galeria-publicacion > small,
+  .lista-imagenes-galeria-pendientes small
+) {
+  color: #596a7a;
+}
+.estructura-administracion .pagina-administracion .lista-seleccion-administracion label,
+.estructura-administracion .pagina-administracion .tabla-contenedor,
+.estructura-administracion .pagina-administracion .lista-imagenes-galeria-pendientes li,
+.estructura-administracion .pagina-administracion .panel-imagenes-publicacion li {
+  border-color: #dce3e9;
+}
+.estructura-administracion .pagina-administracion .selector-archivo-personalizado {
+  border-color: #bdccd8;
+  background: #fff;
+}
+.estructura-administracion .pagina-administracion .selector-archivo-personalizado .boton-selector-archivo {
+  border-color: #cbd6df;
+  background: #eff5f8;
+  color: #334c61;
+}
+.estructura-administracion .pagina-administracion .selector-archivo-personalizado:hover .boton-selector-archivo,
+.estructura-administracion .pagina-administracion .selector-archivo-personalizado:focus-within .boton-selector-archivo {
+  border-color: #8fa9bd;
+  background: #e7f0f6;
+}
+
+.estructura-administracion .pagina-administracion :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not([type="hidden"]),
+  select,
+  textarea
+) {
+  border-color: #000 !important;
+}
+.estructura-administracion .pagina-administracion-areas :is(
+  .editor-perimetro-area,
+  .selector-horario-area
+) {
+  border-color: #dce3e9;
+  background: #fafbfd;
+}
+.estructura-administracion .pagina-administracion-areas :is(
+  .editor-perimetro-mapa,
+  .editor-perimetro-coordenadas li,
+  .selector-horario-periodos > div
+) {
+  border-color: #dce3e9;
+}
+.estructura-administracion .pagina-administracion-areas .selector-horario-periodos > div {
+  background: #fff;
+}
+.panel-cuenta#modulos { scroll-margin-top: 1.5rem; }
+
+@media (max-width: 700px) {
+  .estructura-administracion .navegacion-modulo-administracion > div { gap: .25rem 1.1rem; }
+  .estructura-administracion .navegacion-modulo-administracion button { font-size: .875rem; }
+  .estructura-administracion .contenido-modulo-administracion > .panel-edicion,
+  .estructura-administracion .contenido-modulo-administracion .disposicion-principal-areas > .panel-edicion { padding: 1rem; }
+  .estructura-administracion .contenido-modulo-administracion :is(.campos-formulario-administracion, .filtros-administracion, .filtros-auditoria, .rejilla-categorias-administracion, .formulario-area, .disposicion-principal-areas) { grid-template-columns: minmax(0, 1fr); }
+  .estructura-administracion .pagina-administracion-areas .seccion-formulario-area { grid-template-columns: minmax(0, 1fr); }
+  .estructura-administracion .contenido-modulo-administracion .cabecera-listado-administracion { display: none; }
+  .estructura-administracion .contenido-modulo-administracion .lista-tabular-administracion > button { grid-template-columns: minmax(0, 1fr); gap: .65rem; }
+}
+@media (max-width: 420px) {
+  .estructura-administracion .contenido-barra-superior-administracion { gap: .5rem; }
+  .estructura-administracion .sesion-barra-administracion { gap: .5rem; font-size: .8125rem; }
+  .estructura-administracion .sesion-barra-administracion > span { max-width: 12ch; }
+  .estructura-administracion .sesion-barra-administracion > button { padding-left: .5rem; }
+}

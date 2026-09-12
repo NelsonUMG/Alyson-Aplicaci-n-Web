@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const sesion = vi.hoisted(() => ({
   cerrar: vi.fn(),
@@ -17,6 +17,7 @@ vi.mock("../autenticacion/ContextoSesion", () => ({
 import { EstructuraAdministracion } from "./EstructuraAdministracion";
 
 describe("Estructura administrativa", () => {
+  afterEach(cleanup);
   beforeEach(() => {
     sesion.cerrar.mockReset().mockResolvedValue(undefined);
   });
@@ -31,11 +32,25 @@ describe("Estructura administrativa", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("link", { name: "Parque Erick Barrondo" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Atrás" }).getAttribute("href")).toBe("/perfil#modulos");
     expect(screen.getByText("Administrador")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Cerrar sesión" }));
 
     await waitFor(() => expect(sesion.cerrar).toHaveBeenCalledTimes(1));
     expect(await screen.findByRole("heading", { name: "Iniciar sesión" })).toBeTruthy();
+  });
+
+  it("regresa desde un módulo a la pantalla de módulos", async () => {
+    render(
+      <MemoryRouter initialEntries={["/administracion/solicitudes"]}>
+        <Routes>
+          <Route path="/administracion/solicitudes" element={<EstructuraAdministracion><h1>Solicitudes</h1></EstructuraAdministracion>} />
+          <Route path="/perfil" element={<section id="modulos"><h1>Visualización de módulos</h1></section>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    fireEvent.click(screen.getByRole("link", { name: "Atrás" }));
+    expect(await screen.findByRole("heading", { name: "Visualización de módulos" })).toBeTruthy();
+    expect(sesion.cerrar).not.toHaveBeenCalled();
   });
 });

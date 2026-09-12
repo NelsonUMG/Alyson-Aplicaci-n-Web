@@ -132,7 +132,6 @@ export function PaginaBase() {
               </div>
             </div>
           )}
-          <p className="portal-aviso-contenido">Contenido de actividades.</p>
         </div>
       </section>
 

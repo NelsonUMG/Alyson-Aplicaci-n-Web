@@ -1,3 +1,4 @@
+import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -85,7 +86,7 @@ export function PaginaAdministracionPublicaciones() {
   const [categorias, establecerCategorias] = useState([]);
   const [categoriaEdicion, establecerCategoriaEdicion] = useState(categoriaInicial);
   const [mostrarFormularioCategoria, establecerMostrarFormularioCategoria] = useState(false);
-  const [mostrarListadoPublicaciones, establecerMostrarListadoPublicaciones] = useState(false);
+  const [mostrarListadoPublicaciones, establecerMostrarListadoPublicaciones] = useState(true);
   const [pagina, establecerPagina] = useState(paginaInicial);
   const [filtros, establecerFiltros] = useState({ busqueda: "", estado: "", idCategoria: "", orden: "ACTUALIZACION" });
   const [publicacionEdicion, establecerPublicacionEdicion] = useState(null);
@@ -508,22 +509,17 @@ export function PaginaAdministracionPublicaciones() {
       className="pagina-administracion pagina-administracion-publicaciones"
       onClickCapture={() => establecerEstado((actual) => (actual.error ? { ...actual, error: "" } : actual))}
     >
-      <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
-      <p className="etiqueta-fase">Administración</p>
-      <h1>Noticias</h1>
-      <p>Gestiona categorías, borradores y noticias visibles en el portal público.</p>
+      <CabeceraAdministracion titulo="Noticias" descripcion="Gestiona categorías, borradores y noticias visibles en el portal público." />
 
       <div className="disposicion-modulo-administracion">
-        <aside className="menu-lateral-administracion">
-          <details open>
-            <summary>Noticias</summary>
+        <nav className="navegacion-modulo-administracion" aria-label="Opciones de Noticias">
       <div className="acciones-superiores-administracion">
+<button className={mostrarListadoPublicaciones ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarListadoPublicaciones} onClick={alternarListadoPublicaciones}>Listado de noticias</button>
         {puedeCrear && <button className={mostrarFormularioCategoria ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarFormularioCategoria} onClick={alternarFormularioCategoria}>Nueva categoría</button>}
         {puedeCrear && <button className={publicacionEdicion && !publicacionEdicion.idPublicacion ? "boton-gestion-activo" : ""} type="button" aria-expanded={Boolean(publicacionEdicion && !publicacionEdicion.idPublicacion)} aria-describedby={categoriasActivas.length === 0 ? "aviso-sin-categorias-publicacion" : undefined} disabled={nuevaPublicacionNoDisponible} onClick={alternarFormularioPublicacion}>Nueva noticia</button>}
-        <button className={mostrarListadoPublicaciones ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarListadoPublicaciones} onClick={alternarListadoPublicaciones}>Listado de noticias</button>
+
       </div>
-          </details>
-        </aside>
+        </nav>
         <div className="contenido-modulo-administracion">
       {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
       {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}

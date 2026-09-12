@@ -36,10 +36,10 @@ public interface RepositorioUsuario extends JpaRepository<Usuario, Long> {
 
     @Query("""
             select u from Usuario u
-            where :busqueda = ''
+            where u.estado <> 'PENDIENTEVERIFICACION' and (:busqueda = ''
                or lower(u.correoNormalizado) like lower(concat('%', :busqueda, '%'))
                or lower(u.nombre) like lower(concat('%', :busqueda, '%'))
-               or lower(u.apellido) like lower(concat('%', :busqueda, '%'))
+               or lower(u.apellido) like lower(concat('%', :busqueda, '%')))
             """)
     Page<Usuario> buscarPagina(@Param("busqueda") String busqueda, Pageable pagina);
 

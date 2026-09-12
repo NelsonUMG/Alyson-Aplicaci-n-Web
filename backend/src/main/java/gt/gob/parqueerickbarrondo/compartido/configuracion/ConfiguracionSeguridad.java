@@ -80,7 +80,9 @@ public class ConfiguracionSeguridad {
                         .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                         .sessionFixation(fijacion -> fijacion.changeSessionId())
                         .maximumSessions(-1)
-                        .sessionRegistry(registroSesiones))
+                        .sessionRegistry(registroSesiones)
+                        .expiredSessionStrategy(evento -> manejadorErroresSeguridad.responderAutenticacionRequerida(
+                                evento.getRequest(), evento.getResponse())))
                 .authorizeHttpRequests(autorizacion -> autorizacion
                         .requestMatchers(
                                 "/api/v1/sistema/estado",
@@ -102,7 +104,9 @@ public class ConfiguracionSeguridad {
                                 "/api/v1/autenticacion/registro",
                                 "/api/v1/autenticacion/iniciar-sesion",
                                 "/api/v1/autenticacion/confirmar-correo",
-                                "/api/v1/autenticacion/reenviar-verificacion")
+                                "/api/v1/autenticacion/reenviar-verificacion",
+                                "/api/v1/autenticacion/recuperar-contrasena",
+                                "/api/v1/autenticacion/restablecer-contrasena")
                         .permitAll()
                         .requestMatchers(
                                 "/api/v1/autenticacion/**",
@@ -133,7 +137,7 @@ public class ConfiguracionSeguridad {
                                 + "font-src 'self' https://fonts.gstatic.com; "
                                 + "connect-src 'self' https://*.googleapis.com https://*.gstatic.com "
                                 + "https://*.google.com https://tiles.openfreemap.org "
-                                + "https://server.arcgisonline.com https://valhalla1.openstreetmap.de data: blob:; "
+                                + "https://server.arcgisonline.com data: blob:; "
                                 + "frame-src https://*.google.com; worker-src blob:; "
                                 + "object-src 'none'; base-uri 'self'; form-action 'self'; "
                                 + "frame-ancestors 'none'"))

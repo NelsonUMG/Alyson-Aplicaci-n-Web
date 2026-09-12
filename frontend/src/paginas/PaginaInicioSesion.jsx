@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { usarSesion } from "../autenticacion/ContextoSesion";
 import { MarcaPortal } from "../componentes/EstructuraPortal";
-import { esUsuarioComun } from "../autenticacion/clasificacionUsuario";
 
 export function PaginaInicioSesion() {
   const { iniciar } = usarSesion();
   const navegacion = useNavigate();
-  const ubicacion = useLocation();
   const [datos, setDatos] = useState({ correo: "", contrasena: "", mantenerSesionActiva: false });
   const [estado, setEstado] = useState({ enviando: false, error: "" });
 
@@ -20,11 +18,8 @@ export function PaginaInicioSesion() {
     evento.preventDefault();
     setEstado({ enviando: true, error: "" });
     try {
-      const usuario = await iniciar(datos);
-      const destino = typeof ubicacion.state?.desde === "string" && ubicacion.state.desde.startsWith("/")
-        ? ubicacion.state.desde
-        : esUsuarioComun(usuario) ? "/" : "/perfil";
-      navegacion(destino, { replace: true });
+      await iniciar(datos);
+      navegacion("/", { replace: true });
     } catch (error) {
       setEstado({ enviando: false, error: error.message });
     }
@@ -78,6 +73,7 @@ export function PaginaInicioSesion() {
             {estado.enviando ? "Comprobando…" : "Ingresar"}
           </button>
         </form>
+        <p className="ayuda-formulario"><Link to="/recuperar-contrasena">¿Olvidaste tu contraseña?</Link></p>
         <p className="ayuda-formulario">¿Todavía no tienes cuenta? <Link to="/registro">Crear cuenta</Link></p>
       </div>
     </main>

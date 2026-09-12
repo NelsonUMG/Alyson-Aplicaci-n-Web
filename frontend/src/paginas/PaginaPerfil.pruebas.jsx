@@ -42,7 +42,7 @@ describe("Perfil", () => {
     expect(screen.queryByRole("link", { name: "Mis inscripciones" })).toBeNull();
     expect(screen.queryByText("Cambiar contraseña")).toBeNull();
     expect(screen.queryByText("USUARIOREGISTRADO")).toBeNull();
-    expect(screen.getByRole("heading", { name: "Visualización de módulos" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Módulos de administración" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Usuarios y roles" })).toBeTruthy();
     expect(screen.getByRole("link", { name: "Eventos y cursos" })).toBeTruthy();
     expect(screen.queryByRole("link", { name: "Inventario de bicicletas" })).toBeNull();
@@ -73,7 +73,7 @@ describe("Perfil", () => {
 
     expect(screen.getByRole("heading", { name: "Usuario Común" })).toBeTruthy();
     expect(screen.queryByText("Roles asignados")).toBeNull();
-    expect(screen.queryByText("Visualización de módulos")).toBeNull();
+    expect(screen.queryByText("Módulos de administración")).toBeNull();
     expect(screen.queryByRole("link", { name: "Mis inscripciones" })).toBeNull();
     expect(screen.queryByRole("link", { name: "Mis solicitudes" })).toBeNull();
     expect(screen.getByLabelText("Nombres *").value).toBe("Usuario");

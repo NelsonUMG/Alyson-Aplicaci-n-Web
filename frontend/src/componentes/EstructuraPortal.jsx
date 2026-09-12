@@ -44,12 +44,7 @@ export function EstructuraPortal() {
       <a className="salto-contenido" href="#contenido-principal">Saltar al contenido</a>
 
       <header className="portal-cabecera">
-        <div className="portal-barra-superior">
-          <div className="portal-contenedor portal-barra-contenido">
-            <span>Dirección</span>
-            <span>Portal</span>
-          </div>
-        </div>
+        <div className="portal-barra-superior" aria-hidden="true" />
 
         <div className="portal-contenedor portal-navegacion-contenedor">
           <Link className="portal-enlace-marca" to="/" aria-label="Ir al inicio">
@@ -115,7 +110,6 @@ export function EstructuraPortal() {
         <div className="portal-contenedor portal-pie-columnas">
           <div className="portal-pie-identidad">
             <MarcaPortal />
-            <p>Información y actividades del Parque Erick Barrondo.</p>
           </div>
           <div>
             <h2>Secciones</h2>
@@ -127,13 +121,23 @@ export function EstructuraPortal() {
           <div>
             <h2>Visita</h2>
             <Link to="/mapa">Consultar mapa</Link>
-            <p>Dirección de Polideportivo.</p>
-            <p>Horario y contacto pendientes de validación.</p>
+            <address className="portal-pie-direccion">
+              28 avenida 14-02 zona 7 ciudad del plata II, Ciudad de Guatemala.
+            </address>
+            <dl className="portal-pie-contacto">
+              <div>
+                <dt>Horario</dt>
+                <dd>Lunes a domingo · 5 a. m. – 5 p. m.</dd>
+              </div>
+              <div>
+                <dt>Teléfono</dt>
+                <dd><a href="tel:+50224746608">2474 6608</a></dd>
+              </div>
+            </dl>
           </div>
         </div>
         <div className="portal-firma">
           <span>© 2026 Parque Erick Barrondo</span>
-          <span>Proyecto</span>
         </div>
       </footer>
     </div>

@@ -1,0 +1,30 @@
+{
+  "idEvento": 9,
+  "titulo": "Demostración | Jornada de ciclovía familiar",
+  "identificadorUrl": "demostracion-jornada-de-ciclovia-familiar",
+  "descripcion": "Agenda de demostración para probar inscripciones. La actividad toma como referencia la ciclovía del Parque Erick Barrondo descrita por el Gobierno de Guatemala; esta fecha es de prueba. Fuente: https://guatemala.gob.gt/la-ciclovia-del-parque-erick-barrondo-un-espacio-ideal-para-ejercitarse-en-la-ciudad/",
+  "lugar": "Ciclovía del parque",
+  "iniciaEn": "2026-11-14T13:00:00Z",
+  "finalizaEn": "2026-11-14T17:00:00Z",
+  "inscripcionAbreEn": "2026-09-01T12:00:00Z",
+  "inscripcionCierraEn": "2026-11-12T23:59:00Z",
+  "capacidadTotal": 100,
+  "cantidadOcupada": 0,
+  "cuposDisponibles": 100,
+  "estado": "PUBLICADO",
+  "esquemaFormularioJson": "{\"campos\":[]}",
+  "configuracionGruposJson": null,
+  "requisitos": [
+    {
+      "idRequisitoEvento": 8,
+      "descripcion": "Aceptar los requisitos de esta actividad de demostración.",
+      "obligatorio": true,
+      "ordenVisualizacion": 0
+    }
+  ],
+  "tieneImagen": false,
+  "urlImagen": null,
+  "creadoEn": "2026-09-12T03:42:12.115468Z",
+  "actualizadoEn": "2026-09-12T03:51:24.04153Z",
+  "version": 3
+}

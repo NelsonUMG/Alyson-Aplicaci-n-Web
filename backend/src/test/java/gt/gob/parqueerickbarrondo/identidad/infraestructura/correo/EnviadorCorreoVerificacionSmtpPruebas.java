@@ -48,7 +48,7 @@ class EnviadorCorreoVerificacionSmtpPruebas {
         assertThat(extraerTexto(mensaje))
                 .contains("Confirmación de correo")
                 .contains("Hola, <strong>Persona</strong>.")
-                .contains("Tu cuenta fue creada. Solo falta presionar el botón")
+                .contains("Confirma tu correo presionando el botón")
                 .contains("Confirmar mi cuenta")
                 .contains("Visita la página.")
                 .contains("http://127.0.0.1:5173/verificar-correo?token=token-seguro")

@@ -41,9 +41,9 @@ import org.springframework.web.multipart.MultipartFile;
 public class ControladorAutenticacion {
 
     private static final String MENSAJE_REGISTRO =
-            "Cuenta creada. Revisa tu correo para confirmar la dirección y habilitar el acceso.";
+            "Revisa tu correo. Tu cuenta se creará al confirmar la dirección mediante el enlace de verificación.";
     private static final String MENSAJE_REGISTRO_SIN_CORREO =
-            "Cuenta creada y pendiente de verificación. No pudimos enviar el correo; solicita un enlace nuevo en unos minutos.";
+            "Tu registro está pendiente y la cuenta aún no se ha creado. No pudimos enviar el correo; solicita un enlace nuevo en unos minutos.";
     private static final String MENSAJE_REENVIO =
             "Si la cuenta está pendiente, enviamos un nuevo enlace de verificación.";
 
@@ -75,7 +75,8 @@ public class ControladorAutenticacion {
             correoEnviado = servicioRegistroCuenta.registrar(solicitud);
         }
         catch (DataIntegrityViolationException ignorada) {
-            throw new ConflictoDatosException("El correo electrónico o DPI/CUI ya está registrado.");
+            throw new ConflictoDatosException(
+                    "El DPI o CUI ya está registrado. Por favor, inicia sesión con tu correo registrado.");
         }
         return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaMensaje(
                 correoEnviado ? MENSAJE_REGISTRO : MENSAJE_REGISTRO_SIN_CORREO));
@@ -83,13 +84,20 @@ public class ControladorAutenticacion {
 
     @PostMapping("/confirmar-correo")
     public RespuestaMensaje confirmarCorreo(@Valid @RequestBody SolicitudConfirmacionCorreo solicitud) {
-        servicioVerificacionCorreo.confirmar(solicitud.token());
+        try {
+            if (!servicioRegistroCuenta.confirmarPendiente(solicitud.token()))
+                servicioVerificacionCorreo.confirmar(solicitud.token());
+        } catch (DataIntegrityViolationException error) {
+            throw new ConflictoDatosException(
+                    "El DPI o CUI ya está registrado. Por favor, inicia sesión con tu correo registrado.");
+        }
         return new RespuestaMensaje("Confirmado, ya puedes iniciar sesión.");
     }
 
     @PostMapping("/reenviar-verificacion")
     public RespuestaMensaje reenviarVerificacion(@Valid @RequestBody SolicitudReenvioVerificacion solicitud) {
-        servicioVerificacionCorreo.reenviar(solicitud.correo());
+        if (!servicioRegistroCuenta.reenviarPendiente(solicitud.correo()))
+            servicioVerificacionCorreo.reenviar(solicitud.correo());
         return new RespuestaMensaje(MENSAJE_REENVIO);
     }
 

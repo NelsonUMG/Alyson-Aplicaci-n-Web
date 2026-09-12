@@ -27,7 +27,7 @@ const formatoFechaCorta = new Intl.DateTimeFormat("es-GT", { dateStyle: "medium"
 
 function Pasos({ paso }) {
   return <ol className="pasos-solicitud pasos-solicitud-amplios" aria-label="Progreso de la solicitud">
-    {["Información del solicitante", "Información del espacio", "Carga de documentos"].map((nombre, indice) => <li key={nombre} className={paso === indice + 1 ? "activo" : paso > indice + 1 ? "completado" : ""}><span>{indice + 1}</span>{nombre}</li>)}
+    {["Solicitante", "Espacio y horario", "Documentos"].map((nombre, indice) => <li key={nombre} aria-current={paso === indice + 1 ? "step" : undefined} className={paso === indice + 1 ? "activo" : paso > indice + 1 ? "completado" : ""}><span>{paso > indice + 1 ? "✓" : indice + 1}</span>{nombre}</li>)}
   </ol>;
 }
 
@@ -249,7 +249,7 @@ export function PaginaMisSolicitudes() {
       <div className="contenido-cabecera-portal-solicitudes">
         <Link className="marca-superior-solicitudes" to="/" aria-label="Parque Erick Barrondo · Inicio">
           <span className="monograma-solicitudes"><img src="/imagenes/escudo-guatemala.png" alt="" aria-hidden="true" /></span>
-          <span><strong>Parque Erick Barrondo</strong><small>Portal de gestiones</small></span>
+          <span><strong>Parque Erick Barrondo</strong><small>Atrás</small></span>
         </Link>
         <nav className="navegacion-superior-solicitudes navegacion-superior-solicitudes-reducida" aria-label="Navegación de solicitudes">
           <label className="buscador-superior-solicitudes">
@@ -282,7 +282,7 @@ export function PaginaMisSolicitudes() {
       </main>
     </div>
 
-    {modal && <div className="fondo-modal-tramites" role="presentation"><section className="modal-tramites" role="dialog" aria-modal="true" aria-label={modal === "denuncia" ? "Denuncias y quejas" : "Nueva solicitud"}><header><div><p className="etiqueta-fase">Ventanilla del parque</p><h2>{modal === "denuncia" ? "Denuncias y quejas" : "Nueva solicitud"}</h2><small>{modal === "catalogo" ? "Busca el trámite que deseas realizar." : modal === "denuncia" ? "Cuéntanos lo sucedido para darle seguimiento." : "Completa la información para continuar."}</small></div><button type="button" className="cerrar-modal-tramites" onClick={cerrarModal} aria-label="Cerrar">×</button></header>{estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
+    {modal && <div className="fondo-modal-tramites" role="presentation"><section className="modal-tramites ventanilla-agil" role="dialog" aria-modal="true" aria-label={modal === "denuncia" ? "Denuncias y quejas" : "Nueva solicitud"}><header><div><h2>{modal === "denuncia" ? "Denuncias y quejas" : "Nueva solicitud"}</h2></div><button type="button" className="cerrar-modal-tramites" onClick={cerrarModal} aria-label="Cerrar">×</button></header>{estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
       {modal === "catalogo" && <Catalogo catalogo={catalogoSolicitudes} categoria={categoria} setCategoria={setCategoria} busqueda={busqueda} setBusqueda={setBusqueda} categoriasVisibles={categoriasVisibles} totalTramites={totalTramitesVisibles} abrir={abrirTramite} />}
       {modal === "detalle" && tramite && <DetalleTramite tramite={tramite} volver={() => setModal("catalogo")} comenzar={comenzarTramite} resena={resena} setResena={setResena} guardarResena={guardarResena} guardando={estado.guardando} />}
       {modal === "paso1" && <PasoSolicitante datos={aspirante} setDatos={setAspirante} guardar={guardarSolicitante} guardando={estado.guardando} />}
@@ -296,11 +296,77 @@ export function PaginaMisSolicitudes() {
 }
 
 function Catalogo({ catalogo, categoria, setCategoria, busqueda, setBusqueda, categoriasVisibles, totalTramites, abrir }) {
-  return <div className="contenido-modal-tramites catalogo-tramites"><p className="etiqueta-fase">Catálogo de trámites</p><div className="titulo-catalogo"><div><h3>¿Qué trámite deseas realizar?</h3><p>Elige una categoría padre y luego el trámite que necesitas.</p></div><span>{totalTramites} trámites</span></div><label className="buscador-tramites"><span>⌕</span><input aria-label="Buscar trámite" placeholder="Ej.: reserva de cancha, área o actividad…" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} /></label><nav className="categorias-tramites" aria-label="Categorías padre de trámites"><button type="button" className={categoria === "TODOS" ? "activo" : ""} onClick={() => setCategoria("TODOS")}>Todas</button>{catalogo.map((item) => <button type="button" key={item.codigo} className={categoria === item.codigo ? "activo" : ""} onClick={() => setCategoria(item.codigo)}>{item.nombre}</button>)}</nav><div className="grupos-catalogo-tramites">{categoriasVisibles.map((grupoCatalogo) => <section className="grupo-catalogo-tramites" key={grupoCatalogo.codigo}><header><span>Categoría padre</span><h4>{grupoCatalogo.nombre}</h4></header><div className="lista-catalogo-tramites">{grupoCatalogo.tramites.map((item) => <button type="button" key={item.codigo} onClick={() => abrir(item.codigo)}><span className="miniatura-tramite">{item.urlPortada ? <img src={item.urlPortada} alt="" /> : "▣"}</span><span><i>Trámite hijo</i><strong>{item.nombre}</strong><small>{item.resumen}</small></span><b>›</b></button>)}</div></section>)}</div>{totalTramites === 0 && <p className="estado-vacio-catalogo">No se encontraron trámites con esos filtros.</p>}</div>;
+  return <div className="contenido-modal-tramites catalogo-tramites">
+    <div className="ventanilla-filtros">
+      <label className="ventanilla-filtro-busqueda">Buscar trámite
+        <span className="buscador-tramites"><IconoPanel tipo="buscar" /><input aria-label="Buscar trámite" placeholder="Cancha, área o actividad…" value={busqueda} onChange={(e) => setBusqueda(e.target.value)} /></span>
+      </label>
+      <label className="ventanilla-filtro-categoria">Categoría
+        <select value={categoria} onChange={(e) => setCategoria(e.target.value)}>
+          <option value="TODOS">Todas las categorías</option>
+          {catalogo.map((item) => <option key={item.codigo} value={item.codigo}>{item.nombre}</option>)}
+        </select>
+      </label>
+    </div>
+    <div className="ventanilla-resultados">
+      <div className="titulo-catalogo"><h3>Trámites disponibles</h3><span aria-live="polite">{totalTramites} {totalTramites === 1 ? "trámite" : "trámites"}</span></div>
+      <div className="grupos-catalogo-tramites">
+        {categoriasVisibles.map((grupoCatalogo) => <section className="grupo-catalogo-tramites" key={grupoCatalogo.codigo}>
+          <header><h4>{grupoCatalogo.nombre}</h4></header>
+          <div className="lista-catalogo-tramites">
+            {grupoCatalogo.tramites.map((item) => <button type="button" key={item.codigo} onClick={() => abrir(item.codigo)}>
+              <span className="miniatura-tramite" aria-hidden="true">{item.urlPortada ? <img src={item.urlPortada} alt="" /> : <IconoPanel tipo="portapapeles" />}</span>
+              <span><strong>{item.nombre}</strong><small>{item.resumen}</small></span>
+              <span className="ventanilla-ver-tramite">Ver trámite <b aria-hidden="true">→</b></span>
+            </button>)}
+          </div>
+        </section>)}
+      </div>
+      {totalTramites === 0 && <p className="estado-vacio-catalogo">No se encontraron trámites con esos filtros.</p>}
+    </div>
+  </div>;
 }
 
 function DetalleTramite({ tramite, volver, comenzar, resena, setResena, guardarResena, guardando }) {
-  return <div className="contenido-modal-tramites detalle-tramite"><button type="button" className="enlace-boton" onClick={volver}>← Volver al catálogo</button><p className="etiqueta-fase">{tramite.categoria}</p><h3>{tramite.nombre}</h3><p>{tramite.resumen}</p><div className="columnas-detalle-tramite"><div><article><h4>Acerca de este trámite</h4><p>{tramite.acerca}</p></article><article><h4>Documentos y requisitos solicitados</h4><ul>{tramite.requisitos.map((item) => <li key={item}>{item}</li>)}</ul><strong>Documentos:</strong><ul>{tramite.documentosRequeridos.map((item) => <li key={item}>{item}</li>)}</ul></article><article className="experiencias-tramite"><h4>Experiencias de usuarios</h4>{tramite.resenas.map((item) => <div key={item.idResena}><span className="avatar-resena">{item.nombreUsuario.charAt(0)}</span><p><strong>{item.nombreUsuario}</strong><small>{tiempoRelativo(item.actualizadoEn)}</small><Estrellas valor={item.estrellas} lectura /><br />{item.comentario}</p></div>)}{tramite.resenas.length === 0 && <p>Aún no hay comentarios. Puedes ser la primera persona en calificar este trámite.</p>}<form onSubmit={guardarResena}><h5>Califica tu experiencia</h5><Estrellas valor={resena.estrellas} onChange={(estrellas) => setResena({ ...resena, estrellas })} /><textarea aria-label="Comentario de la experiencia" required maxLength="1000" value={resena.comentario} onChange={(e) => setResena({ ...resena, comentario: e.target.value })} /><button disabled={guardando}>Publicar comentario</button></form></article></div><aside>{tramite.urlPortada ? <img src={tramite.urlPortada} alt={`Portada de ${tramite.nombre}`} /> : <div className="portada-tramite-vacia">Parque Erick Barrondo</div>}<button type="button" onClick={comenzar}>▷ Iniciar solicitud</button><article><h4>Información general</h4><p><strong>Costo:</strong> {tramite.costo}</p><p><strong>Tiempo de respuesta:</strong> {tramite.tiempoRespuesta}</p><p><strong>Dependencia:</strong> Parque Erick Bernabé Barrondo García</p><p><Estrellas valor={Math.round(tramite.promedioEstrellas)} lectura /> ({tramite.totalResenas})</p></article></aside></div></div>;
+  return <div className="contenido-modal-tramites detalle-tramite">
+    <button type="button" className="enlace-boton" onClick={volver}>← Volver al catálogo</button>
+    <div className="ventanilla-titulo-tramite">
+      <p className="etiqueta-fase">{tramite.categoria}</p>
+      <h3>{tramite.nombre}</h3>
+      <p>{tramite.resumen}</p>
+    </div>
+    <div className="columnas-detalle-tramite">
+      <div>
+        <article><h4>Acerca de este trámite</h4><p>{tramite.acerca}</p></article>
+        <article className="ventanilla-requisitos">
+          <h4>Requisitos</h4>
+          <ul>{tramite.requisitos.map((item) => <li key={item}>{item}</li>)}</ul>
+          <h4>Documentos que necesitas</h4>
+          <ul>{tramite.documentosRequeridos.map((item) => <li key={item}>{item}</li>)}</ul>
+        </article>
+      </div>
+      <aside className="ventanilla-resumen-tramite">
+        {tramite.urlPortada && <img src={tramite.urlPortada} alt={tramite.nombre} />}
+        <div className="ventanilla-resumen-icono"><IconoPanel tipo="portapapeles" /></div>
+        <h4>Información general</h4>
+        <dl><div><dt>Costo</dt><dd>{tramite.costo}</dd></div><div><dt>Tiempo de respuesta</dt><dd>{tramite.tiempoRespuesta}</dd></div></dl>
+        <button type="button" onClick={comenzar}>Iniciar solicitud <span aria-hidden="true">→</span></button>
+      </aside>
+    </div>
+    <details className="ventanilla-experiencias">
+      <summary>Experiencias de usuarios <span>({tramite.totalResenas})</span></summary>
+      <div className="experiencias-tramite">
+        {tramite.resenas.map((item) => <div key={item.idResena}><span className="avatar-resena">{item.nombreUsuario.charAt(0)}</span><p><strong>{item.nombreUsuario}</strong><small>{tiempoRelativo(item.actualizadoEn)}</small><Estrellas valor={item.estrellas} lectura /><br />{item.comentario}</p></div>)}
+        {tramite.resenas.length === 0 && <p>Aún no hay comentarios.</p>}
+        <form onSubmit={guardarResena}>
+          <h5>Califica tu experiencia</h5>
+          <Estrellas valor={resena.estrellas} onChange={(estrellas) => setResena({ ...resena, estrellas })} />
+          <textarea aria-label="Comentario de la experiencia" required maxLength="1000" value={resena.comentario} onChange={(e) => setResena({ ...resena, comentario: e.target.value })} />
+          <button disabled={guardando}>Publicar comentario</button>
+        </form>
+      </div>
+    </details>
+  </div>;
 }
 
 function PasoSolicitante({ datos, setDatos, guardar, guardando }) {
@@ -308,7 +374,16 @@ function PasoSolicitante({ datos, setDatos, guardar, guardando }) {
 }
 
 function SelectorTipo({ seleccionar, volver }) {
-  return <div className="contenido-modal-tramites selector-tipo-reserva"><Pasos paso={2} /><h3>¿Qué tipo de reserva deseas realizar?</h3><button type="button" onClick={() => seleccionar("AFLUENCIAMEDIA")}><span>⚽</span><span><strong>Reserva recreativa de afluencia media</strong><small>Actividades programadas con 7 días de anticipación (51 a 100 personas).</small></span></button><button type="button" onClick={() => seleccionar("MAYORAFLUENCIA")}><span>♟</span><span><strong>Reserva de mayor afluencia</strong><small>Actividades con 7 días de anticipación, para afluencias de 101 a 500 personas.</small></span></button><div className="acciones-formulario-solicitud"><button type="button" className="boton-secundario" onClick={volver}>Anterior</button></div></div>;
+  return <div className="contenido-modal-tramites selector-tipo-reserva">
+    <Pasos paso={2} />
+    <h3>¿Cuántas personas asistirán?</h3>
+    <p className="nota-informativa-solicitud">Las reservas deben solicitarse con al menos 7 días de anticipación.</p>
+    <div className="ventanilla-tipos-reserva">
+      <button type="button" onClick={() => seleccionar("AFLUENCIAMEDIA")}><strong>De 51 a 100 personas</strong><small>Reserva recreativa de afluencia media</small><span aria-hidden="true">→</span></button>
+      <button type="button" onClick={() => seleccionar("MAYORAFLUENCIA")}><strong>De 101 a 500 personas</strong><small>Reserva de mayor afluencia</small><span aria-hidden="true">→</span></button>
+    </div>
+    <div className="acciones-formulario-solicitud"><button type="button" className="boton-secundario" onClick={volver}>Anterior</button></div>
+  </div>;
 }
 
 function PasoEspacio({ datos, setDatos, areas, minimoFecha, guardar, volver, guardando }) {

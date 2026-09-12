@@ -9,8 +9,10 @@ const apiPortal = vi.hoisted(() => ({
   listarAreas: vi.fn(),
   consultarContenidoInstitucional: vi.fn(),
 }));
+const sesionPortal = vi.hoisted(() => ({ usuario: null }));
 
 vi.mock("../api/portalPublico", () => apiPortal);
+vi.mock("../autenticacion/ContextoSesion", () => ({ usarSesion: () => sesionPortal }));
 
 import { PaginaAreasServicios } from "./PaginaAreasServicios";
 import { PaginaBase } from "./PaginaBase";

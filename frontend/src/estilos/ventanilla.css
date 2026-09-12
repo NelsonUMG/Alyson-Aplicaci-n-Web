@@ -1,0 +1,118 @@
+.aplicacion-solicitudes .ventanilla-agil {
+  width: min(1040px, 100%);
+  border: 1px solid #dbe5e7;
+  border-radius: 12px;
+  background: #f6f9fa;
+  font-size: .94rem;
+  scrollbar-gutter: stable;
+}
+.aplicacion-solicitudes .ventanilla-agil > header {
+  align-items: center;
+  gap: 1rem;
+  padding: 1.15rem 1.5rem;
+  background: #53b3df;
+  color: #143c50;
+  border-bottom: 1px solid #399bc6;
+}
+.aplicacion-solicitudes .ventanilla-agil > header h2 { color: #143c50; font-size: 1.65rem; line-height: 1.25; margin: 0; }
+.aplicacion-solicitudes .ventanilla-agil .cerrar-modal-tramites { flex: none; width: 38px; height: 38px; border: 1px solid #ffffff90; border-radius: 6px; background: #ffffffd9; color: #285b70; font-size: 1.7rem; }
+.aplicacion-solicitudes .ventanilla-agil .contenido-modal-tramites { padding: 1.5rem; }
+.ventanilla-filtros { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 1.25rem; margin-bottom: 1.75rem; padding: 1.15rem; background: #fff; border: 1px solid #dbe5e7; border-radius: 8px; }
+.ventanilla-filtros > label { display: grid; gap: .5rem; min-width: 0; color: #42606d; font-size: .8rem; font-weight: 600; }
+.aplicacion-solicitudes .ventanilla-agil .buscador-tramites { display: flex; align-items: center; gap: .7rem; min-height: 46px; margin: 0; padding: 0 .8rem; border: 1px solid #c9d9de; border-radius: 6px; background: #fff; color: #176b59; }
+.aplicacion-solicitudes .ventanilla-agil .buscador-tramites:focus-within { outline: 2px solid #167a64; outline-offset: 2px; }
+.aplicacion-solicitudes .ventanilla-agil .buscador-tramites svg { width: 18px; height: 18px; flex: none; }
+.aplicacion-solicitudes .ventanilla-agil .buscador-tramites input { width: 100%; min-width: 0; min-height: 44px; margin: 0; padding: .6rem 0; border: 0; border-radius: 0; outline: none; box-shadow: none; background: transparent; font: inherit; font-size: .88rem; font-weight: 400; }
+.aplicacion-solicitudes .ventanilla-agil .ventanilla-filtro-categoria select { width: 100%; min-width: 0; min-height: 46px; padding: .65rem .8rem; border: 1px solid #c9d9de; border-radius: 6px; background: #fff; font: inherit; font-size: .88rem; font-weight: 400; color: #284a54; }
+.ventanilla-resultados { min-width: 0; }
+.aplicacion-solicitudes .ventanilla-agil .titulo-catalogo { gap: .75rem; align-items: center; margin-bottom: 1rem; }
+.aplicacion-solicitudes .ventanilla-agil .titulo-catalogo h3 { margin: 0; font-size: 1.1rem; color: #304d58; }
+.aplicacion-solicitudes .ventanilla-agil .titulo-catalogo > span { flex: none; font-size: .75rem; padding: .3rem .6rem; background: #e9f0f3; color: #48626d; }
+.aplicacion-solicitudes .ventanilla-agil .grupos-catalogo-tramites { gap: 1rem; }
+.aplicacion-solicitudes .ventanilla-agil .grupo-catalogo-tramites { padding: 0; overflow: hidden; border: 1px solid #dbe5e7; border-radius: 8px; background: #fff; }
+.aplicacion-solicitudes .ventanilla-agil .grupo-catalogo-tramites > header { padding: .65rem 1rem; margin: 0; background: #edf3f6; border-bottom: 1px solid #dbe5e7; }
+.aplicacion-solicitudes .ventanilla-agil .grupo-catalogo-tramites > header h4 { margin: 0; font-size: .78rem; font-weight: 600; color: #4b6878; }
+.aplicacion-solicitudes .ventanilla-agil .lista-catalogo-tramites { gap: 0; }
+.aplicacion-solicitudes .ventanilla-agil .lista-catalogo-tramites > button { grid-template-columns: 38px minmax(0, 1fr) auto; gap: .85rem; padding: 1.15rem; border: 0; border-bottom: 1px solid #e4ecef; border-radius: 0; box-shadow: none; transform: none; background: #fff; }
+.aplicacion-solicitudes .ventanilla-agil .lista-catalogo-tramites > button:last-child { border-bottom: 0; }
+.aplicacion-solicitudes .ventanilla-agil .lista-catalogo-tramites > button:hover { background: #f2f8fa; transform: none; box-shadow: none; }
+.aplicacion-solicitudes .ventanilla-agil .lista-catalogo-tramites strong { font-size: .94rem; line-height: 1.4; color: #244d5c; }
+.aplicacion-solicitudes .ventanilla-agil .lista-catalogo-tramites small { font-size: .8rem; font-weight: 400; line-height: 1.5; color: #637b87; }
+.aplicacion-solicitudes .ventanilla-agil .miniatura-tramite { width: 38px; height: 38px; border-radius: 6px; color: #237899; background: #eaf4fa; }
+.aplicacion-solicitudes .ventanilla-agil .miniatura-tramite svg { width: 21px; height: 21px; }
+.ventanilla-ver-tramite { display: flex; align-items: center; gap: .6rem; padding-left: .5rem; color: #147c67; font-size: .78rem; white-space: nowrap; }
+.aplicacion-solicitudes .ventanilla-agil .ventanilla-ver-tramite b { font-size: 1rem; }
+.aplicacion-solicitudes .ventanilla-agil button:focus-visible,
+.aplicacion-solicitudes .ventanilla-agil a:focus-visible,
+.aplicacion-solicitudes .ventanilla-agil summary:focus-visible { outline: 2px solid #167a64; outline-offset: 3px; }
+.aplicacion-solicitudes .ventanilla-agil .cuadricula-formulario-solicitud { gap: 1.4rem 1.6rem; padding: 1.5rem; border: 1px solid #dbe5e7; border-radius: 8px; background: #fff; }
+.aplicacion-solicitudes .ventanilla-agil .cuadricula-formulario-solicitud label { gap: .5rem; font-size: .86rem; line-height: 1.4; color: #304f56; }
+.aplicacion-solicitudes .ventanilla-agil .cuadricula-formulario-solicitud input,
+.aplicacion-solicitudes .ventanilla-agil .cuadricula-formulario-solicitud select,
+.aplicacion-solicitudes .ventanilla-agil .cuadricula-formulario-solicitud textarea { min-width: 0; width: 100%; min-height: 46px; padding: .65rem .8rem; border: 1px solid #c9d9de; border-radius: 6px; background: #fff; font: inherit; font-weight: 400; color: #223f38; }
+.aplicacion-solicitudes .ventanilla-agil .cuadricula-formulario-solicitud textarea { min-height: 110px; resize: vertical; }
+.aplicacion-solicitudes .ventanilla-agil .acciones-formulario-solicitud { width: 100%; gap: .75rem; align-items: center; margin-top: .5rem; padding-top: 1.25rem; border-top: 1px solid #e1e9e8; }
+.aplicacion-solicitudes .ventanilla-agil .acciones-formulario-solicitud > button,
+.aplicacion-solicitudes .ventanilla-agil aside > button,
+.aplicacion-solicitudes .ventanilla-agil form > button { min-height: 46px; border-radius: 6px; padding: .65rem 1.1rem; font-size: .88rem; }
+.aplicacion-solicitudes .ventanilla-agil .pasos-solicitud { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .75rem; margin: 0 0 1.5rem; }
+.aplicacion-solicitudes .ventanilla-agil .pasos-solicitud li { padding: .8rem; border: 0; border-bottom: 3px solid #dbe5e7; border-radius: 6px 6px 0 0; background: #fff; font-size: .82rem; font-weight: 600; }
+.aplicacion-solicitudes .ventanilla-agil .pasos-solicitud li span { flex: none; width: 26px; height: 26px; }
+.aplicacion-solicitudes .ventanilla-agil .pasos-solicitud li.activo { color: #175a7b; border-bottom-color: #53b3df; background: #e8f4fb; }
+.aplicacion-solicitudes .ventanilla-agil .pasos-solicitud li.activo span { background: #2079a2; }
+.aplicacion-solicitudes .ventanilla-agil .pasos-solicitud li.completado { color: #426d5f; border-bottom-color: #93c7b4; }
+.aplicacion-solicitudes .ventanilla-agil .nota-informativa-solicitud { margin: 1rem 0 1.25rem; border-left: 3px solid #53b3df; border-radius: 6px; font-size: .86rem; }
+.aplicacion-solicitudes .ventanilla-agil .formulario-tramite > h3,
+.aplicacion-solicitudes .ventanilla-agil .selector-tipo-reserva > h3 { margin: 1rem 0; font-size: 1.2rem; }
+.ventanilla-titulo-tramite { margin: 1.3rem 0; }
+.ventanilla-titulo-tramite h3 { font-size: 1.6rem; line-height: 1.25; margin: .5rem 0; color: #284c58; }
+.ventanilla-titulo-tramite > p:last-child { color: #5f737e; line-height: 1.6; }
+.aplicacion-solicitudes .ventanilla-agil .columnas-detalle-tramite { gap: 1.3rem; align-items: start; grid-template-columns: minmax(0, 1fr) 280px; }
+.aplicacion-solicitudes .ventanilla-agil .columnas-detalle-tramite article { padding: 1.25rem; margin-bottom: 1rem; line-height: 1.65; background: #fff; border: 1px solid #dbe5e7; border-radius: 8px; }
+.aplicacion-solicitudes .ventanilla-agil .columnas-detalle-tramite h4 { margin: 0 0 .65rem; font-size: .95rem; }
+.aplicacion-solicitudes .ventanilla-agil .columnas-detalle-tramite article p { margin: 0; color: #50676d; }
+.aplicacion-solicitudes .ventanilla-agil .ventanilla-requisitos li { padding: .15rem 0; color: #50676d; }
+.aplicacion-solicitudes .ventanilla-agil .ventanilla-requisitos ul { margin: .5rem 0 1.1rem; padding-left: 1.2rem; }
+.aplicacion-solicitudes .ventanilla-agil .ventanilla-requisitos ul:last-child { margin-bottom: 0; }
+.ventanilla-resumen-tramite { padding: 1.25rem; border: 1px solid #d4e2e9; border-top: 3px solid #53b3df; border-radius: 8px; background: #fff; }
+.ventanilla-resumen-icono { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 1rem; border-radius: 8px; color: #237899; background: #eaf4fa; }
+.ventanilla-resumen-icono svg { width: 24px; height: 24px; }
+.ventanilla-resumen-tramite dl { display: grid; gap: 1rem; margin: 1rem 0 1.5rem; }
+.ventanilla-resumen-tramite dt { font-size: .75rem; color: #657f88; margin-bottom: .3rem; }
+.ventanilla-resumen-tramite dd { margin: 0; font-size: .92rem; color: #284b3e; }
+.aplicacion-solicitudes .ventanilla-agil .ventanilla-resumen-tramite > button { display: flex; justify-content: space-between; align-items: center; gap: .5rem; margin-bottom: 0; }
+.ventanilla-experiencias { padding: 1rem 1.25rem; border: 1px solid #dbe5e7; border-radius: 8px; background: #fff; }
+.ventanilla-experiencias summary { cursor: pointer; color: #315e50; font-size: .9rem; font-weight: 600; }
+.ventanilla-experiencias summary span { color: #758c82; font-weight: 400; }
+.ventanilla-tipos-reserva { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 1.5rem 0; }
+.ventanilla-tipos-reserva > button { display: grid; grid-template-columns: 1fr auto; gap: .5rem; padding: 1.5rem; color: #275146; background: #fff; border: 1px solid #d4e0dc; border-radius: 8px; text-align: left; }
+.ventanilla-tipos-reserva > button:hover { border-color: #53b3df; background: #edf7fc; }
+.ventanilla-tipos-reserva strong { font-size: 1.08rem; }
+.ventanilla-tipos-reserva small { font-size: .8rem; font-weight: 400; color: #5a7472; }
+.ventanilla-tipos-reserva > button > span { grid-column: 2; grid-row: 1 / 3; align-self: center; }
+.aplicacion-solicitudes .ventanilla-agil .cargador-pdf-solicitud { padding: 1.5rem; background: #fff; border: 1px dashed #9fbfcc; border-radius: 8px; }
+.aplicacion-solicitudes .ventanilla-agil .cargador-pdf-solicitud > span { width: 52px; height: 60px; align-items: center; padding: 0; border-radius: 7px; background: #eaf4fa; color: #237899; font-size: .95rem; }
+.aplicacion-solicitudes .ventanilla-agil .cargador-pdf-solicitud h4 { margin: 1rem 0 .5rem; font-size: 1rem; }
+.aplicacion-solicitudes .ventanilla-agil .cargador-pdf-solicitud p { color: #5f737e; font-size: .86rem; }
+.aplicacion-solicitudes .ventanilla-agil .cargador-pdf-solicitud input[type="file"] { min-height: 46px; width: min(100%, 430px); padding: .35rem; background: #f7faf9; border-radius: 6px; font-size: .8rem; }
+.aplicacion-solicitudes .ventanilla-agil input::file-selector-button { min-height: 36px; margin-right: .6rem; padding: .4rem .75rem; border: 0; border-radius: 4px; background: #e1edf5; color: #235f7b; cursor: pointer; }
+.aplicacion-solicitudes .ventanilla-agil .lista-documentos-solicitud { padding: 0; list-style: none; }
+.aplicacion-solicitudes .ventanilla-agil .lista-documentos-solicitud li { display: flex; align-items: center; flex-wrap: wrap; gap: .8rem; padding: 1rem; margin-top: .65rem; background: #fff; border: 1px solid #dbe5e7; border-radius: 8px; }
+.aplicacion-solicitudes .ventanilla-agil .lista-documentos-solicitud li a { flex: 1; overflow-wrap: anywhere; }
+.aplicacion-solicitudes .ventanilla-agil .fondo-exito-guardado > div { padding: 1.5rem; border-radius: 12px; }
+.aplicacion-solicitudes .ventanilla-agil .fondo-exito-guardado span { width: 48px; height: 48px; border-width: 2px; font-size: 1.8rem; }
+@media (max-width: 680px) {
+  .aplicacion-solicitudes .ventanilla-agil > header { padding: 1rem; }
+  .aplicacion-solicitudes .ventanilla-agil > header h2 { font-size: 1.4rem; }
+  .aplicacion-solicitudes .ventanilla-agil .contenido-modal-tramites { padding: 1rem; }
+  .ventanilla-filtros { grid-template-columns: minmax(0, 1fr); padding: 1rem; gap: 1rem; }
+  .aplicacion-solicitudes .ventanilla-agil .lista-catalogo-tramites > button { grid-template-columns: 32px minmax(0, 1fr); padding: 1rem; gap: .6rem; }
+  .aplicacion-solicitudes .ventanilla-agil .miniatura-tramite { width: 32px; height: 32px; }
+  .ventanilla-ver-tramite { grid-column: 2; padding-left: 0; }
+  .aplicacion-solicitudes .ventanilla-agil .columnas-detalle-tramite { grid-template-columns: minmax(0, 1fr); }
+  .aplicacion-solicitudes .ventanilla-agil .ventanilla-resumen-tramite { grid-row: 1; }
+  .aplicacion-solicitudes .ventanilla-agil .cuadricula-formulario-solicitud { grid-template-columns: minmax(0, 1fr); padding: 1rem; }
+  .aplicacion-solicitudes .ventanilla-agil .pasos-solicitud { gap: .4rem; }
+  .aplicacion-solicitudes .ventanilla-agil .pasos-solicitud li { flex-direction: column; text-align: center; padding: .6rem .3rem; font-size: .7rem; }
+  .ventanilla-tipos-reserva { grid-template-columns: minmax(0, 1fr); }
+}

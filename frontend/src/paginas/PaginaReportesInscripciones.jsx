@@ -1,5 +1,6 @@
+import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+
 import {
   listarPersonasInscritasReporte,
   listarReporteInscripciones,
@@ -126,21 +127,15 @@ export function PaginaReportesInscripciones() {
 
   return (
     <main className="pagina-administracion pagina-reportes-inscripciones">
-      <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
-      <p className="etiqueta-fase">Consulta administrativa</p>
-      <h1>Reportes de inscripciones</h1>
-      <p>Consulta los cursos o actividades y las personas que mantienen una inscripción confirmada.</p>
+      <CabeceraAdministracion titulo="Reportes de inscripciones" descripcion="Consulta los cursos o actividades y las personas que mantienen una inscripción confirmada." />
       <div className="disposicion-modulo-administracion">
-        <aside className="menu-lateral-administracion">
-          <details open>
-            <summary>Reportes</summary>
+        <nav className="navegacion-modulo-administracion" aria-label="Opciones de Reportes de inscripciones">
             <div className="acciones-superiores-administracion">
               <button className="boton-gestion-activo" type="button" aria-current="page">
                 Inscripciones a cursos
               </button>
             </div>
-          </details>
-        </aside>
+        </nav>
 
         <div className="contenido-modulo-administracion">
           {estadoCursos.error && <p className="mensaje-error" role="alert">{estadoCursos.error}</p>}

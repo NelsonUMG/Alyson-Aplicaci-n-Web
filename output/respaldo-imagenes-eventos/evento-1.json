@@ -1,0 +1,23 @@
+{
+  "idEvento": 1,
+  "titulo": "Patinaje",
+  "identificadorUrl": "patinaje",
+  "descripcion": "12 avenida zona 1",
+  "lugar": "Federacion",
+  "iniciaEn": "2026-09-15T20:30:00Z",
+  "finalizaEn": "2026-09-30T23:35:00Z",
+  "inscripcionAbreEn": "2026-09-10T23:35:00Z",
+  "inscripcionCierraEn": "2026-09-14T23:35:00Z",
+  "capacidadTotal": 50,
+  "cantidadOcupada": 1,
+  "cuposDisponibles": 49,
+  "estado": "PUBLICADO",
+  "esquemaFormularioJson": "{\"campos\":[{\"id\":\"campo_1\",\"etiqueta\":\"Carnet\",\"tipo\":\"NUMERO\",\"obligatorio\":true},{\"id\":\"campo_2\",\"etiqueta\":\"Nombre\",\"tipo\":\"TEXTO_CORTO\",\"obligatorio\":true}]}",
+  "configuracionGruposJson": "{\"grupos\":[{\"codigo\":\"ni-os\",\"nombre\":\"ni;os\",\"categoriaEdad\":\"ni;os\",\"edadMinima\":10,\"edadMaxima\":14,\"horarios\":[{\"dia\":\"LUNES\",\"horaInicio\":\"08:00\",\"horaFin\":\"12:00\",\"lugar\":\"preguntar en recepcion\"}]},{\"codigo\":\"avanzados\",\"nombre\":\"avanzados\",\"categoriaEdad\":\"adolecente\",\"edadMinima\":15,\"edadMaxima\":17,\"horarios\":[{\"dia\":\"MIERCOLES\",\"horaInicio\":\"08:00\",\"horaFin\":\"17:51\",\"lugar\":\"salon grande\"}]}]}",
+  "requisitos": [],
+  "tieneImagen": true,
+  "urlImagen": "/api/v1/administracion/eventos/1/imagen",
+  "creadoEn": "2026-09-10T23:35:47.70304Z",
+  "actualizadoEn": "2026-09-11T00:10:39.24838Z",
+  "version": 10
+}

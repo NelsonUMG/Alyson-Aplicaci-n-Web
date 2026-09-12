@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   actualizarPerfil,
   cambiarContrasena,
@@ -15,40 +15,53 @@ import { formatearTextoTecnico } from "../utilidades/formatoTexto";
 export function PaginaPerfil() {
   const { usuario, cerrar, actualizarUsuario } = usarSesion();
   const navegacion = useNavigate();
+  const { hash } = useLocation();
   const [datos, setDatos] = useState({ contrasenaActual: "", contrasenaNueva: "" });
   const [estado, setEstado] = useState({ enviando: false, error: "", mensaje: "" });
   const esAdministrador = usuario.roles.includes("ADMINISTRADOR");
   const usuarioComun = esUsuarioComun(usuario);
   const rolesVisibles = usuario.roles.filter((rol) => rol !== "USUARIOREGISTRADO");
+  useEffect(() => {
+    if (hash === "#modulos") {
+      const modulos = document.getElementById("modulos");
+      modulos?.scrollIntoView({ block: "start" });
+      modulos?.focus({ preventScroll: true });
+    }
+  }, [hash]);
   const modulosAdministracion = usuarioComun ? [] : [
     {
       permiso: "ROLGESTIONAR",
       destino: "/administracion/usuarios",
       etiqueta: "Usuarios y roles",
+      descripcion: "Gestiona el personal, sus roles y permisos.",
       icono: "usuarios",
     },
     {
       permiso: "PUBLICACIONLEER",
       destino: "/administracion/publicaciones",
       etiqueta: "Noticias",
+      descripcion: "Publica novedades para el portal.",
       icono: "publicaciones",
     },
     {
       permiso: "EVENTOLEER",
       destino: "/administracion/eventos",
       etiqueta: "Eventos y cursos",
+      descripcion: "Organiza actividades e inscripciones.",
       icono: "eventos",
     },
     {
       permiso: "AREALEER",
       destino: "/administracion/areas",
       etiqueta: "Áreas, instalaciones y mapa",
+      descripcion: "Actualiza espacios, servicios y ubicación.",
       icono: "areas",
     },
     {
       permiso: "BICICLETALEER",
       destino: "/administracion/bicicletas",
       etiqueta: "Inventario de bicicletas",
+      descripcion: "Consulta existencias y su estado.",
       icono: "bicicletas",
       visible: MODULO_BICICLETAS_VISIBLE,
     },
@@ -56,24 +69,28 @@ export function PaginaPerfil() {
       permiso: "INSTITUCIONALGESTIONAR",
       destino: "/administracion/institucional",
       etiqueta: "Contenido institucional",
+      descripcion: "Edita la información de la sección Nosotros.",
       icono: "institucional",
     },
     {
       permiso: "SOLICITUDGESTIONAR",
       destino: "/administracion/solicitudes",
       etiqueta: "Solicitudes de instalaciones",
+      descripcion: "Organiza trámites y atiende solicitudes.",
       icono: "solicitudes",
     },
     {
       permiso: "REPORTELEER",
       destino: "/administracion/reportes/inscripciones",
       etiqueta: "Reportes de inscripciones",
+      descripcion: "Consulta registros por actividad.",
       icono: "reportes",
     },
     {
       permiso: "REPORTELEER",
       destino: "/administracion/auditoria",
       etiqueta: "Auditoría del sistema",
+      descripcion: "Revisa los movimientos registrados.",
       icono: "auditoria",
     },
   ].filter((modulo) => modulo.visible !== false && usuario.permisos.includes(modulo.permiso));
@@ -110,13 +127,16 @@ export function PaginaPerfil() {
   }
 
   return (
-    <main className="pagina-cuenta">
+    <main className="pagina-cuenta pagina-perfil-administracion">
       <Link className="enlace-regreso" to="/">← Volver al inicio</Link>
-      <header className="cabecera-cuenta">
-        <div>
-          <p className="etiqueta-fase">Sesión activa</p>
+      <header className="cabecera-cuenta cabecera-perfil-administracion">
+        <div className="identidad-perfil-administracion">
+          <span className="avatar-perfil-administracion" aria-hidden="true"><IconoPerfilAdministracion /></span>
+          <div>
+          <p className="etiqueta-fase etiqueta-perfil-administracion">Panel de administración</p>
           <h1>{esAdministrador ? usuario.nombre : `${usuario.nombre} ${usuario.apellido}`}</h1>
-          <p>{usuario.correo}</p>
+          <p className="correo-perfil-administracion">{usuario.correo}</p>
+          </div>
         </div>
         <button className="boton-secundario" type="button" onClick={salir}>Cerrar sesión</button>
       </header>
@@ -129,13 +149,24 @@ export function PaginaPerfil() {
         </section>
       )}
       {modulosAdministracion.length > 0 && (
-        <section className="panel-cuenta panel-modulos" aria-labelledby="titulo-modulos">
-          <h2 id="titulo-modulos">Visualización de módulos</h2>
+        <section id="modulos" className="panel-cuenta panel-modulos panel-modulos-administracion" aria-labelledby="titulo-modulos" tabIndex={-1}>
+          <header className="cabecera-modulos-perfil">
+            <div>
+              <p>Herramientas de gestión</p>
+              <h2 id="titulo-modulos">Módulos de administración</h2>
+              <span>Selecciona un área de trabajo para continuar.</span>
+            </div>
+            <span className="contador-modulos-perfil">{modulosAdministracion.length} módulos disponibles</span>
+          </header>
           <nav className="modulos-administracion" aria-label="Accesos de administración">
             {modulosAdministracion.map((modulo) => (
-              <Link key={modulo.destino} className="tarjeta-modulo" to={modulo.destino}>
+              <Link key={modulo.destino} className="tarjeta-modulo" to={modulo.destino} aria-label={modulo.etiqueta}>
                 <span className="icono-modulo" aria-hidden="true"><IconoModulo tipo={modulo.icono} /></span>
-                <span>{modulo.etiqueta}</span>
+                <span className="contenido-tarjeta-modulo">
+                  <strong>{modulo.etiqueta}</strong>
+                  <small>{modulo.descripcion}</small>
+                </span>
+                <span className="flecha-tarjeta-modulo" aria-hidden="true">→</span>
               </Link>
             ))}
           </nav>
@@ -267,14 +298,13 @@ function PerfilUsuarioComun({
         <div className="interior-cabecera-perfil">
           <Link className="marca-perfil-usuario" to="/">
             <span><img src="/imagenes/escudo-guatemala.png" alt="" aria-hidden="true" /></span>
-            <strong>Parque Erick Barrondo<small>Portal de gestiones</small></strong>
+            <strong>Parque Erick Barrondo<small>Atrás</small></strong>
           </Link>
           <button type="button" onClick={salir}>Cerrar sesión</button>
         </div>
       </header>
 
       <main className="contenido-perfil-usuario">
-        <nav className="miga-perfil-usuario" aria-label="Ruta actual"><Link to="/">Inicio</Link><span>›</span><strong>Mi cuenta</strong></nav>
         <section className="encabezado-perfil-usuario">
           <div><p>Cuenta personal</p><h1>Mi cuenta</h1><span>Administra tu información personal y la seguridad de tu acceso.</span></div>
         </section>
@@ -345,6 +375,15 @@ function PerfilUsuarioComun({
         </section>
       </main>
     </div>
+  );
+}
+
+function IconoPerfilAdministracion() {
+  return (
+    <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="24" cy="15" r="7" />
+      <path d="M10 39c1.5-8 6.5-12 14-12s12.5 4 14 12" />
+    </svg>
   );
 }
 

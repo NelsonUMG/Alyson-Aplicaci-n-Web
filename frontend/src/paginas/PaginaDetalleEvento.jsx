@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ErrorApi, obtenerMensajeError } from "../api/clienteHttp";
 import {
@@ -8,7 +8,7 @@ import {
 } from "../api/inscripcionesEventos";
 import { consultarEvento } from "../api/portalPublico";
 import { usarSesion } from "../autenticacion/ContextoSesion";
-import { CabeceraPagina } from "../componentes/CabeceraPagina";
+import { formatearTextoEditorial } from "../utilidades/formatoTexto";
 
 const formatoFecha = new Intl.DateTimeFormat("es-GT", {
   dateStyle: "full",
@@ -64,8 +64,15 @@ function CampoRequisito({ campo, valor, alCambiar }) {
 export function PaginaDetalleEvento() {
   const { identificadorUrl } = useParams();
   const { usuario, cargando: cargandoSesion } = usarSesion();
+  return <DetalleEvento key={`${identificadorUrl}:${usuario?.idUsuario ?? usuario?.correo ?? "visitante"}`} identificadorUrl={identificadorUrl} usuario={usuario} cargandoSesion={cargandoSesion} />;
+}
+
+function DetalleEvento({ identificadorUrl, usuario, cargandoSesion }) {
   const [evento, establecerEvento] = useState(null);
   const [inscripcion, establecerInscripcion] = useState(null);
+  const [estadoConsulta, establecerEstadoConsulta] = useState("cargando");
+  const [reintento, establecerReintento] = useState(0);
+  const operacionEnCurso = useRef(false);
   const [respuestasRequisitos, establecerRespuestasRequisitos] = useState({});
   const [codigoGrupo, establecerCodigoGrupo] = useState("");
   const [motivoCancelacion, establecerMotivoCancelacion] = useState("");
@@ -97,17 +104,24 @@ export function PaginaDetalleEvento() {
     let vigente = true;
     consultarInscripcionEvento(evento.idEvento)
       .then((datos) => {
-        if (vigente) establecerInscripcion(datos);
+        if (vigente) {
+          establecerInscripcion(datos);
+          establecerEstadoConsulta("lista");
+        }
       })
       .catch((errorConsulta) => {
-        if (vigente && (!(errorConsulta instanceof ErrorApi) || errorConsulta.estado !== 404)) {
-          establecerOperacion({ procesando: false, error: errorConsulta.message, mensaje: "" });
+        if (!vigente) return;
+        if (errorConsulta instanceof ErrorApi && errorConsulta.estado === 404) {
+          establecerInscripcion(null);
+          establecerEstadoConsulta("lista");
+        } else {
+          establecerEstadoConsulta("error");
         }
       });
     return () => {
       vigente = false;
     };
-  }, [evento?.idEvento, usuario]);
+  }, [evento?.idEvento, usuario, reintento]);
 
   const ahora = new Date();
   const inscripcionAbierta = evento
@@ -119,6 +133,8 @@ export function PaginaDetalleEvento() {
 
   async function confirmarInscripcion(eventoFormulario) {
     eventoFormulario.preventDefault();
+    if (operacionEnCurso.current || cargandoSesion || !usuario || estadoConsulta !== "lista" || inscripcion?.estado === "CONFIRMADA" || !inscripcionAbierta) return;
+    operacionEnCurso.current = true;
     establecerOperacion({ procesando: true, error: "", mensaje: "" });
     try {
       const confirmada = gruposEvento.length > 0
@@ -132,11 +148,15 @@ export function PaginaDetalleEvento() {
       establecerOperacion({ procesando: false, error: "", mensaje: "Tu inscripción quedó confirmada." });
     } catch (errorOperacion) {
       establecerOperacion({ procesando: false, error: errorOperacion.message, mensaje: "" });
+    } finally {
+      operacionEnCurso.current = false;
     }
   }
 
   async function cancelarInscripcion(eventoFormulario) {
     eventoFormulario.preventDefault();
+    if (operacionEnCurso.current || estadoConsulta !== "lista" || inscripcion?.estado !== "CONFIRMADA") return;
+    operacionEnCurso.current = true;
     establecerOperacion({ procesando: true, error: "", mensaje: "" });
     try {
       const cancelada = await cancelarInscripcionEvento(evento.idEvento, motivoCancelacion);
@@ -147,6 +167,8 @@ export function PaginaDetalleEvento() {
       establecerOperacion({ procesando: false, error: "", mensaje: "La inscripción fue cancelada." });
     } catch (errorOperacion) {
       establecerOperacion({ procesando: false, error: errorOperacion.message, mensaje: "" });
+    } finally {
+      operacionEnCurso.current = false;
     }
   }
 
@@ -159,23 +181,32 @@ export function PaginaDetalleEvento() {
 
   return (
     <>
-      <CabeceraPagina
-        etiqueta={evento?.estado || "Agenda del parque"}
-        titulo={evento?.titulo || "Eventos y cursos"}
-        descripcion={evento?.descripcion || "Actividades, requisitos, cupos y periodos de inscripción."}
-      />
-      <section className="portal-seccion">
+      <header className="detalle-evento-cabecera">
+        <div className="portal-contenedor">
+          <Link className="portal-enlace-ver" to="/eventos">← Eventos y cursos</Link>
+          <p className="portal-sobrelinea">Agenda del parque</p>
+          <h1>{formatearTextoEditorial(evento?.titulo || "Eventos y cursos")}</h1>
+        </div>
+      </header>
+      <section className="portal-seccion detalle-evento-seccion">
         <article className="portal-contenedor portal-detalle-publico">
           {error && <p className="portal-mensaje-error" role="alert">{error}</p>}
           {!error && !evento && <p>Cargando evento…</p>}
           {evento && (
             <>
-              {evento.urlImagen && <img className="portal-imagen-evento" src={evento.urlImagen} alt={evento.titulo} loading="lazy" />}
+              <div className={`detalle-evento-resumen${evento.urlImagen ? "" : " sin-imagen"}`}>
+              {evento.urlImagen && <img className="portal-imagen-evento" src={evento.urlImagen} alt={evento.titulo} />}
+              <div>
               <dl className="portal-datos-detalle">
                 <div><dt>Fecha y hora</dt><dd>{formatoFecha.format(new Date(evento.iniciaEn))}</dd></div>
                 <div><dt>Lugar</dt><dd>{evento.lugar || "Información pendiente de actualización"}</dd></div>
                 <div><dt>Cupos disponibles</dt><dd>{evento.cuposDisponibles} de {evento.capacidadTotal}</dd></div>
               </dl>
+              </div>
+              </div>
+              <div className="detalle-evento-descripcion">
+                {evento.descripcion?.split(/\n\s*\n/).map((parrafo, indice) => <p key={indice}>{parrafo.split(/(https?:\/\/[^\s]+)/g).map((parte, i) => /^https?:\/\//.test(parte) ? <a key={i} href={parte} target="_blank" rel="noopener noreferrer">{parte.includes("creativecommons.org") ? "Licencia de la fotografía" : "Ver fuente"}</a> : parte)}</p>)}
+              </div>
               {gruposEvento.length > 0 && (
                 <section className="portal-grupos-evento" aria-labelledby="titulo-grupos-evento">
                   <h2 id="titulo-grupos-evento">Grupos y horarios</h2>
@@ -205,23 +236,28 @@ export function PaginaDetalleEvento() {
                 <h2 id="titulo-inscripcion-evento">Inscripción</h2>
                 {operacion.error && <p className="portal-mensaje-error" role="alert">{operacion.error}</p>}
                 {operacion.mensaje && <p className="portal-mensaje-exito" role="status">{operacion.mensaje}</p>}
-                {inscripcion?.estado === "CONFIRMADA" && (
+                {(cargandoSesion || (usuario && estadoConsulta === "cargando")) && <p role="status">Consultando tu inscripción…</p>}
+                {usuario && estadoConsulta === "error" && <div><p role="alert">No pudimos consultar tu inscripción. Inténtalo nuevamente.</p><button type="button" onClick={() => { establecerEstadoConsulta("cargando"); establecerReintento((actual) => actual + 1); }}>Reintentar</button></div>}
+                {usuario && estadoConsulta === "lista" && inscripcion?.estado === "CONFIRMADA" && (
                   <div className="portal-confirmacion-inscripcion">
-                    <p><strong>Inscripción confirmada</strong></p>
+                    <p className="detalle-evento-estado"><strong>Ya estás inscrito en esta actividad</strong></p>
                     <p>Tu cupo está reservado para esta actividad.</p>
+                    {inscripcion.confirmadaEn && <p>Inscripción realizada el {formatoFecha.format(new Date(inscripcion.confirmadaEn))}</p>}
                     {inscripcion.nombreGrupo && <p>Grupo: <strong>{inscripcion.nombreGrupo}</strong></p>}
+                    <p><Link className="portal-enlace-ver" to="/mis-inscripciones">Ver mis inscripciones</Link></p>
                     <form onSubmit={cancelarInscripcion}>
                       <label htmlFor="motivoCancelacion">Motivo de cancelación (opcional)</label>
                       <input id="motivoCancelacion" maxLength="300" value={motivoCancelacion} onChange={(eventoCampo) => establecerMotivoCancelacion(eventoCampo.target.value)} />
-                      <button type="submit" disabled={operacion.procesando}>Cancelar mi inscripción</button>
+                      <button className="detalle-evento-cancelar" type="submit" disabled={operacion.procesando}>{operacion.procesando ? "Cancelando…" : "Cancelar mi inscripción"}</button>
                     </form>
                   </div>
                 )}
                 {!cargandoSesion && !usuario && (
                   <p><Link className="portal-enlace-ver" to="/iniciar-sesion">Inicia sesión para inscribirte</Link></p>
                 )}
-                {usuario && inscripcion?.estado !== "CONFIRMADA" && inscripcionAbierta && (
+                {usuario && !cargandoSesion && estadoConsulta === "lista" && inscripcion?.estado !== "CONFIRMADA" && inscripcionAbierta && (
                   <form className="portal-formulario-inscripcion" onSubmit={confirmarInscripcion}>
+                    <p>{inscripcion?.estado === "CANCELADA" ? "Tu inscripción anterior fue cancelada. Puedes volver a inscribirte." : "Aún no estás inscrito en esta actividad."}</p>
                     {gruposEvento.length > 0 && <label htmlFor="grupoEvento">Grupo o categoría *<select id="grupoEvento" required value={codigoGrupo} onChange={(eventoCampo) => establecerCodigoGrupo(eventoCampo.target.value)}><option value="">Selecciona un grupo</option>{gruposEvento.map((grupo) => <option key={grupo.codigo} value={grupo.codigo}>{grupo.nombre} · {grupo.categoriaEdad}</option>)}</select></label>}
                     {requisitosFormulario.length > 0 && <h3>Requisitos para la inscripción</h3>}
                     {requisitosFormulario.map((campo) => (
@@ -230,10 +266,10 @@ export function PaginaDetalleEvento() {
                         <CampoRequisito campo={campo} valor={respuestasRequisitos[campo.id]} alCambiar={actualizarRespuesta} />
                       </label>
                     ))}
-                    <button type="submit" disabled={operacion.procesando}>Confirmar inscripción</button>
+                    <button type="submit" disabled={operacion.procesando}>{operacion.procesando ? "Confirmando…" : "Confirmar inscripción"}</button>
                   </form>
                 )}
-                {usuario && inscripcion?.estado !== "CONFIRMADA" && !inscripcionAbierta && (
+                {usuario && !cargandoSesion && estadoConsulta === "lista" && inscripcion?.estado !== "CONFIRMADA" && !inscripcionAbierta && (
                   <p>La inscripción no está disponible en este momento.</p>
                 )}
               </section>

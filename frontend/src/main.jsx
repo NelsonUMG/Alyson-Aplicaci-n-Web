@@ -4,6 +4,11 @@ import { Aplicacion } from "./aplicacion/Aplicacion";
 import { crearEnrutadorAplicacion } from "./aplicacion/rutas";
 import "./estilos/global.css";
 import "./estilos/portal.css";
+import "./estilos/ajustesPortal.css";
+import "./estilos/ventanilla.css";
+import "./estilos/detalleEvento.css";
+import "./estilos/administracion.css";
+import "./estilos/perfilAdministracion.css";
 
 const elementoRaiz = document.getElementById("root");
 

@@ -1,5 +1,6 @@
+import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+
 import {
   actualizarBicicleta,
   cambiarEstadoBicicleta,
@@ -66,7 +67,7 @@ export function PaginaAdministracionBicicletas() {
   const [pagina, establecerPagina] = useState(paginaVacia);
   const [filtros, establecerFiltros] = useState({ busqueda: "", estado: "" });
   const [bicicletaEdicion, establecerBicicletaEdicion] = useState(null);
-  const [mostrarListado, establecerMostrarListado] = useState(false);
+  const [mostrarListado, establecerMostrarListado] = useState(true);
   const [historial, establecerHistorial] = useState([]);
   const [cambioEstado, establecerCambioEstado] = useState({ estado: "", motivo: "" });
   const [estadoPagina, establecerEstadoPagina] = useState({
@@ -207,20 +208,15 @@ export function PaginaAdministracionBicicletas() {
 
   return (
     <main className="pagina-administracion pagina-administracion-bicicletas">
-      <Link className="enlace-regreso" to="/perfil">← Volver al perfil</Link>
-      <p className="etiqueta-fase">Administración</p>
-      <h1>Inventario de bicicletas</h1>
-      <p>Registra bicicletas y conserva el historial de cada cambio de estado.</p>
+      <CabeceraAdministracion titulo="Inventario de bicicletas" descripcion="Registra bicicletas y conserva el historial de cada cambio de estado." />
       <div className="disposicion-modulo-administracion">
-        <aside className="menu-lateral-administracion">
-          <details open>
-            <summary>Inventario de bicicletas</summary>
+        <nav className="navegacion-modulo-administracion" aria-label="Opciones de Inventario de bicicletas">
       <div className="acciones-superiores-administracion">
+<button className={mostrarListado ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarListado} onClick={alternarListado}>Listado de bicicletas</button>
         {puedeCrear && <button className={bicicletaEdicion && !bicicletaEdicion.idBicicleta ? "boton-gestion-activo" : ""} type="button" aria-expanded={Boolean(bicicletaEdicion && !bicicletaEdicion.idBicicleta)} onClick={nuevaBicicleta}>Nueva bicicleta</button>}
-        <button className={mostrarListado ? "boton-gestion-activo" : ""} type="button" aria-expanded={mostrarListado} onClick={alternarListado}>Listado de bicicletas</button>
+
       </div>
-          </details>
-        </aside>
+        </nav>
         <div className="contenido-modulo-administracion">
       {estadoPagina.error && <p className="mensaje-error" role="alert">{estadoPagina.error}</p>}
       {estadoPagina.mensaje && <p className="mensaje-exito" role="status">{estadoPagina.mensaje}</p>}

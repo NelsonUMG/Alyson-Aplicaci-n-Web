@@ -268,7 +268,7 @@ public class ServicioPortalPublico {
     private String obtenerUrlImagenEvento(Evento evento) {
         return evento.obtenerClaveImagen() == null
                 ? null
-                : "/api/v1/publico/eventos/" + evento.obtenerIdentificadorUrl() + "/imagen";
+                : "/api/v1/publico/eventos/" + evento.obtenerIdentificadorUrl() + "/imagen?v=" + evento.obtenerVersion();
     }
 
     private RespuestaImagenEventoPublica convertirImagenEvento(Evento evento, ImagenEvento imagen) {

@@ -38,4 +38,16 @@ describe("Navegación del portal", () => {
     expect(screen.queryByRole("link", { name: "Mis solicitudes" })).toBeNull();
     expect(screen.getByRole("link", { name: "Iniciar sesión" })).toBeTruthy();
   });
+
+  it("muestra la información de visita vigente sin textos de marcador", () => {
+    render(<MemoryRouter><EstructuraPortal /></MemoryRouter>);
+
+    expect(screen.getByText("28 avenida 14-02 zona 7 ciudad del plata II, Ciudad de Guatemala.")).toBeTruthy();
+    expect(screen.getByText("Lunes a domingo · 5 a. m. – 5 p. m.")).toBeTruthy();
+    expect(screen.getByRole("link", { name: "2474 6608" }).getAttribute("href")).toBe("tel:+50224746608");
+    expect(screen.queryByText("Información y actividades del Parque Erick Barrondo.")).toBeNull();
+    expect(screen.queryByText("Proyecto")).toBeNull();
+    expect(screen.queryByText("Dirección de Polideportivo.")).toBeNull();
+    expect(screen.queryByText("Horario y contacto pendientes de validación.")).toBeNull();
+  });
 });

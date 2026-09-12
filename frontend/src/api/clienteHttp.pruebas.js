@@ -61,11 +61,11 @@ describe("cliente HTTP", () => {
       codigo: "HTTP404",
       metodo: "GET",
       ruta: "/recurso-inexistente",
-      message: expect.stringContaining("HTTP 404 (HTTP404)"),
+      message: "No se encontró el recurso solicitado.",
     });
   });
 
-  it("explica con ruta, método y acción recomendada cuando frontend y backend no coinciden", async () => {
+  it("muestra el mensaje funcional sin detalles técnicos del protocolo", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(JSON.stringify({
       detail: "La ruta no acepta el método indicado.",
       codigo: "METODONOPERMITIDO",
@@ -83,7 +83,7 @@ describe("cliente HTTP", () => {
       estado: 405,
       metodo: "GET",
       ruta: "/api/v1/administracion/solicitudes/catalogo/categorias",
-      message: expect.stringMatching(/No se pudo cargar las categorías padre.*HTTP 405.*solo admite: POST.*misma versión.*reinicia el backend/),
+      message: "La ruta no acepta el método indicado.",
     });
   });
 
