@@ -214,6 +214,8 @@ export function PaginaAdministracionEventos() {
   const [mostrarListado, establecerMostrarListado] = useState(true);
   const [inscripciones, establecerInscripciones] = useState(paginaVacia);
   const [imagenesSecundarias, establecerImagenesSecundarias] = useState([]);
+  const [imagenPrincipalPendiente, establecerImagenPrincipalPendiente] = useState(null);
+  const [imagenesSecundariasPendientes, establecerImagenesSecundariasPendientes] = useState([]);
   const [filtrosInscripcion, establecerFiltrosInscripcion] = useState({ busqueda: "", estado: "" });
   const [estado, establecerEstado] = useState({ cargando: true, guardando: false, error: "", mensaje: "" });
 
@@ -264,11 +266,15 @@ export function PaginaAdministracionEventos() {
     establecerEventoEdicion({ ...eventoVacio, camposFormulario: [], grupos: [], requisitos: [] });
     establecerInscripciones(paginaVacia);
     establecerImagenesSecundarias([]);
+    establecerImagenPrincipalPendiente(null);
+    establecerImagenesSecundariasPendientes([]);
   }
 
   async function seleccionarEvento(evento) {
     establecerMostrarListado(true);
     establecerEventoEdicion(prepararEdicion(evento));
+    establecerImagenPrincipalPendiente(null);
+    establecerImagenesSecundariasPendientes([]);
     establecerEstado((actual) => ({ ...actual, error: "", mensaje: "" }));
     try {
       const solicitudes = [listarImagenesSecundariasEvento(evento.idEvento)];
@@ -422,12 +428,28 @@ export function PaginaAdministracionEventos() {
       version: eventoEdicion.version,
     };
     try {
-      const guardado = eventoEdicion.idEvento
+      let guardado = eventoEdicion.idEvento
         ? await actualizarEvento(eventoEdicion.idEvento, datos)
         : await crearEvento(datos);
+      const avisosImagenes = [];
+      if (!eventoEdicion.idEvento && imagenPrincipalPendiente) {
+        try {
+          guardado = await agregarImagenEvento(guardado.idEvento, imagenPrincipalPendiente);
+        } catch {
+          avisosImagenes.push("No se pudo cargar la imagen principal");
+        }
+      }
+      if (!eventoEdicion.idEvento && imagenesSecundariasPendientes.length > 0) {
+        for (const imagen of imagenesSecundariasPendientes) {
+          try { await agregarImagenSecundariaEvento(guardado.idEvento, imagen); }
+          catch { avisosImagenes.push(`No se pudo cargar ${imagen.name}`); }
+        }
+      }
       establecerEventoEdicion(prepararEdicion(guardado));
+      establecerImagenPrincipalPendiente(null);
+      establecerImagenesSecundariasPendientes([]);
       await recargarEventos(pagina.pagina);
-      establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Evento guardado." });
+      establecerEstado({ cargando: false, guardando: false, error: avisosImagenes.join(". "), mensaje: avisosImagenes.length ? "El evento se guardó. Puedes volver a cargar las imágenes sin perder la información." : "Evento e imágenes guardados." });
     } catch (error) {
       establecerEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
     }
@@ -696,6 +718,16 @@ export function PaginaAdministracionEventos() {
                 {camposFormularioEvento.length === 0 && <p>No hay requisitos configurados para la inscripción.</p>}
               </div>
             </div>
+            {!eventoEdicion.idEvento && (
+              <fieldset className="campo-ancho seccion-formulario-evento">
+                <legend>Imágenes del evento</legend>
+                <p className="nota-formulario-administracion">Son opcionales. Si las seleccionas, se cargarán automáticamente después de guardar el evento.</p>
+                <label>Imagen principal o póster <span className="indicador-opcional">(opcional)</span><input type="file" accept="image/png,image/jpeg,.png,.jpg,.jpeg" disabled={!puedeEditarFormulario} onChange={(evento) => establecerImagenPrincipalPendiente(evento.target.files?.[0] || null)} /></label>
+                <label>Galería <span className="indicador-opcional">(opcional, hasta 8 imágenes)</span><input type="file" multiple accept="image/png,image/jpeg,.png,.jpg,.jpeg" disabled={!puedeEditarFormulario} onChange={(evento) => establecerImagenesSecundariasPendientes(Array.from(evento.target.files || []).slice(0, 8))} /></label>
+                {imagenPrincipalPendiente && <small>Principal: {imagenPrincipalPendiente.name}</small>}
+                {imagenesSecundariasPendientes.length > 0 && <small>{imagenesSecundariasPendientes.length} imágenes seleccionadas para la galería.</small>}
+              </fieldset>
+            )}
             {puedeEditarFormulario && <button className="campo-ancho" type="submit" disabled={estado.guardando}>Guardar evento</button>}
           </form>
 

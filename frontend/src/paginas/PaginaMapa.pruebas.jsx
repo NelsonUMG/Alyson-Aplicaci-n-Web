@@ -8,13 +8,18 @@ const simuladorMapLibre = vi.hoisted(() => {
   estado.instanciaMapa = {
     addControl: vi.fn(),
     addLayer: vi.fn(),
-    addSource: vi.fn((identificador, fuente) => estado.fuentes.set(identificador, fuente)),
+    addSource: vi.fn((identificador, fuente) => estado.fuentes.set(identificador, {
+      ...fuente, setData: vi.fn((datos) => { estado.fuentes.get(identificador).data = datos; }),
+    })),
+    getSource: vi.fn((identificador) => estado.fuentes.get(identificador)),
     fitBounds: vi.fn(),
     flyTo: vi.fn(),
     getStyle: vi.fn(() => ({ layers: [{ id: "etiquetas-base", type: "symbol" }] })),
+    getZoom: vi.fn(() => 18.5),
+    project: vi.fn(([longitud, latitud]) => ({ x: (longitud + 91) * 1000, y: (15 - latitud) * 1000 })),
     off: vi.fn(),
     on: vi.fn((evento, manejador) => {
-      if (evento === "load") Promise.resolve().then(manejador);
+      if (evento === "style.load") Promise.resolve().then(manejador);
     }),
     remove: vi.fn(),
     setLayoutProperty: vi.fn(),
@@ -27,8 +32,11 @@ const simuladorMapLibre = vi.hoisted(() => {
   estado.Popup = vi.fn(function PopupSimulado() {
     this.setLngLat = vi.fn(() => this);
     this.setDOMContent = vi.fn(() => this);
+    this.addTo = vi.fn(() => this);
+    this.remove = vi.fn();
   });
-  estado.Marker = vi.fn(function MarcadorSimulado() {
+  estado.Marker = vi.fn(function MarcadorSimulado(opciones) {
+    this.elemento = opciones.element;
     this.coordenadas = undefined;
     this.setLngLat = vi.fn((coordenadas) => {
       this.coordenadas = coordenadas;
@@ -56,6 +64,7 @@ const simuladorMapLibre = vi.hoisted(() => {
     estado.LngLatBounds.mockClear();
     estado.setWorkerUrl.mockClear();
     Object.values(estado.instanciaMapa).forEach((valor) => valor?.mockClear?.());
+    estado.instanciaMapa.getZoom.mockReturnValue(18.5);
   };
   return estado;
 });
@@ -86,7 +95,15 @@ describe("Mapa público", () => {
       areas: [{
         idArea: 9,
         nombreArea: "Cancha",
-        estadoCalculadoArea: "ENUSO",
+        estadoCalculadoArea: "FUERADESERVICIO",
+        latitudCentro: 14.6391786,
+        longitudCentro: -90.5410824,
+        perimetro: [
+          { latitud: 14.6390786, longitud: -90.5411824 },
+          { latitud: 14.6392786, longitud: -90.5411824 },
+          { latitud: 14.6392786, longitud: -90.5409824 },
+          { latitud: 14.6390786, longitud: -90.5409824 },
+        ],
         cambiaEstadoEn: new Date(Date.now() + 3600000).toISOString(),
       }],
       actualizadoEn: "2026-08-03T12:00:00Z",
@@ -111,6 +128,7 @@ describe("Mapa público", () => {
       zoom: 15.5,
     }));
     expect(screen.getByText("Cancha")).toBeTruthy();
+    expect(screen.queryByText("Fuera de servicio")).toBeNull();
     expect(screen.queryByLabelText("Destino")).toBeNull();
     expect(screen.queryByText("Cómo llegar a una cancha")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Activar GPS" }));
@@ -145,7 +163,54 @@ describe("Mapa público", () => {
     fireEvent.click(screen.getByRole("button", { name: "Activar GPS" }));
 
     expect((await screen.findByRole("alert")).textContent).toBe("El GPS devolvió una ubicación inválida. Verifica la señal e inténtalo nuevamente.");
-    expect(simuladorMapLibre.marcadores).toHaveLength(1);
+    expect(simuladorMapLibre.marcadores).toHaveLength(2);
     expect(simuladorMapLibre.instanciaMapa.flyTo).not.toHaveBeenCalled();
+  });
+
+  it("dibuja el perímetro y solo acerca el mapa al pulsar el enlace de ubicación", async () => {
+    render(<PaginaMapa />);
+    const enlaceUbicacion = await screen.findByRole("button", { name: "Ver ubicación en el mapa ↗" });
+    await waitFor(() => expect(simuladorMapLibre.fuentes.get("areas-con-aviso")?.data.features).toHaveLength(1));
+    const figura = simuladorMapLibre.fuentes.get("areas-con-aviso").data.features[0];
+    expect(figura.geometry.type).toBe("Polygon");
+    expect(figura.geometry.coordinates[0]).toHaveLength(5);
+    expect(figura.geometry.coordinates[0][0]).toEqual(figura.geometry.coordinates[0][4]);
+    const perimetroVisible = document.querySelector('polygon[data-id-area="9"]');
+    expect(perimetroVisible).toBeTruthy();
+    expect(perimetroVisible.getAttribute("stroke-width")).toBe("3");
+    const cantidadVentanasAntes = simuladorMapLibre.Popup.mock.calls.length;
+    simuladorMapLibre.instanciaMapa.fitBounds.mockClear();
+    fireEvent.click(enlaceUbicacion);
+    expect(simuladorMapLibre.instanciaMapa.fitBounds).toHaveBeenLastCalledWith(
+      expect.anything(), expect.objectContaining({ maxZoom: 18.5, duration: 900 }),
+    );
+    expect(simuladorMapLibre.Popup).toHaveBeenCalledTimes(cantidadVentanasAntes);
+    expect(simuladorMapLibre.fuentes.get("areas-con-aviso").data.features[0].properties.seleccionada).toBe(true);
+    expect(document.querySelector('polygon[data-id-area="9"]').getAttribute("stroke-width")).toBe("5");
+    const marcador = simuladorMapLibre.marcadores.find((m) => m.elemento.classList.contains("mapa-marcador-area"));
+    expect(marcador.coordenadas).toEqual([-90.5410824, 14.6391786]);
+    expect(marcador.elemento.textContent).toContain("Fuera de servicio");
+    simuladorMapLibre.instanciaMapa.fitBounds.mockClear();
+    fireEvent.click(marcador.elemento);
+    expect(simuladorMapLibre.instanciaMapa.fitBounds).not.toHaveBeenCalled();
+    const manejadorMovimiento = simuladorMapLibre.instanciaMapa.on.mock.calls
+      .findLast(([evento]) => evento === "move")?.[1];
+    manejadorMovimiento();
+    expect(simuladorMapLibre.instanciaMapa.fitBounds).not.toHaveBeenCalled();
+
+    const manejarZoom = simuladorMapLibre.instanciaMapa.on.mock.calls
+      .find(([evento]) => evento === "zoom")[1];
+    const contenedor = screen.getByLabelText("Mapa interactivo del Parque Erick Barrondo");
+    // Lejos debe acompañar a la cancha, nunca conservar un mínimo grande en pantalla.
+    simuladorMapLibre.instanciaMapa.getZoom.mockReturnValue(14.5);
+    manejarZoom();
+    manejadorMovimiento();
+    expect(Number(contenedor.style.getPropertyValue("--escala-avisos-mapa"))).toBeCloseTo(1 / 16);
+    expect(Number(document.querySelector('polygon[data-id-area="9"]').getAttribute("stroke-width"))).toBeCloseTo(5 / 16);
+    expect(marcador.elemento.textContent).toContain("Fuera de servicio");
+    simuladorMapLibre.instanciaMapa.getZoom.mockReturnValue(20);
+    manejarZoom();
+    expect(Number(contenedor.style.getPropertyValue("--escala-avisos-mapa"))).toBe(1);
+    expect(simuladorMapLibre.instanciaMapa.fitBounds).not.toHaveBeenCalled();
   });
 });

@@ -43,7 +43,7 @@ public class ManejadorErroresApi {
     ProblemDetail manejarValidacion(MethodArgumentNotValidException excepcion, HttpServletRequest peticion) {
         var errores = new LinkedHashMap<String, String>();
         excepcion.getBindingResult().getFieldErrors().forEach(error ->
-                errores.putIfAbsent(error.getField(), error.getDefaultMessage()));
+                errores.putIfAbsent(error.getField(), traducirMensajeValidacion(error.getDefaultMessage())));
         var mensaje = errores.isEmpty()
                 ? "Los datos enviados no son válidos."
                 : errores.values().iterator().next();
@@ -75,7 +75,7 @@ public class ManejadorErroresApi {
     ProblemDetail manejarRestriccion(ConstraintViolationException excepcion, HttpServletRequest peticion) {
         var mensaje = excepcion.getConstraintViolations().stream()
                 .findFirst()
-                .map(violacion -> violacion.getMessage())
+                .map(violacion -> traducirMensajeValidacion(violacion.getMessage()))
                 .orElse("Los datos enviados no son válidos.");
         return crearProblema(HttpStatus.BAD_REQUEST, "SOLICITUDINVALIDA", mensaje, peticion);
     }
@@ -231,5 +231,31 @@ public class ManejadorErroresApi {
         problema.setProperty("metodo", peticion.getMethod());
         problema.setProperty("idCorrelacion", IdentificadorCorrelacion.obtener(peticion));
         return problema;
+    }
+
+    private String traducirMensajeValidacion(String mensaje) {
+        if (mensaje == null || mensaje.isBlank()) {
+            return "Los datos enviados no son válidos.";
+        }
+        var normalizado = mensaje.strip();
+        if (normalizado.equals("must not be blank") || normalizado.equals("must not be null")) {
+            return "El campo es obligatorio.";
+        }
+        if (normalizado.equals("must be a well-formed email address")) {
+            return "El correo electrónico no tiene un formato válido.";
+        }
+        if (normalizado.startsWith("size must be between ")) {
+            return "La longitud o cantidad del campo no es válida.";
+        }
+        if (normalizado.startsWith("must be greater than or equal to ")) {
+            return "El valor es menor que el mínimo permitido.";
+        }
+        if (normalizado.startsWith("must be less than or equal to ")) {
+            return "El valor supera el máximo permitido.";
+        }
+        if (normalizado.equals("must be a future date") || normalizado.equals("must be a future or present date")) {
+            return "La fecha debe ser actual o futura.";
+        }
+        return normalizado;
     }
 }

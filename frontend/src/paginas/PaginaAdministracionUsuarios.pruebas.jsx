@@ -6,6 +6,7 @@ const apiUsuarios = vi.hoisted(() => ({
   actualizarRolesUsuario: vi.fn(),
   crearEmpleado: vi.fn(),
   crearRol: vi.fn(),
+  eliminarCuentaUsuario: vi.fn(),
   listarPermisos: vi.fn(),
   listarRoles: vi.fn(),
   listarUsuarios: vi.fn(),
@@ -29,6 +30,7 @@ describe("Administración de usuarios", () => {
     apiUsuarios.listarPermisos.mockReset().mockResolvedValue([
       { codigo: "EVENTOLEER", descripcion: "Consultar eventos." },
     ]);
+    apiUsuarios.eliminarCuentaUsuario.mockReset().mockResolvedValue(undefined);
   });
 
   it("permite abrir el registro de empleados y seleccionar sus roles operativos", async () => {
@@ -140,5 +142,25 @@ describe("Administración de usuarios", () => {
 
     await waitFor(() => expect(apiUsuarios.listarUsuarios).toHaveBeenLastCalledWith("Ana", 0));
     expect(await screen.findByText("ana@parque.local")).toBeTruthy();
+  });
+
+  it("confirma y elimina una cuenta conservando el historial", async () => {
+    const usuario = {
+      idUsuario: 7, nombre: "Ana", apellido: "López", correo: "ana@parque.local",
+      estado: "ACTIVO", roles: ["USUARIOREGISTRADO"], version: 2,
+    };
+    apiUsuarios.listarUsuarios
+      .mockResolvedValueOnce({ contenido: [usuario], pagina: 0, totalPaginas: 1 })
+      .mockResolvedValueOnce({ contenido: [], pagina: 0, totalPaginas: 0 });
+    const confirmar = vi.spyOn(window, "confirm").mockReturnValue(true);
+    render(<MemoryRouter><PaginaAdministracionUsuarios /></MemoryRouter>);
+
+    fireEvent.click(await screen.findByRole("button", { name: "Editar roles" }));
+    fireEvent.click(screen.getByRole("button", { name: "Eliminar cuenta" }));
+
+    await waitFor(() => expect(apiUsuarios.eliminarCuentaUsuario).toHaveBeenCalledWith(7, 2));
+    expect(confirmar).toHaveBeenCalledWith(expect.stringContaining("anonimizarán sus datos personales"));
+    expect(await screen.findByText("Cuenta de Ana López eliminada.")).toBeTruthy();
+    confirmar.mockRestore();
   });
 });

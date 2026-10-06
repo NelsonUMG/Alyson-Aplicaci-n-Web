@@ -1,0 +1,315 @@
+{
+  "fecha": "2026-10-01T02:48:40.432Z",
+  "mode": "lecturas",
+  "results": [
+    {
+      "name": "Administrador autentica en servidor real",
+      "ok": true
+    },
+    {
+      "name": "Público /publico/institucional",
+      "ok": true,
+      "status": 200,
+      "ms": 12
+    },
+    {
+      "name": "Público /publico/publicaciones",
+      "ok": true,
+      "status": 200,
+      "ms": 16
+    },
+    {
+      "name": "Público /publico/categorias-publicaciones",
+      "ok": true,
+      "status": 200,
+      "ms": 14
+    },
+    {
+      "name": "Público /publico/eventos",
+      "ok": true,
+      "status": 200,
+      "ms": 17
+    },
+    {
+      "name": "Público /publico/areas",
+      "ok": true,
+      "status": 200,
+      "ms": 31
+    },
+    {
+      "name": "Público /publico/mapa",
+      "ok": true,
+      "status": 200,
+      "ms": 35
+    },
+    {
+      "name": "Público /publico/apariencia",
+      "ok": true,
+      "status": 200,
+      "ms": 6
+    },
+    {
+      "name": "Público /publico/bicicletas/resumen",
+      "ok": true,
+      "status": 200,
+      "ms": 20
+    },
+    {
+      "name": "Administración /administracion/usuarios",
+      "ok": true,
+      "status": 200,
+      "ms": 14
+    },
+    {
+      "name": "Administración /administracion/roles",
+      "ok": true,
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "name": "Administración /administracion/permisos",
+      "ok": true,
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "name": "Administración /administracion/publicaciones",
+      "ok": true,
+      "status": 200,
+      "ms": 30
+    },
+    {
+      "name": "Administración /administracion/eventos",
+      "ok": true,
+      "status": 200,
+      "ms": 25
+    },
+    {
+      "name": "Administración /administracion/areas",
+      "ok": true,
+      "status": 200,
+      "ms": 24
+    },
+    {
+      "name": "Administración /administracion/categorias-areas",
+      "ok": true,
+      "status": 200,
+      "ms": 9
+    },
+    {
+      "name": "Administración /administracion/institucional",
+      "ok": true,
+      "status": 200,
+      "ms": 5
+    },
+    {
+      "name": "Administración /administracion/solicitudes",
+      "ok": true,
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "name": "Administración /administracion/solicitudes/catalogo",
+      "ok": true,
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "name": "Administración /administracion/solicitudes/catalogo/categorias",
+      "ok": true,
+      "status": 200,
+      "ms": 6
+    },
+    {
+      "name": "Administración /administracion/reportes/inscripciones",
+      "ok": true,
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "name": "Administración /administracion/auditoria",
+      "ok": true,
+      "status": 200,
+      "ms": 48
+    },
+    {
+      "name": "Administración /administracion/mapa/nodos",
+      "ok": true,
+      "status": 200,
+      "ms": 12
+    },
+    {
+      "name": "Administración /administracion/mapa/conexiones",
+      "ok": true,
+      "status": 200,
+      "ms": 19
+    },
+    {
+      "name": "Administración /administracion/bicicletas",
+      "ok": true,
+      "status": 200,
+      "ms": 14
+    },
+    {
+      "name": "Usuario /autenticacion/perfil",
+      "ok": true,
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "name": "Usuario /solicitudes/catalogo",
+      "ok": true,
+      "status": 200,
+      "ms": 20
+    },
+    {
+      "name": "Usuario /solicitudes/mias",
+      "ok": true,
+      "status": 200,
+      "ms": 31
+    },
+    {
+      "name": "Usuario /eventos/inscripciones/mias",
+      "ok": true,
+      "status": 200,
+      "ms": 16
+    },
+    {
+      "name": "Usuario /notificaciones",
+      "ok": true,
+      "status": 200,
+      "ms": 16
+    },
+    {
+      "name": "Usuario no accede /administracion/usuarios",
+      "ok": true,
+      "status": 403,
+      "ms": 4,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Anónimo no accede /administracion/usuarios",
+      "ok": true,
+      "status": 401,
+      "ms": 5,
+      "detail": "Debes iniciar sesión para consultar este recurso."
+    },
+    {
+      "name": "Usuario no accede /administracion/publicaciones",
+      "ok": true,
+      "status": 403,
+      "ms": 3,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Anónimo no accede /administracion/publicaciones",
+      "ok": true,
+      "status": 401,
+      "ms": 3,
+      "detail": "Debes iniciar sesión para consultar este recurso."
+    },
+    {
+      "name": "Usuario no accede /administracion/eventos",
+      "ok": true,
+      "status": 403,
+      "ms": 4,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Anónimo no accede /administracion/eventos",
+      "ok": true,
+      "status": 401,
+      "ms": 2,
+      "detail": "Debes iniciar sesión para consultar este recurso."
+    },
+    {
+      "name": "Usuario no accede /administracion/areas",
+      "ok": true,
+      "status": 403,
+      "ms": 3,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Anónimo no accede /administracion/areas",
+      "ok": true,
+      "status": 401,
+      "ms": 3,
+      "detail": "Debes iniciar sesión para consultar este recurso."
+    },
+    {
+      "name": "Usuario no accede /administracion/institucional",
+      "ok": true,
+      "status": 403,
+      "ms": 3,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Anónimo no accede /administracion/institucional",
+      "ok": true,
+      "status": 401,
+      "ms": 2,
+      "detail": "Debes iniciar sesión para consultar este recurso."
+    },
+    {
+      "name": "Usuario no accede /administracion/solicitudes",
+      "ok": true,
+      "status": 403,
+      "ms": 4,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Anónimo no accede /administracion/solicitudes",
+      "ok": true,
+      "status": 401,
+      "ms": 2,
+      "detail": "Debes iniciar sesión para consultar este recurso."
+    },
+    {
+      "name": "Usuario no accede /administracion/auditoria",
+      "ok": true,
+      "status": 403,
+      "ms": 3,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Anónimo no accede /administracion/auditoria",
+      "ok": true,
+      "status": 401,
+      "ms": 2,
+      "detail": "Debes iniciar sesión para consultar este recurso."
+    },
+    {
+      "name": "Usuario no accede /administracion/reportes/inscripciones",
+      "ok": true,
+      "status": 403,
+      "ms": 3,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Anónimo no accede /administracion/reportes/inscripciones",
+      "ok": true,
+      "status": 401,
+      "ms": 2,
+      "detail": "Debes iniciar sesión para consultar este recurso."
+    },
+    {
+      "name": "POST sin CSRF se rechaza",
+      "ok": true,
+      "status": 403,
+      "ms": 4,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Búsqueda con comillas SQL no provoca error",
+      "ok": true,
+      "status": 200,
+      "ms": 5
+    },
+    {
+      "name": "Paginación fuera de rango no provoca error",
+      "ok": true,
+      "status": 200,
+      "ms": 9
+    }
+  ]
+}

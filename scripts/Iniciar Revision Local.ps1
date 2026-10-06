@@ -3,10 +3,20 @@ param(
     [switch]$OmitirVerificacionAdministrador,
     [switch]$HabilitarCorreoGmail,
     [switch]$GuardarCredencialCorreoGmail,
-    [switch]$DeshabilitarCorreoGmail
+    [switch]$DeshabilitarCorreoGmail,
+    [string]$DirectorioDatos = $env:PARQUEDATOS,
+    [string]$UrlPublicaFrontend = 'http://127.0.0.1:5173'
 )
 
 $ErrorActionPreference = 'Stop'
+$uriPublica = $null
+if (-not [Uri]::TryCreate($UrlPublicaFrontend, [UriKind]::Absolute, [ref]$uriPublica) -or
+    $uriPublica.Scheme -notin 'http', 'https' -or $uriPublica.UserInfo -or
+    $uriPublica.AbsolutePath -ne '/' -or $uriPublica.Query -or $uriPublica.Fragment -or
+    ($uriPublica.Scheme -eq 'http' -and -not $uriPublica.IsLoopback)) {
+    throw 'La URL publica debe ser un origen HTTPS, o HTTP local, sin rutas ni credenciales.'
+}
+$UrlPublicaFrontend = $uriPublica.GetLeftPart([UriPartial]::Authority)
 Add-Type -AssemblyName System.Security -ErrorAction Stop
 $raizRepositorio = Split-Path -Parent $PSScriptRoot
 $rutaJarCompilado = Join-Path $raizRepositorio 'backend\target\servidor-0.0.1-SNAPSHOT.jar'
@@ -14,7 +24,11 @@ $rutaBackend = Join-Path $raizRepositorio 'backend'
 $rutaFrontend = Join-Path $raizRepositorio 'frontend'
 $directorioJarsEjecucion = Join-Path $env:TEMP 'ParqueErickBarrondo\Ejecuciones'
 $rutaJarEjecucion = $null
-$rutaDatos = 'C:\Users\Nelson\Desktop\Proyecto de Alyson Vannesa\Datos Revision Parque'
+$rutaDatos = if ([string]::IsNullOrWhiteSpace($DirectorioDatos)) {
+    Join-Path (Split-Path -Parent $raizRepositorio) 'Datos Revision Parque'
+} else {
+    [IO.Path]::GetFullPath($DirectorioDatos)
+}
 $rutaRegistro = Join-Path $env:TEMP 'parque-erick-barrondo-ejecucion.json'
 $marcaTiempo = Get-Date -Format 'yyyyMMddHHmmss'
 $nombreBaseDatos = 'RevisionParqueLocal'
@@ -268,13 +282,13 @@ IF IS_ROLEMEMBER('db_owner', '$nombreLoginSql') <> 1
     $env:ALMACENAMIENTORUTASOLICITUDES = Join-Path $rutaDatos 'solicitudes'
     $env:ALMACENAMIENTORUTAPERFILES = Join-Path $rutaDatos 'perfiles'
     $env:CORREOENVIOHABILITADO = if ($usarCorreoGmail) { 'true' } else { 'false' }
+    $env:URLPUBLICAFRONTEND = $UrlPublicaFrontend
     if ($usarCorreoGmail) {
         $env:CORREOSMTPHOST = 'smtp.gmail.com'
         $env:CORREOSMTPPUERTO = '587'
         $env:CORREONOREPLY = $correoNoReply
         $env:CORREOCLAVEAPLICACION = $contrasenaAplicacionCorreo
         $env:CORREOPROBARCONEXIONALINICIAR = 'true'
-        $env:URLPUBLICAFRONTEND = 'http://127.0.0.1:5173'
     }
     else {
         Remove-Item Env:CORREOCLAVEAPLICACION -ErrorAction SilentlyContinue
@@ -405,6 +419,9 @@ IF IS_ROLEMEMBER('db_owner', '$nombreLoginSql') <> 1
         frontendPid = $procesoFrontend.Id
         backendJarEjecucion = $rutaJarEjecucion
         baseDatos = $nombreBaseDatos
+        directorioDatos = $rutaDatos
+        urlPublicaFrontend = $UrlPublicaFrontend
+        correoSmtpHabilitado = $usarCorreoGmail
         loginSql = $nombreLoginSql
         correoAdministrador = if ($OmitirVerificacionAdministrador) { $null } else { $correoAdministrador }
         contrasenaAdministrador = if ($OmitirVerificacionAdministrador) { $null } else { $contrasenaAdministrador }

@@ -1,0 +1,322 @@
+{
+  "fecha": "2026-10-01T02:53:26.601Z",
+  "mode": "ampliadas",
+  "results": [
+    {
+      "name": "Administrador autentica en servidor real",
+      "ok": true
+    },
+    {
+      "name": "Fecha futura de perfil rechazada",
+      "ok": true,
+      "status": 400,
+      "ms": 27,
+      "detail": "La fecha de nacimiento debe ser anterior a hoy."
+    },
+    {
+      "name": "Actualizar perfil real",
+      "ok": true,
+      "status": 200,
+      "ms": 11
+    },
+    {
+      "name": "Perfil persiste tras recarga",
+      "ok": true,
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "name": "Foto inválida perfil rechazada",
+      "ok": true,
+      "status": 400,
+      "ms": 7,
+      "detail": "Solo se permiten fotografías PNG o JPEG válidas."
+    },
+    {
+      "name": "Subir foto de perfil",
+      "ok": true,
+      "status": 200,
+      "ms": 32
+    },
+    {
+      "name": "Leer foto de perfil",
+      "ok": true,
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "name": "Retirar foto propia de QA",
+      "ok": true,
+      "status": 200,
+      "ms": 12
+    },
+    {
+      "name": "Crear rol limitado para QA",
+      "ok": true,
+      "status": 201,
+      "ms": 26
+    },
+    {
+      "name": "Rol duplicado rechazado",
+      "ok": true,
+      "status": 409,
+      "ms": 7,
+      "detail": "Ya existe un rol con ese nombre."
+    },
+    {
+      "name": "Registrar empleado con permiso limitado",
+      "ok": true,
+      "status": 201,
+      "ms": 89
+    },
+    {
+      "name": "Empleado limitado puede leer eventos",
+      "ok": true,
+      "status": 200,
+      "ms": 9
+    },
+    {
+      "name": "Empleado limitado no crea evento",
+      "ok": true,
+      "status": 403,
+      "ms": 5,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Empleado limitado no asigna administrador",
+      "ok": true,
+      "status": 403,
+      "ms": 7,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "No se puede quitar rol base obligatorio",
+      "ok": false,
+      "status": 409,
+      "ms": 12,
+      "detail": "El usuario cambió desde la última consulta. Recarga los datos."
+    },
+    {
+      "name": "Otra cuenta no lee solicitud ajena",
+      "ok": true,
+      "status": 404,
+      "ms": 7,
+      "detail": "No se encontró la solicitud indicada."
+    },
+    {
+      "name": "Otra cuenta no descarga documento ajeno",
+      "ok": false,
+      "status": 400,
+      "ms": 3,
+      "detail": "La solicitud contiene datos ausentes o con un formato no válido."
+    },
+    {
+      "name": "Usuario no resuelve su propia solicitud",
+      "ok": true,
+      "status": 403,
+      "ms": 4,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Actualizar roles de empleado",
+      "ok": false,
+      "status": 409,
+      "ms": 8,
+      "detail": "El usuario cambió desde la última consulta. Recarga los datos."
+    },
+    {
+      "name": "Cambio de rol revoca sesión antigua",
+      "ok": false,
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "name": "Crear reserva administrativa",
+      "ok": true,
+      "status": 201,
+      "ms": 28
+    },
+    {
+      "name": "Bloquear reserva administrativa superpuesta",
+      "ok": true,
+      "status": 409,
+      "ms": 18,
+      "detail": "Ya existe una reserva activa para esa área en el horario solicitado."
+    },
+    {
+      "name": "Horario final anterior se rechaza",
+      "ok": true,
+      "status": 400,
+      "ms": 8,
+      "detail": "La reserva debe finalizar después de su inicio."
+    },
+    {
+      "name": "Solicitud aprobada aparece en calendario de reservas",
+      "ok": false,
+      "fechaEsperada": "2026-11-20",
+      "cantidad": 0
+    },
+    {
+      "name": "Crear solicitud para horario ya aprobado",
+      "ok": true,
+      "status": 201,
+      "ms": 12
+    },
+    {
+      "name": "Guardar horario ya aprobado",
+      "ok": true,
+      "status": 200,
+      "ms": 16
+    },
+    {
+      "name": "Documento de solicitud superpuesta",
+      "ok": true,
+      "status": 201,
+      "ms": 20
+    },
+    {
+      "name": "Enviar solicitud superpuesta para revisión",
+      "ok": true,
+      "status": 200,
+      "ms": 18
+    },
+    {
+      "name": "Revisar solicitud superpuesta",
+      "ok": true,
+      "status": 200,
+      "ms": 15
+    },
+    {
+      "name": "Bloquea aprobar dos solicitudes para misma área y horario",
+      "ok": false,
+      "status": 200,
+      "estado": "APROBADA"
+    },
+    {
+      "name": "Crear borrador para límites de archivos",
+      "ok": true,
+      "status": 201,
+      "ms": 13
+    },
+    {
+      "name": "Rechaza PDF truncado de solo cinco bytes",
+      "ok": false,
+      "status": 201
+    },
+    {
+      "name": "Retirar PDF truncado de QA",
+      "ok": false,
+      "status": 400,
+      "ms": 3,
+      "detail": "La solicitud contiene datos ausentes o con un formato no válido."
+    },
+    {
+      "name": "Adjuntar documento 1 de cinco",
+      "ok": true,
+      "status": 201,
+      "ms": 18
+    },
+    {
+      "name": "Adjuntar documento 2 de cinco",
+      "ok": true,
+      "status": 201,
+      "ms": 19
+    },
+    {
+      "name": "Adjuntar documento 3 de cinco",
+      "ok": true,
+      "status": 201,
+      "ms": 18
+    },
+    {
+      "name": "Adjuntar documento 4 de cinco",
+      "ok": true,
+      "status": 201,
+      "ms": 18
+    },
+    {
+      "name": "Adjuntar documento 5 de cinco",
+      "ok": false,
+      "status": 400,
+      "ms": 13,
+      "detail": "Cada solicitud puede incluir hasta 5 documentos."
+    },
+    {
+      "name": "Sexto documento rechazado",
+      "ok": true,
+      "status": 400,
+      "ms": 11,
+      "detail": "Cada solicitud puede incluir hasta 5 documentos."
+    },
+    {
+      "name": "Borrar únicamente borrador de QA",
+      "ok": true,
+      "status": 204,
+      "ms": 37
+    },
+    {
+      "name": "Borrador borrado no reaparece",
+      "ok": true,
+      "status": 404,
+      "ms": 7,
+      "detail": "No se encontró la solicitud indicada."
+    },
+    {
+      "name": "Leer notificaciones",
+      "ok": true,
+      "status": 200,
+      "ms": 6
+    },
+    {
+      "name": "Marcar notificación propia como leída",
+      "ok": true,
+      "status": 200,
+      "ms": 11
+    },
+    {
+      "name": "No marca notificación ajena",
+      "ok": true,
+      "status": 404,
+      "ms": 5,
+      "detail": "No se encontró la notificación."
+    },
+    {
+      "name": "Crear nodo de mapa 1",
+      "ok": true,
+      "status": 201,
+      "ms": 22
+    },
+    {
+      "name": "Crear nodo de mapa 2",
+      "ok": true,
+      "status": 201,
+      "ms": 27
+    },
+    {
+      "name": "Crear conexión del mapa",
+      "ok": true,
+      "status": 201,
+      "ms": 32
+    },
+    {
+      "name": "No conectar nodo consigo mismo",
+      "ok": true,
+      "status": 400,
+      "ms": 5,
+      "detail": "Los nodos de origen y destino deben ser distintos."
+    },
+    {
+      "name": "Calificación fuera de rango rechazada",
+      "ok": true,
+      "status": 400,
+      "ms": 9,
+      "detail": "La calificación máxima es de cinco estrellas."
+    },
+    {
+      "name": "Guardar reseña válida",
+      "ok": true,
+      "status": 200,
+      "ms": 43
+    }
+  ]
+}

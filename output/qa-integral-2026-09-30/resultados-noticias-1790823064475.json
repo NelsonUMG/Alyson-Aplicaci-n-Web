@@ -1,0 +1,79 @@
+{
+  "fecha": "2026-10-01T02:51:04.475Z",
+  "mode": "noticias",
+  "results": [
+    {
+      "name": "Administrador autentica en servidor real",
+      "ok": true
+    },
+    {
+      "name": "Crear categoría de noticia",
+      "ok": true,
+      "status": 201,
+      "ms": 21
+    },
+    {
+      "name": "Categoría noticia duplicada rechazada",
+      "ok": false,
+      "status": 201,
+      "ms": 8
+    },
+    {
+      "name": "Crear borrador de noticia",
+      "ok": true,
+      "status": 201,
+      "ms": 27
+    },
+    {
+      "name": "Reintento idempotente no duplica noticia",
+      "ok": true,
+      "status": 201,
+      "ms": 10
+    },
+    {
+      "name": "Borrador no visible en portal",
+      "ok": true,
+      "status": 404,
+      "ms": 6,
+      "detail": "No se encontró la publicación solicitada."
+    },
+    {
+      "name": "Imagen falsa de noticia rechazada",
+      "ok": true,
+      "status": 400,
+      "ms": 18,
+      "detail": "Solo se permiten imágenes PNG o JPEG válidas."
+    },
+    {
+      "name": "Subir imagen real de noticia",
+      "ok": true,
+      "status": 201,
+      "ms": 32
+    },
+    {
+      "name": "Editar noticia",
+      "ok": true,
+      "status": 200,
+      "ms": 17
+    },
+    {
+      "name": "Conflicto de edición antigua controlado",
+      "ok": true,
+      "status": 409,
+      "ms": 8,
+      "detail": "La publicación cambió desde la última consulta. Recarga los datos."
+    },
+    {
+      "name": "Publicar noticia",
+      "ok": true,
+      "status": 200,
+      "ms": 13
+    },
+    {
+      "name": "Noticia publicada se consulta",
+      "ok": true,
+      "status": 200,
+      "ms": 15
+    }
+  ]
+}

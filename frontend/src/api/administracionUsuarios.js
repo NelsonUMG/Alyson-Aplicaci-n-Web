@@ -37,3 +37,11 @@ export async function actualizarRolesUsuario(idUsuario, codigosRoles, versionUsu
     body: JSON.stringify({ codigosRoles, versionUsuario }),
   });
 }
+
+export async function eliminarCuentaUsuario(idUsuario, versionUsuario) {
+  await prepararCsrf();
+  return solicitarApi(`/administracion/usuarios/${idUsuario}`, {
+    method: "DELETE",
+    body: JSON.stringify({ versionUsuario }),
+  });
+}

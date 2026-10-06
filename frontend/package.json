@@ -15,7 +15,7 @@
     "probar:vigilar": "vitest"
   },
   "dependencies": {
-    "maplibre-gl": "^6.2.0",
+    "maplibre-gl": "^6.11.2",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-router-dom": "7.18.2"
@@ -26,6 +26,6 @@
     "eslint": "10.8.0",
     "jsdom": "29.0.0",
     "vite": "8.1.5",
-    "vitest": "4.1.10"
+    "vitest": "^4.1.11"
   }
 }

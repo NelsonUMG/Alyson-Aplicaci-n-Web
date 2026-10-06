@@ -112,6 +112,7 @@ public class ConfiguracionSeguridad {
                                 "/api/v1/autenticacion/**",
                                 "/api/v1/administracion/**",
                                 "/api/v1/eventos/**",
+                                "/api/v1/notificaciones/**",
                                 "/api/v1/solicitudes/**")
                         .authenticated()
                         .anyRequest().denyAll())
@@ -138,7 +139,7 @@ public class ConfiguracionSeguridad {
                                 + "connect-src 'self' https://*.googleapis.com https://*.gstatic.com "
                                 + "https://*.google.com https://tiles.openfreemap.org "
                                 + "https://server.arcgisonline.com data: blob:; "
-                                + "frame-src https://*.google.com; worker-src blob:; "
+                                + "frame-src https://*.google.com; worker-src 'self' blob:; "
                                 + "object-src 'none'; base-uri 'self'; form-action 'self'; "
                                 + "frame-ancestors 'none'"))
                         .referrerPolicy(referente -> referente.policy(ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))

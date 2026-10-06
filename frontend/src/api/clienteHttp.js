@@ -137,7 +137,10 @@ function crearErrorRespuesta(respuesta, problema, contexto) {
   const detalleApi = typeof problema?.detail === "string" && problema.detail.trim()
     ? problema.detail.trim()
     : mensajesPorEstado[estado] || "No fue posible completar la operación.";
-  const detalleSeguro = estado >= 500 ? diagnostico.mensajeUsuario : detalleApi;
+  const contieneDetalleTecnico = /\bHTTP\b|\/api\/|\bPOST\b|\bPUT\b|\bPATCH\b|\bDELETE\b|servidor respondi[oó]|SOLICITUDINVALIDA|CONFLICTODEDATOS/i.test(detalleApi);
+  const detalleSeguro = estado >= 500 || contieneDetalleTecnico
+    ? (mensajesPorEstado[estado] || diagnostico.mensajeUsuario)
+    : detalleApi;
   const metodo = problema?.metodo || contexto.metodo;
   const ruta = problema?.ruta || contexto.ruta;
   return new ErrorApi(detalleSeguro, {

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { registrarCuenta } from "../api/autenticacion";
+import { IndicadorFortalezaContrasena } from "../componentes/IndicadorFortalezaContrasena";
 import { MarcaPortal } from "../componentes/EstructuraPortal";
 
 const datosIniciales = {
@@ -118,11 +119,15 @@ export function PaginaRegistro() {
           <form onSubmit={enviar}>
             <label htmlFor="correo">Correo electrónico</label>
             <input id="correo" name="correo" type="email" autoComplete="email" required maxLength="254" placeholder="nombre@correo.com" value={datos.correo} onChange={actualizarCampo} />
-            <label htmlFor="contrasena">Contraseña</label>
-            <input id="contrasena" name="contrasena" type="password" autoComplete="new-password" required minLength="12" maxLength="128" value={datos.contrasena} onChange={actualizarCampo} />
-            <small className="ayuda-campo-registro">Utiliza al menos 12 caracteres.</small>
-            <label htmlFor="confirmarContrasena">Confirmar contraseña</label>
-            <input id="confirmarContrasena" name="confirmarContrasena" type="password" autoComplete="new-password" required minLength="12" maxLength="128" value={datos.confirmarContrasena} onChange={actualizarCampo} />
+            <div className="campo-contrasena">
+              <label htmlFor="contrasena">Contraseña</label>
+              <input id="contrasena" name="contrasena" type="password" autoComplete="new-password" required minLength="12" maxLength="128" aria-describedby="fortalezaContrasenaRegistro" value={datos.contrasena} onChange={actualizarCampo} />
+              <IndicadorFortalezaContrasena id="fortalezaContrasenaRegistro" contrasena={datos.contrasena} />
+            </div>
+            <div className="campo-contrasena">
+              <label htmlFor="confirmarContrasena">Confirmar contraseña</label>
+              <input id="confirmarContrasena" name="confirmarContrasena" type="password" autoComplete="new-password" required minLength="12" maxLength="128" value={datos.confirmarContrasena} onChange={actualizarCampo} />
+            </div>
             <div className="acciones-registro">
               <button className="boton-registro-secundario" type="button" disabled={estado.enviando} onClick={() => setEtapa(1)}>← Regresar</button>
               <button type="submit" disabled={estado.enviando}>{estado.enviando ? "Creando cuenta…" : "Crear cuenta"}</button>

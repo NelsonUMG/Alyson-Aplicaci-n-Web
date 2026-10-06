@@ -43,4 +43,8 @@ public class CategoriaTramite {
     public String obtenerNombre() { return nombre; }
     public short obtenerOrdenVisualizacion() { return ordenVisualizacion; }
     public boolean estaActiva() { return activa; }
+
+    public void actualizarNombre(String nombre) {
+        this.nombre = nombre;
+    }
 }

@@ -117,15 +117,6 @@ finally {
 }
 
 $sistemaLocalIniciado = $false
-if (-not (ObtenerEstadoApi)) {
-    Write-Host 'Iniciando el servidor y la base de datos local...'
-    & $rutaInicioLocal -OmitirVerificacionAdministrador *> $null
-    $sistemaLocalIniciado = $true
-}
-
-if (-not (ObtenerEstadoApi)) {
-    throw 'El backend no está disponible en 127.0.0.1:8080.'
-}
 
 $rutaDist = (Join-Path $rutaFrontend 'dist').Replace('\', '/')
 $contenidoCaddy = @"
@@ -172,10 +163,13 @@ try {
     $servidorWebDisponible = $false
     for ($intento = 1; $intento -le 30; $intento++) {
         if ($procesoCaddy.HasExited) { break }
-        if (ObtenerEstadoApi -Url 'http://127.0.0.1:4173/api/v1/sistema/estado') {
-            $servidorWebDisponible = $true
-            break
-        }
+        try {
+            $respuestaWeb = Invoke-WebRequest -Uri 'http://127.0.0.1:4173/' -UseBasicParsing -TimeoutSec 2
+            if ($respuestaWeb.StatusCode -eq 200) {
+                $servidorWebDisponible = $true
+                break
+            }
+        } catch { }
         Start-Sleep -Milliseconds 500
     }
     if (-not $servidorWebDisponible) {
@@ -226,6 +220,26 @@ try {
             'cloudflared no generó un registro de errores.'
         }
         throw "Cloudflare no generó el enlace temporal.`n$detalle"
+    }
+
+    # El origen debe conocerse antes del arranque para que los correos incluyan
+    # el enlace de este tunel, sin confiar en dominios recibidos del visitante.
+    if (-not (ObtenerEstadoApi)) {
+        Write-Host 'Iniciando el sistema local con SMTP y el enlace temporal...'
+        & $rutaInicioLocal -OmitirVerificacionAdministrador -UrlPublicaFrontend $urlTemporal
+        $sistemaLocalIniciado = $true
+    }
+    else {
+        $rutaEstadoLocal = Join-Path $env:TEMP 'parque-erick-barrondo-ejecucion.json'
+        $estadoLocal = if (Test-Path -LiteralPath $rutaEstadoLocal) {
+            Get-Content -Raw -LiteralPath $rutaEstadoLocal | ConvertFrom-Json
+        }
+        if (-not $estadoLocal -or $estadoLocal.urlPublicaFrontend -ne $urlTemporal) {
+            Write-Warning 'El backend ya estaba activo: conserva su URL de correo anterior. Reinicia la publicacion y el sistema juntos para usar el nuevo enlace en los correos.'
+        }
+    }
+    if (-not (ObtenerEstadoApi)) {
+        throw 'El backend no está disponible en 127.0.0.1:8080.'
     }
 
     [ordered]@{

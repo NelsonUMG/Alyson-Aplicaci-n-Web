@@ -36,7 +36,7 @@ public interface RepositorioUsuario extends JpaRepository<Usuario, Long> {
 
     @Query("""
             select u from Usuario u
-            where u.estado <> 'PENDIENTEVERIFICACION' and (:busqueda = ''
+            where u.estado not in ('PENDIENTEVERIFICACION', 'ELIMINADO') and (:busqueda = ''
                or lower(u.correoNormalizado) like lower(concat('%', :busqueda, '%'))
                or lower(u.nombre) like lower(concat('%', :busqueda, '%'))
                or lower(u.apellido) like lower(concat('%', :busqueda, '%')))

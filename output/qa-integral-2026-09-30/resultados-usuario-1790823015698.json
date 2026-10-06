@@ -1,0 +1,234 @@
+{
+  "fecha": "2026-10-01T02:50:15.698Z",
+  "mode": "usuario",
+  "results": [
+    {
+      "name": "Administrador autentica en servidor real",
+      "ok": true
+    },
+    {
+      "name": "Adulto no puede elegir grupo infantil",
+      "ok": true,
+      "status": 400,
+      "ms": 34,
+      "detail": "Selecciona uno de los grupos disponibles para tu edad."
+    },
+    {
+      "name": "No se inscribe sin aceptar requisitos",
+      "ok": true,
+      "status": 400,
+      "ms": 6,
+      "detail": "Debes aceptar los requisitos antes de confirmar la inscripción."
+    },
+    {
+      "name": "Usuario se inscribe en grupo correcto",
+      "ok": true,
+      "status": 201,
+      "ms": 60
+    },
+    {
+      "name": "Reintento de inscripción es idempotente",
+      "ok": true,
+      "status": 201,
+      "ms": 18
+    },
+    {
+      "name": "No duplica inscripción con otra clave",
+      "ok": true,
+      "status": 409,
+      "ms": 14,
+      "detail": "Ya tienes una inscripción confirmada para este evento."
+    },
+    {
+      "name": "Mis inscripciones refleja el registro",
+      "ok": true,
+      "status": 200,
+      "ms": 14
+    },
+    {
+      "name": "Reporte incluye la inscripción",
+      "ok": true,
+      "status": 200,
+      "ms": 27
+    },
+    {
+      "name": "Notificación de inscripción disponible",
+      "ok": true,
+      "status": 200,
+      "ms": 13
+    },
+    {
+      "name": "Teléfono excesivo rechazado",
+      "ok": true,
+      "status": 400,
+      "ms": 9,
+      "detail": "El teléfono debe contener exactamente 8 números."
+    },
+    {
+      "name": "DPI corto rechazado",
+      "ok": true,
+      "status": 400,
+      "ms": 4,
+      "detail": "El DPI/CUI debe contener 13 dígitos."
+    },
+    {
+      "name": "Representante debe indicar institución",
+      "ok": true,
+      "status": 400,
+      "ms": 19,
+      "detail": "Indica la institución que representas."
+    },
+    {
+      "name": "Crear solicitud 1 con mismo usuario",
+      "ok": true,
+      "status": 201,
+      "ms": 28
+    },
+    {
+      "name": "Solicitud 1 incompleta no se envía",
+      "ok": true,
+      "status": 400,
+      "ms": 18,
+      "detail": "Debes completar el paso 2: información del espacio, fecha y horario."
+    },
+    {
+      "name": "Guardar espacio y horario solicitud 1",
+      "ok": true,
+      "status": 200,
+      "ms": 50
+    },
+    {
+      "name": "Solicitud 1 exige documento",
+      "ok": true,
+      "status": 400,
+      "ms": 13,
+      "detail": "Debes cargar el DPI del solicitante en formato PDF."
+    },
+    {
+      "name": "PDF falso rechazado 1",
+      "ok": true,
+      "status": 400,
+      "ms": 17,
+      "detail": "Solo se permiten archivos PDF, PNG o JPEG válidos."
+    },
+    {
+      "name": "Cargar PDF sintético 1",
+      "ok": true,
+      "status": 201,
+      "ms": 30
+    },
+    {
+      "name": "Descargar documento propio 1",
+      "ok": true,
+      "status": 200,
+      "ms": 27
+    },
+    {
+      "name": "Enviar solicitud real 1",
+      "ok": true,
+      "status": 200,
+      "ms": 20
+    },
+    {
+      "name": "No permite reenviar solicitud 1",
+      "ok": true,
+      "status": 409,
+      "ms": 7,
+      "detail": "La solicitud ya fue enviada y no puede modificarse."
+    },
+    {
+      "name": "Administración recibe solicitud 1",
+      "ok": true,
+      "status": 200,
+      "ms": 14
+    },
+    {
+      "name": "Crear solicitud 2 con mismo usuario",
+      "ok": true,
+      "status": 201,
+      "ms": 11
+    },
+    {
+      "name": "Solicitud 2 incompleta no se envía",
+      "ok": true,
+      "status": 400,
+      "ms": 10,
+      "detail": "Debes completar el paso 2: información del espacio, fecha y horario."
+    },
+    {
+      "name": "Guardar espacio y horario solicitud 2",
+      "ok": true,
+      "status": 200,
+      "ms": 19
+    },
+    {
+      "name": "Solicitud 2 exige documento",
+      "ok": true,
+      "status": 400,
+      "ms": 14,
+      "detail": "Debes cargar el DPI del solicitante en formato PDF."
+    },
+    {
+      "name": "PDF falso rechazado 2",
+      "ok": true,
+      "status": 400,
+      "ms": 13,
+      "detail": "Solo se permiten archivos PDF, PNG o JPEG válidos."
+    },
+    {
+      "name": "Cargar PDF sintético 2",
+      "ok": true,
+      "status": 201,
+      "ms": 21
+    },
+    {
+      "name": "Descargar documento propio 2",
+      "ok": true,
+      "status": 200,
+      "ms": 10
+    },
+    {
+      "name": "Enviar solicitud real 2",
+      "ok": true,
+      "status": 200,
+      "ms": 20
+    },
+    {
+      "name": "No permite reenviar solicitud 2",
+      "ok": true,
+      "status": 409,
+      "ms": 7,
+      "detail": "La solicitud ya fue enviada y no puede modificarse."
+    },
+    {
+      "name": "Administración recibe solicitud 2",
+      "ok": true,
+      "status": 200,
+      "ms": 10
+    },
+    {
+      "name": "Crear trámite sin horario",
+      "ok": true,
+      "status": 201,
+      "ms": 12
+    },
+    {
+      "name": "Adjuntar documento a trámite sin reserva",
+      "ok": true,
+      "status": 201,
+      "ms": 20
+    },
+    {
+      "name": "Enviar trámite sin exigir espacio ni horario",
+      "ok": true,
+      "status": 200,
+      "ms": 21
+    },
+    {
+      "name": "Enviar queja real",
+      "ok": true,
+      "status": 201,
+      "ms": 13
+    }
+  ]
+}

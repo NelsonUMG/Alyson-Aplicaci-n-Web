@@ -98,6 +98,28 @@ class ServicioMapaPublicoPruebas {
         });
     }
 
+    @Test
+    void publicaAreaFueraDeServicioComoAlerta() {
+        var area = area(11L, "CAMPOS", "Campos del parque", "FUERADESERVICIO");
+        area.establecerPerimetro(List.of(
+                new VerticeAreaMapa(new BigDecimal("14.63907860"), new BigDecimal("-90.54118240")),
+                new VerticeAreaMapa(new BigDecimal("14.63927860"), new BigDecimal("-90.54118240")),
+                new VerticeAreaMapa(new BigDecimal("14.63927860"), new BigDecimal("-90.54098240"))),
+                true,
+                area.obtenerActualizadoPor());
+        when(repositorioArea.buscarPublicas()).thenReturn(List.of(area));
+
+        var mapa = servicioMapa.consultarMapa();
+
+        assertThat(mapa.areas()).singleElement().satisfies(areaPublica -> {
+            assertThat(areaPublica.nombreArea()).isEqualTo("Campos del parque");
+            assertThat(areaPublica.perimetro()).hasSize(3);
+            assertThat(areaPublica.perimetro().getFirst().latitud()).isEqualByComparingTo("14.63907860");
+            assertThat(areaPublica.estadoCalculadoArea()).isEqualTo("FUERADESERVICIO");
+            assertThat(areaPublica.disponibleAhora()).isFalse();
+        });
+    }
+
     private NodoMapa nodo(Long id, String nombre, boolean accesible) {
         return nodo(id, nombre, accesible, "INTERSECCION");
     }

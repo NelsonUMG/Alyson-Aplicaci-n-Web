@@ -2,6 +2,8 @@ package gt.gob.parqueerickbarrondo.portalpublico.api.modelo;
 
 import java.time.Instant;
 import java.math.BigDecimal;
+import java.util.List;
+import gt.gob.parqueerickbarrondo.areas.api.modelo.CoordenadaAreaMapa;
 
 public record RespuestaAreaMapaPublica(
         Long idArea,
@@ -15,5 +17,6 @@ public record RespuestaAreaMapaPublica(
         String tituloProximaReserva,
         String notaDisponibilidad,
         BigDecimal latitudCentro,
-        BigDecimal longitudCentro) {
+        BigDecimal longitudCentro,
+        List<CoordenadaAreaMapa> perimetro) {
 }

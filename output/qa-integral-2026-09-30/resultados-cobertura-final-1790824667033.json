@@ -1,0 +1,297 @@
+{
+  "fecha": "2026-10-01T03:17:47.033Z",
+  "mode": "cobertura-final",
+  "results": [
+    {
+      "name": "Administrador autentica en servidor real",
+      "ok": true
+    },
+    {
+      "name": "Leer contenido institucional antes de verificar guardado",
+      "ok": true,
+      "status": 200,
+      "ms": 4
+    },
+    {
+      "name": "Institucional rechaza resumen vacío",
+      "ok": true,
+      "status": 400,
+      "ms": 50,
+      "detail": "must not be blank"
+    },
+    {
+      "name": "Ciudadano no modifica contenido institucional",
+      "ok": true,
+      "status": 403,
+      "ms": 5,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Guardar institucional conservando textos originales",
+      "ok": true,
+      "status": 200,
+      "ms": 18
+    },
+    {
+      "name": "Contenido institucional público conserva originales",
+      "ok": true,
+      "status": 200,
+      "ms": 4
+    },
+    {
+      "name": "Institucional detecta versión obsoleta",
+      "ok": true,
+      "status": 409,
+      "ms": 5,
+      "detail": "El contenido institucional cambió desde la última consulta. Recarga los datos."
+    },
+    {
+      "name": "Leer configuración real de portada",
+      "ok": true,
+      "status": 200,
+      "ms": 3
+    },
+    {
+      "name": "Ciudadano no cambia portada",
+      "ok": true,
+      "status": 403,
+      "ms": 13,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Color inválido se rechaza",
+      "ok": true,
+      "status": 400,
+      "ms": 7,
+      "detail": "Selecciona un color válido."
+    },
+    {
+      "name": "Portada rechaza imagen inferior a resolución mínima",
+      "ok": true,
+      "status": 400,
+      "ms": 27,
+      "detail": "La portada debe usar una proporción 16:9 y tener al menos 1280 × 720 píxeles. Se recomienda 1920 × 1080."
+    },
+    {
+      "name": "Rechazo de portada conserva configuración",
+      "ok": true,
+      "status": 200,
+      "ms": 3
+    },
+    {
+      "name": "Guardar color actual sin tocar imagen existente",
+      "ok": true,
+      "status": 200,
+      "ms": 17
+    },
+    {
+      "name": "Color e imagen originales se conservan",
+      "ok": true,
+      "status": 200,
+      "ms": 3
+    },
+    {
+      "name": "Portada detecta edición obsoleta",
+      "ok": true,
+      "status": 409,
+      "ms": 7,
+      "detail": "Otra persona actualizó la página principal. Recarga la configuración antes de guardar."
+    },
+    {
+      "name": "Permisos de ciudadano /administracion/mapa/nodos",
+      "ok": true,
+      "status": 403,
+      "ms": 3,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Permisos de ciudadano /administracion/mapa/conexiones",
+      "ok": true,
+      "status": 403,
+      "ms": 3,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Permisos de ciudadano /administracion/categorias-areas",
+      "ok": true,
+      "status": 403,
+      "ms": 3,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Permisos de ciudadano /administracion/bicicletas",
+      "ok": true,
+      "status": 403,
+      "ms": 4,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Nodo fuera del rango de latitud rechazado",
+      "ok": true,
+      "status": 400,
+      "ms": 5,
+      "detail": "La latitud debe estar entre -90 y 90."
+    },
+    {
+      "name": "Área rechaza perímetro incompleto",
+      "ok": true,
+      "status": 400,
+      "ms": 11,
+      "detail": "El perímetro debe incluir al menos tres vértices diferentes."
+    },
+    {
+      "name": "Nombre de área excedido se rechaza",
+      "ok": true,
+      "status": 400,
+      "ms": 5,
+      "detail": "El nombre no puede superar 150 caracteres."
+    },
+    {
+      "name": "Enlace verificación inexistente se rechaza",
+      "ok": true,
+      "status": 400,
+      "ms": 7,
+      "detail": "El enlace de verificación no es válido o ya venció."
+    },
+    {
+      "name": "Login inválido devuelve error sin detalle técnico",
+      "ok": true,
+      "status": 401,
+      "ms": 82,
+      "detail": "La contraseña es incorrecta. Vuelve a intentarlo."
+    },
+    {
+      "name": "Liberar cupo propio antes de prueba simultánea",
+      "ok": true,
+      "status": 200,
+      "ms": 17
+    },
+    {
+      "name": "Configurar un único cupo en evento de QA",
+      "ok": true,
+      "status": 200,
+      "ms": 24
+    },
+    {
+      "name": "Concurrencia: solo una cuenta gana el último cupo",
+      "ok": false,
+      "estados": [
+        201,
+        400
+      ]
+    },
+    {
+      "name": "Contador del evento no excede capacidad",
+      "ok": true,
+      "status": 200,
+      "ms": 6
+    },
+    {
+      "name": "Liberar inscripción de carrera controlada",
+      "ok": true,
+      "status": 200,
+      "ms": 16
+    },
+    {
+      "name": "Restaurar capacidad del evento QA",
+      "ok": true,
+      "status": 200,
+      "ms": 14
+    },
+    {
+      "name": "Restaurar inscripción QA para comprobar reporte visual",
+      "ok": true,
+      "status": 201,
+      "ms": 25
+    },
+    {
+      "name": "Crear borrador de límites independiente",
+      "ok": true,
+      "status": 201,
+      "ms": 11
+    },
+    {
+      "name": "PDF válido 1/5",
+      "ok": true,
+      "status": 201,
+      "ms": 20
+    },
+    {
+      "name": "PDF válido 2/5",
+      "ok": true,
+      "status": 201,
+      "ms": 18
+    },
+    {
+      "name": "PDF válido 3/5",
+      "ok": true,
+      "status": 201,
+      "ms": 18
+    },
+    {
+      "name": "PDF válido 4/5",
+      "ok": true,
+      "status": 201,
+      "ms": 18
+    },
+    {
+      "name": "PDF válido 5/5",
+      "ok": true,
+      "status": 201,
+      "ms": 16
+    },
+    {
+      "name": "El sexto PDF no se admite",
+      "ok": true,
+      "status": 400,
+      "ms": 10,
+      "detail": "Cada solicitud puede incluir hasta 5 documentos."
+    },
+    {
+      "name": "La base expone exactamente cinco documentos",
+      "ok": true,
+      "cantidad": 5
+    },
+    {
+      "name": "Eliminar un documento propio libera espacio",
+      "ok": true,
+      "status": 204,
+      "ms": 12
+    },
+    {
+      "name": "Adjuntar reemplazo después de quitar uno",
+      "ok": true,
+      "status": 201,
+      "ms": 19
+    },
+    {
+      "name": "Eliminar solo borrador temporal de límites",
+      "ok": true,
+      "status": 204,
+      "ms": 22
+    },
+    {
+      "name": "Marcar notificación propia leída",
+      "ok": true,
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "name": "Otra cuenta no puede marcar esa notificación",
+      "ok": true,
+      "status": 404,
+      "ms": 4,
+      "detail": "No se encontró la notificación."
+    },
+    {
+      "name": "Salud de API, base y SMTP",
+      "ok": true,
+      "estado": "UP"
+    },
+    {
+      "name": "API impide interpretación de tipo inesperado",
+      "ok": true,
+      "valor": "nosniff"
+    }
+  ]
+}

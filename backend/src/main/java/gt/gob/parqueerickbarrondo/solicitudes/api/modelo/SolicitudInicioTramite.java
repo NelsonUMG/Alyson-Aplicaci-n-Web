@@ -9,7 +9,7 @@ import jakarta.validation.constraints.Size;
 public record SolicitudInicioTramite(
         @NotBlank @Size(max = 200) String nombreCompleto,
         @NotBlank @Pattern(regexp = "\\d{13}", message = "El DPI/CUI debe contener 13 dígitos.") String dpi,
-        @NotBlank @Size(max = 30) String telefono,
+        @NotBlank @Pattern(regexp = "\\d{8}", message = "El teléfono debe contener exactamente 8 números.") String telefono,
         @NotBlank @Email @Size(max = 254) String correo,
         @NotNull Boolean representanteLegal,
         @Size(max = 200) String institucion) {

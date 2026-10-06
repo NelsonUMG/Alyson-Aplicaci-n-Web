@@ -1,0 +1,36 @@
+{
+  "fecha": "2026-10-03T08:56:42.3149564-06:00",
+  "uso": "desarrollo y pruebas",
+  "sql": "Enterprise Developer Edition (64-bit)",
+  "baseDatos": "RevisionParqueLocal",
+  "integridad": "CHECKDB sin errores",
+  "web": [
+    {
+      "url": "http://127.0.0.1:5173",
+      "interfaz": 200,
+      "api": "DISPONIBLE",
+      "mapa": "respuesta JSON recibida"
+    },
+    {
+      "url": "http://127.0.0.1:4173",
+      "interfaz": 200,
+      "api": "DISPONIBLE",
+      "mapa": "respuesta JSON recibida"
+    },
+    {
+      "url": "https://frequent-active-jpg-light.trycloudflare.com",
+      "interfaz": 200,
+      "api": "DISPONIBLE",
+      "mapa": "respuesta JSON recibida"
+    }
+  ],
+  "salud": "UP",
+  "smtpHabilitado": true,
+  "correoUrl": "https://frequent-active-jpg-light.trycloudflare.com",
+  "proteccionSuspension": true,
+  "backendPid": 8128,
+  "frontendPid": 5756,
+  "caddyPid": 3368,
+  "cloudflaredPid": 5548,
+  "energiaPid": 7036
+}

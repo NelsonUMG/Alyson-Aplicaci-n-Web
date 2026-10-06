@@ -9,6 +9,7 @@ import { PaginaAdministracionEventos } from "../paginas/PaginaAdministracionEven
 import { PaginaAdministracionAreas } from "../paginas/PaginaAdministracionAreas";
 import { PaginaAdministracionBicicletas } from "../paginas/PaginaAdministracionBicicletas";
 import { PaginaAdministracionInstitucional } from "../paginas/PaginaAdministracionInstitucional";
+import { PaginaAdministracionPortada } from "../paginas/PaginaAdministracionPortada";
 import { PaginaAdministracionSolicitudes } from "../paginas/PaginaAdministracionSolicitudes";
 import { PaginaAreasServicios } from "../paginas/PaginaAreasServicios";
 import { PaginaAuditoria } from "../paginas/PaginaAuditoria";
@@ -32,6 +33,7 @@ import { PaginaReportesInscripciones } from "../paginas/PaginaReportesInscripcio
 import { PaginaVerificacionCorreo } from "../paginas/PaginaVerificacionCorreo";
 
 const rutasSinManejador = [
+  { path: "/administracion/pagina-principal", element: <RutaProtegida permiso="INSTITUCIONALGESTIONAR"><EstructuraAdministracion><PaginaAdministracionPortada /></EstructuraAdministracion></RutaProtegida> },
   { path: "/recuperar-contrasena", element: <PaginaRecuperarContrasena /> },
   {
     element: <EstructuraPortal />,

@@ -268,6 +268,26 @@ public class Usuario {
         actualizadoEn = Instant.now();
     }
 
+    public void eliminarCuenta(String correoAnonimo, String hashContrasenaInutilizable) {
+        correoNormalizado = correoAnonimo;
+        nombre = "Cuenta";
+        apellido = "eliminada";
+        dpi = null;
+        celular = null;
+        fechaNacimiento = null;
+        dpiExtendidoEn = null;
+        telefono = null;
+        direccion = null;
+        claveFotoPerfil = null;
+        hashContrasena = hashContrasenaInutilizable;
+        estado = "ELIMINADO";
+        correoVerificadoEn = null;
+        bloqueadoHasta = null;
+        ultimoAccesoEn = null;
+        roles.clear();
+        actualizadoEn = Instant.now();
+    }
+
     private String normalizarOpcional(String valor) {
         return valor == null || valor.isBlank() ? null : valor.strip();
     }

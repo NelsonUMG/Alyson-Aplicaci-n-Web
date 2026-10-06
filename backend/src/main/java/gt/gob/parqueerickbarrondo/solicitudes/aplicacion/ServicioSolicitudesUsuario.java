@@ -33,6 +33,7 @@ import gt.gob.parqueerickbarrondo.solicitudes.dominio.SolicitudDocumento;
 import gt.gob.parqueerickbarrondo.solicitudes.infraestructura.persistencia.RepositorioDocumento;
 import gt.gob.parqueerickbarrondo.solicitudes.infraestructura.persistencia.RepositorioSolicitud;
 import gt.gob.parqueerickbarrondo.solicitudes.infraestructura.persistencia.RepositorioSolicitudDocumento;
+import gt.gob.parqueerickbarrondo.solicitudes.infraestructura.persistencia.RepositorioTramite;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -71,6 +72,7 @@ public class ServicioSolicitudesUsuario {
     private final RepositorioDocumento repositorioDocumento;
     private final RepositorioUsuario repositorioUsuario;
     private final RepositorioArea repositorioArea;
+    private final RepositorioTramite repositorioTramite;
     private final ServicioAlmacenamientoDocumentosSolicitud almacenamiento;
     private final ServicioAuditoria auditoria;
     private final ObjectMapper json;
@@ -82,6 +84,7 @@ public class ServicioSolicitudesUsuario {
             RepositorioDocumento repositorioDocumento,
             RepositorioUsuario repositorioUsuario,
             RepositorioArea repositorioArea,
+            RepositorioTramite repositorioTramite,
             ServicioAlmacenamientoDocumentosSolicitud almacenamiento,
             ServicioAuditoria auditoria,
             ObjectMapper json) {
@@ -90,13 +93,27 @@ public class ServicioSolicitudesUsuario {
         this.repositorioDocumento = repositorioDocumento;
         this.repositorioUsuario = repositorioUsuario;
         this.repositorioArea = repositorioArea;
+        this.repositorioTramite = repositorioTramite;
         this.almacenamiento = almacenamiento;
         this.auditoria = auditoria;
         this.json = json;
     }
 
     ServicioSolicitudesUsuario(RepositorioSolicitud repositorioSolicitud) {
-        this(repositorioSolicitud, null, null, null, null, null, null, null);
+        this(repositorioSolicitud, null, null, null, null, null, null, null, null);
+    }
+
+    ServicioSolicitudesUsuario(
+            RepositorioSolicitud repositorioSolicitud,
+            RepositorioSolicitudDocumento repositorioSolicitudDocumento,
+            RepositorioDocumento repositorioDocumento,
+            RepositorioUsuario repositorioUsuario,
+            RepositorioArea repositorioArea,
+            ServicioAlmacenamientoDocumentosSolicitud almacenamiento,
+            ServicioAuditoria auditoria,
+            ObjectMapper json) {
+        this(repositorioSolicitud, repositorioSolicitudDocumento, repositorioDocumento,
+                repositorioUsuario, repositorioArea, null, almacenamiento, auditoria, json);
     }
 
     @Transactional(readOnly = true)
@@ -143,9 +160,8 @@ public class ServicioSolicitudesUsuario {
     public RespuestaDetalleSolicitud iniciarBorrador(
             Long idUsuario, String codigoTramite, SolicitudInicioTramite datos) {
         var codigo = codigoTramite == null ? "" : codigoTramite.strip().toUpperCase(Locale.ROOT);
-        if (!Set.of("RESERVACANCHAS", "RESERVAAREAS").contains(codigo)) {
-            throw new SolicitudInvalidaException("El trámite seleccionado no utiliza el flujo de reserva.");
-        }
+        repositorioTramite.findByCodigoAndActivoTrueAndCategoria_ActivaTrue(codigo)
+                .orElseThrow(() -> new RecursoNoEncontradoException("El trámite seleccionado no está disponible."));
         if (Boolean.TRUE.equals(datos.representanteLegal())
                 && (datos.institucion() == null || datos.institucion().isBlank())) {
             throw new SolicitudInvalidaException("Indica la institución que representas.");
@@ -345,6 +361,10 @@ public class ServicioSolicitudesUsuario {
     }
 
     private void validarDetalleCompleto(DetalleUsoInstalacionSolicitud detalle) {
+        var tramite = detalle.codigoTramite() == null || repositorioTramite == null
+                ? null
+                : repositorioTramite.findByCodigoAndActivoTrueAndCategoria_ActivaTrue(detalle.codigoTramite()).orElse(null);
+        if (tramite != null && !tramite.requiereReserva()) return;
         if (detalle.codigoArea() == null || detalle.fechaSolicitada() == null
                 || detalle.horaInicio() == null || detalle.horaFin() == null
                 || detalle.tipoReserva() == null || detalle.nombreResponsable() == null) {
@@ -435,9 +455,25 @@ public class ServicioSolicitudesUsuario {
     private RespuestaSolicitudUsuario convertirListado(Solicitud solicitud) {
         return new RespuestaSolicitudUsuario(
                 solicitud.obtenerIdSolicitud(), solicitud.obtenerTipoSolicitud(),
-                nombreLegible(solicitud.obtenerTipoSolicitud()), solicitud.obtenerEstado(),
+                nombreParaListado(solicitud), solicitud.obtenerEstado(),
                 solicitud.obtenerResolucion(), solicitud.obtenerCreadoEn(), solicitud.obtenerActualizadoEn(),
                 solicitud.obtenerResueltoEn(), solicitud.obtenerVersion());
+    }
+
+    private String nombreParaListado(Solicitud solicitud) {
+        if (repositorioTramite != null && "USOINSTALACION".equals(solicitud.obtenerTipoSolicitud())) {
+            try {
+                var codigoTramite = deserializarDetalle(solicitud.obtenerDetalle()).codigoTramite();
+                if (codigoTramite != null && !codigoTramite.isBlank()) {
+                    return repositorioTramite.findByCodigo(codigoTramite)
+                            .map(tramite -> tramite.obtenerNombre())
+                            .orElseGet(() -> nombreLegible(solicitud.obtenerTipoSolicitud()));
+                }
+            } catch (RuntimeException ignorada) {
+                // Mantiene un nombre comprensible para solicitudes históricas con datos incompletos.
+            }
+        }
+        return nombreLegible(solicitud.obtenerTipoSolicitud());
     }
 
     private RespuestaConteosSolicitudes obtenerConteos(Long idUsuario) {

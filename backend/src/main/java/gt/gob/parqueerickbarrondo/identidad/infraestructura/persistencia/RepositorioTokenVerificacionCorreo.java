@@ -10,6 +10,8 @@ import org.springframework.data.jpa.repository.Lock;
 
 public interface RepositorioTokenVerificacionCorreo extends JpaRepository<TokenVerificacionCorreo, Long> {
 
+    void deleteAllByUsuario_IdUsuario(Long idUsuario);
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<TokenVerificacionCorreo> findByHashToken(byte[] hashToken);
 

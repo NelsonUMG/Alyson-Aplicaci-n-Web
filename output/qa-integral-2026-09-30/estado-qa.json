@@ -1,0 +1,605 @@
+{
+  "prefijo": "QA integral 20260930",
+  "recursos": {
+    "categoriaPublicacion": {
+      "idCategoriaPublicacion": 11,
+      "codigo": "1",
+      "nombre": "QA integral 20260930",
+      "descripcion": "Categoría temporal identificada para QA",
+      "ordenVisualizacion": 50,
+      "activa": true,
+      "version": 0
+    },
+    "publicacion": {
+      "idPublicacion": 10,
+      "idCategoriaPublicacion": 11,
+      "codigoCategoria": "1",
+      "nombreCategoria": "QA integral 20260930",
+      "titulo": "QA integral 20260930 noticia editada",
+      "identificadorUrl": "qa-integral-20260930-noticia",
+      "resumen": "Texto de comprobación: áéíóú ñ <b>literal</b>",
+      "contenido": "<script>window.__qaNoEjecutar=1</script> Contenido de QA sin información real.",
+      "estado": "PUBLICADA",
+      "fechaEditorial": "2026-09-30",
+      "publicadoEn": "2026-10-01T02:51:04.454165300Z",
+      "actualizadoEn": "2026-10-01T02:51:04.454165300Z",
+      "version": 2
+    },
+    "imagenPublicacion": {
+      "idImagenPublicacion": 16,
+      "nombreArchivoOriginal": "qa-escudo.png",
+      "tipoMedio": "image/png",
+      "tamanoBytes": 180233,
+      "anchoPixeles": 447,
+      "altoPixeles": 447,
+      "textoAlternativo": "Portada de QA integral 20260930 noticia",
+      "ordenVisualizacion": 0
+    },
+    "categoriaArea": {
+      "idCategoriaArea": 1,
+      "codigo": "1",
+      "nombre": "QA integral 20260930 áreas",
+      "descripcion": "Recursos de QA, no instalaciones reales",
+      "activa": true,
+      "version": 0
+    },
+    "area": {
+      "idArea": 1,
+      "idCategoriaArea": 1,
+      "codigoCategoria": "1",
+      "nombreCategoria": "QA integral 20260930 áreas",
+      "codigo": "1",
+      "numeroVisibleMapa": null,
+      "nombre": "QA integral 20260930 área",
+      "descripcion": "No es un espacio real; validación funcional",
+      "estado": "DISPONIBLE",
+      "notaDisponibilidad": null,
+      "latitud": null,
+      "longitud": null,
+      "coordenadasConfirmadas": false,
+      "perimetro": [],
+      "perimetroConfirmado": false,
+      "horarioJson": null,
+      "observacionesInternas": null,
+      "tieneImagen": false,
+      "urlImagen": null,
+      "idActualizadoPor": 1,
+      "nombreActualizadoPor": "Administrador Revision",
+      "creadoEn": "2026-10-01T02:48:59.608766300Z",
+      "actualizadoEn": "2026-10-01T02:48:59.608766300Z",
+      "version": 0
+    },
+    "categoriaTramite": {
+      "idCategoria": 3,
+      "codigo": "QAINTEGRAL20260930TRAMITES",
+      "nombre": "QA integral 20260930 trámites",
+      "ordenVisualizacion": 3,
+      "activa": true
+    },
+    "tramiteReserva": {
+      "idTramite": 4,
+      "codigo": "QAINTEGRAL20260930RESERVA",
+      "idCategoria": 3,
+      "categoria": "QA integral 20260930 trámites editada",
+      "nombre": "QA integral 20260930 reserva",
+      "resumen": "Trámite identificado para revisión funcional",
+      "acerca": "No corresponde a una gestión real.",
+      "requisitos": [],
+      "documentosRequeridos": [
+        "PDF de comprobación sin datos reales"
+      ],
+      "costo": "Sin costo",
+      "tiempoRespuesta": "QA",
+      "requiereReserva": true,
+      "activo": true,
+      "urlPortada": null,
+      "version": 0
+    },
+    "tramiteGeneral": {
+      "idTramite": 5,
+      "codigo": "QAINTEGRAL20260930SINHORARIO",
+      "idCategoria": 3,
+      "categoria": "QA integral 20260930 trámites editada",
+      "nombre": "QA integral 20260930 sin horario",
+      "resumen": "Trámite identificado para revisión funcional",
+      "acerca": "No corresponde a una gestión real.",
+      "requisitos": [],
+      "documentosRequeridos": [
+        "PDF de comprobación sin datos reales"
+      ],
+      "costo": "Sin costo",
+      "tiempoRespuesta": "QA",
+      "requiereReserva": false,
+      "activo": true,
+      "urlPortada": null,
+      "version": 0
+    },
+    "evento": {
+      "idEvento": 2,
+      "titulo": "QA integral 20260930 evento",
+      "identificadorUrl": "qa-integral-20260930-evento",
+      "descripcion": "Evento de validación, no actividad real",
+      "lugar": "QA",
+      "iniciaEn": "2026-11-14T15:00:00Z",
+      "finalizaEn": "2026-11-14T17:00:00Z",
+      "inscripcionAbreEn": "2026-09-01T00:00:00Z",
+      "inscripcionCierraEn": "2026-11-10T00:00:00Z",
+      "capacidadTotal": 2,
+      "cantidadOcupada": 0,
+      "cuposDisponibles": 2,
+      "estado": "PUBLICADO",
+      "esquemaFormularioJson": null,
+      "configuracionGruposJson": "{\"grupos\":[{\"codigo\":\"ninos\",\"nombre\":\"Niños QA\",\"categoriaEdad\":\"Niños\",\"edadMinima\":0,\"edadMaxima\":14,\"horarios\":[{\"dia\":\"SABADO\",\"horaInicio\":\"09:00\",\"horaFin\":\"10:00\",\"lugar\":\"QA\"}]},{\"codigo\":\"adultos\",\"nombre\":\"Adultos QA\",\"categoriaEdad\":\"Adultos\",\"edadMinima\":15,\"edadMaxima\":120,\"horarios\":[{\"dia\":\"SABADO\",\"horaInicio\":\"10:00\",\"horaFin\":\"11:00\",\"lugar\":\"QA\"}]}]}",
+      "requisitos": [
+        {
+          "idRequisitoEvento": 1,
+          "descripcion": "Comprobación de requisitos",
+          "obligatorio": true,
+          "ordenVisualizacion": 1
+        }
+      ],
+      "tieneImagen": true,
+      "urlImagen": "/api/v1/administracion/eventos/2/imagen",
+      "creadoEn": "2026-10-01T02:48:59.888751Z",
+      "actualizadoEn": "2026-10-01T02:49:00.038642900Z",
+      "version": 2
+    },
+    "inscripcion": {
+      "idInscripcionEvento": 1,
+      "idEvento": 2,
+      "identificadorUrl": "qa-integral-20260930-evento",
+      "tituloEvento": "QA integral 20260930 evento",
+      "codigoGrupo": "adultos",
+      "nombreGrupo": "Adultos QA",
+      "estado": "CONFIRMADA",
+      "iniciaEn": "2026-11-14T15:00:00Z",
+      "lugar": "QA",
+      "requisitosAceptadosEn": "2026-10-01T02:50:14.986882500Z",
+      "confirmadaEn": "2026-10-01T02:50:14.986882500Z",
+      "canceladaEn": null,
+      "motivoCancelacion": null,
+      "cuposDisponibles": 1,
+      "version": 0
+    },
+    "solicitudes": [
+      {
+        "idSolicitud": 1,
+        "tipoSolicitud": "USOINSTALACION",
+        "nombreTipoSolicitud": "Uso de cancha o instalación",
+        "estado": "APROBADA",
+        "detalle": {
+          "codigoArea": "1",
+          "nombreArea": "QA integral 20260930 área",
+          "fechaSolicitada": "2026-11-20",
+          "horaInicio": "09:00:00",
+          "horaFin": "10:00:00",
+          "tipoActividad": "QA sin actividad real",
+          "cantidadPersonas": 60,
+          "descripcion": "Comprobación integral autorizada; no es una reserva real.",
+          "datosSolicitante": {
+            "nombre": "QA Integral Preproduccion",
+            "apellido": "",
+            "correo": "nelson2031997p@gmail.com",
+            "dpi": "9000000930001",
+            "celular": "55550001",
+            "fechaNacimiento": "1995-05-10"
+          },
+          "codigoTramite": "QAINTEGRAL20260930RESERVA",
+          "tipoReserva": "AFLUENCIAMEDIA",
+          "centroDeportivo": "Centro Deportivo y Recreativo Parque Erick Bernabé Barrondo García",
+          "nombreResponsable": "QA Integral",
+          "representanteLegal": false,
+          "institucion": null,
+          "tipoReporte": null,
+          "asunto": null
+        },
+        "documentos": [
+          {
+            "idSolicitudDocumento": 1,
+            "categoriaDocumento": "DPISOLICITANTE",
+            "nombreCategoria": "Documento de respaldo de la actividad",
+            "obligatorio": true,
+            "nombreArchivo": "QA-sin-validez.pdf",
+            "tipoMedio": "application/pdf",
+            "tamanoBytes": 610,
+            "creadoEn": "2026-10-01T02:50:15.342309Z",
+            "urlDescarga": "/api/v1/administracion/solicitudes/1/documentos/1/archivo"
+          }
+        ],
+        "resolucion": "QA INTEGRAL: resolución de comprobación. No constituye una autorización real de uso del parque.",
+        "creadoEn": "2026-10-01T02:50:15.187542Z",
+        "actualizadoEn": "2026-10-01T02:51:04.931989900Z",
+        "resueltoEn": "2026-10-01T02:51:04.931989900Z",
+        "version": 4
+      },
+      {
+        "idSolicitud": 2,
+        "tipoSolicitud": "USOINSTALACION",
+        "nombreTipoSolicitud": "Uso de cancha o instalación",
+        "estado": "RECHAZADA",
+        "detalle": {
+          "codigoArea": "1",
+          "nombreArea": "QA integral 20260930 área",
+          "fechaSolicitada": "2026-11-20",
+          "horaInicio": "11:00:00",
+          "horaFin": "12:00:00",
+          "tipoActividad": "QA sin actividad real",
+          "cantidadPersonas": 60,
+          "descripcion": "Comprobación integral autorizada; no es una reserva real.",
+          "datosSolicitante": {
+            "nombre": "QA Integral Preproduccion",
+            "apellido": "",
+            "correo": "nelson2031997p@gmail.com",
+            "dpi": "9000000930001",
+            "celular": "55550001",
+            "fechaNacimiento": "1995-05-10"
+          },
+          "codigoTramite": "QAINTEGRAL20260930RESERVA",
+          "tipoReserva": "AFLUENCIAMEDIA",
+          "centroDeportivo": "Centro Deportivo y Recreativo Parque Erick Bernabé Barrondo García",
+          "nombreResponsable": "QA Integral",
+          "representanteLegal": false,
+          "institucion": null,
+          "tipoReporte": null,
+          "asunto": null
+        },
+        "documentos": [
+          {
+            "idSolicitudDocumento": 2,
+            "categoriaDocumento": "DPISOLICITANTE",
+            "nombreCategoria": "Documento de respaldo de la actividad",
+            "obligatorio": true,
+            "nombreArchivo": "QA-sin-validez.pdf",
+            "tipoMedio": "application/pdf",
+            "tamanoBytes": 610,
+            "creadoEn": "2026-10-01T02:50:15.541620Z",
+            "urlDescarga": "/api/v1/administracion/solicitudes/2/documentos/2/archivo"
+          }
+        ],
+        "resolucion": "QA INTEGRAL: resolución de comprobación. No constituye una autorización real de uso del parque.",
+        "creadoEn": "2026-10-01T02:50:15.447722Z",
+        "actualizadoEn": "2026-10-01T02:51:07.751987100Z",
+        "resueltoEn": "2026-10-01T02:51:07.751987100Z",
+        "version": 4
+      }
+    ],
+    "solicitudGeneral": {
+      "idSolicitud": 3,
+      "tipoSolicitud": "USOINSTALACION",
+      "nombreTipoSolicitud": "Uso de cancha o instalación",
+      "estado": "ENVIADA",
+      "detalle": {
+        "codigoArea": null,
+        "nombreArea": null,
+        "fechaSolicitada": null,
+        "horaInicio": null,
+        "horaFin": null,
+        "tipoActividad": null,
+        "cantidadPersonas": 0,
+        "descripcion": null,
+        "datosSolicitante": {
+          "nombre": "QA Integral Preproduccion",
+          "apellido": "",
+          "correo": "nelson2031997p@gmail.com",
+          "dpi": "9000000930001",
+          "celular": "55550001",
+          "fechaNacimiento": "1995-05-10"
+        },
+        "codigoTramite": "QAINTEGRAL20260930SINHORARIO",
+        "tipoReserva": null,
+        "centroDeportivo": "Centro Deportivo y Recreativo Parque Erick Bernabé Barrondo García",
+        "nombreResponsable": null,
+        "representanteLegal": false,
+        "institucion": null,
+        "tipoReporte": null,
+        "asunto": null
+      },
+      "documentos": [
+        {
+          "idSolicitudDocumento": 3,
+          "categoriaDocumento": "DPISOLICITANTE",
+          "nombreCategoria": "DPI del solicitante o representante legal",
+          "obligatorio": true,
+          "nombreArchivo": "QA-sin-validez.pdf",
+          "tipoMedio": "application/pdf",
+          "tamanoBytes": 610,
+          "creadoEn": "2026-10-01T02:50:15.642428Z",
+          "urlDescarga": "/api/v1/solicitudes/3/documentos/3/archivo"
+        }
+      ],
+      "resolucion": null,
+      "creadoEn": "2026-10-01T02:50:15.619524Z",
+      "actualizadoEn": "2026-10-01T02:50:15.671076400Z",
+      "resueltoEn": null,
+      "version": 1
+    },
+    "queja": {
+      "idSolicitud": 4,
+      "tipoSolicitud": "DENUNCIAQUEJA",
+      "nombreTipoSolicitud": "Denuncia o queja",
+      "estado": "ENVIADA",
+      "detalle": {
+        "codigoArea": null,
+        "nombreArea": "Parque Erick Bernabé Barrondo",
+        "fechaSolicitada": null,
+        "horaInicio": null,
+        "horaFin": null,
+        "tipoActividad": null,
+        "cantidadPersonas": 0,
+        "descripcion": "Validación funcional autorizada. No es una denuncia contra una persona ni un reclamo real.",
+        "datosSolicitante": {
+          "nombre": "QA Integral",
+          "apellido": "Preproduccion",
+          "correo": "nelson2031997p@gmail.com",
+          "dpi": "9000000930001",
+          "celular": "55550001",
+          "fechaNacimiento": "1995-05-10"
+        },
+        "codigoTramite": "DENUNCIASQUEJAS",
+        "tipoReserva": null,
+        "centroDeportivo": "Parque Erick Bernabé Barrondo",
+        "nombreResponsable": null,
+        "representanteLegal": false,
+        "institucion": null,
+        "tipoReporte": "QUEJA",
+        "asunto": "QA integral 20260930 queja controlada"
+      },
+      "documentos": [],
+      "resolucion": null,
+      "creadoEn": "2026-10-01T02:50:15.690802Z",
+      "actualizadoEn": "2026-10-01T02:50:15.690802Z",
+      "resueltoEn": null,
+      "version": 0
+    },
+    "rol": {
+      "idRol": 7,
+      "codigo": "EMPLEADO_QA_INTEGRAL_20260930_LECTURA_EVENTOS",
+      "nombre": "QA integral 20260930 lectura eventos",
+      "descripcion": "Rol limitado de comprobación",
+      "permisos": [
+        "EVENTOLEER"
+      ]
+    },
+    "empleado": {
+      "idUsuario": 3,
+      "correo": "qa.operador.20260930@example.invalid",
+      "nombre": "QA",
+      "apellido": "Operador limitado",
+      "estado": "ACTIVO",
+      "ultimoAccesoEn": "2026-10-01T02:57:59.892352Z",
+      "version": 4,
+      "roles": [
+        "USUARIOREGISTRADO"
+      ]
+    },
+    "reserva": {
+      "idReservaArea": 1,
+      "idArea": 1,
+      "codigoArea": "1",
+      "nombreArea": "QA integral 20260930 área",
+      "titulo": "QA integral 20260930 bloqueo administrativo",
+      "iniciaEn": "2026-11-21T15:00:00Z",
+      "finalizaEn": "2026-11-21T16:00:00Z",
+      "estado": "PROGRAMADA",
+      "observaciones": "QA sin actividad real",
+      "idActualizadoPor": 1,
+      "nombreActualizadoPor": "Administrador Revision",
+      "creadoEn": "2026-10-01T02:53:23.901109900Z",
+      "actualizadoEn": "2026-10-01T02:53:23.901109900Z",
+      "version": 0
+    },
+    "solicitudSolapada": {
+      "idSolicitud": 5,
+      "tipoSolicitud": "USOINSTALACION",
+      "nombreTipoSolicitud": "Uso de cancha o instalación",
+      "estado": "APROBADA",
+      "detalle": {
+        "codigoArea": "1",
+        "nombreArea": "QA integral 20260930 área",
+        "fechaSolicitada": "2026-11-20",
+        "horaInicio": "09:00:00",
+        "horaFin": "10:00:00",
+        "tipoActividad": "QA superposición",
+        "cantidadPersonas": 60,
+        "descripcion": "Control de conflicto de horario; no es una actividad real.",
+        "datosSolicitante": {
+          "nombre": "QA Integral Preproduccion",
+          "apellido": "",
+          "correo": "nelson2031997p@gmail.com",
+          "dpi": "9000000930001",
+          "celular": "55550001",
+          "fechaNacimiento": "1995-05-10"
+        },
+        "codigoTramite": "QAINTEGRAL20260930RESERVA",
+        "tipoReserva": "AFLUENCIAMEDIA",
+        "centroDeportivo": "Centro Deportivo y Recreativo Parque Erick Bernabé Barrondo García",
+        "nombreResponsable": "QA",
+        "representanteLegal": false,
+        "institucion": null,
+        "tipoReporte": null,
+        "asunto": null
+      },
+      "documentos": [
+        {
+          "idSolicitudDocumento": 4,
+          "categoriaDocumento": "DPISOLICITANTE",
+          "nombreCategoria": "Documento de respaldo de la actividad",
+          "obligatorio": true,
+          "nombreArchivo": "QA-sin-validez.pdf",
+          "tipoMedio": "application/pdf",
+          "tamanoBytes": 610,
+          "creadoEn": "2026-10-01T02:53:24.019187Z",
+          "urlDescarga": "/api/v1/administracion/solicitudes/5/documentos/4/archivo"
+        }
+      ],
+      "resolucion": "QA: comprobación de conflicto de horario, no autorización real.",
+      "creadoEn": "2026-10-01T02:53:23.974823Z",
+      "actualizadoEn": "2026-10-01T02:53:24.077488500Z",
+      "resueltoEn": "2026-10-01T02:53:24.077488500Z",
+      "version": 4
+    },
+    "borradorArchivos": {
+      "idSolicitud": 6,
+      "tipoSolicitud": "USOINSTALACION",
+      "nombreTipoSolicitud": "Uso de cancha o instalación",
+      "estado": "BORRADOR",
+      "detalle": {
+        "codigoArea": null,
+        "nombreArea": null,
+        "fechaSolicitada": null,
+        "horaInicio": null,
+        "horaFin": null,
+        "tipoActividad": null,
+        "cantidadPersonas": 0,
+        "descripcion": null,
+        "datosSolicitante": {
+          "nombre": "QA Integral Preproduccion",
+          "apellido": "",
+          "correo": "nelson2031997p@gmail.com",
+          "dpi": "9000000930001",
+          "celular": "55550001",
+          "fechaNacimiento": "1995-05-10"
+        },
+        "codigoTramite": "QAINTEGRAL20260930SINHORARIO",
+        "tipoReserva": null,
+        "centroDeportivo": "Centro Deportivo y Recreativo Parque Erick Bernabé Barrondo García",
+        "nombreResponsable": null,
+        "representanteLegal": false,
+        "institucion": null,
+        "tipoReporte": null,
+        "asunto": null
+      },
+      "documentos": [],
+      "resolucion": null,
+      "creadoEn": "2026-10-01T02:53:26.087661300Z",
+      "actualizadoEn": "2026-10-01T02:53:26.087661300Z",
+      "resueltoEn": null,
+      "version": 0
+    },
+    "nodos": [
+      {
+        "idNodoMapa": 1,
+        "idArea": null,
+        "codigoArea": null,
+        "nombreArea": null,
+        "tipoNodo": "INTERSECCION",
+        "nombre": "QA integral 20260930 nodo 1",
+        "latitud": 14.626,
+        "longitud": -90.559,
+        "coordenadasConfirmadas": false,
+        "accesible": true,
+        "actualizadoEn": "2026-10-01T02:53:26.457884300Z",
+        "version": 0
+      },
+      {
+        "idNodoMapa": 2,
+        "idArea": null,
+        "codigoArea": null,
+        "nombreArea": null,
+        "tipoNodo": "INTERSECCION",
+        "nombre": "QA integral 20260930 nodo 2",
+        "latitud": 14.6261,
+        "longitud": -90.559,
+        "coordenadasConfirmadas": false,
+        "accesible": true,
+        "actualizadoEn": "2026-10-01T02:53:26.492579100Z",
+        "version": 0
+      }
+    ],
+    "conexion": {
+      "idConexionMapa": 1,
+      "idNodoOrigen": 1,
+      "nombreNodoOrigen": "QA integral 20260930 nodo 1",
+      "idNodoDestino": 2,
+      "nombreNodoDestino": "QA integral 20260930 nodo 2",
+      "distanciaMetros": 15,
+      "bidireccional": true,
+      "accesible": true,
+      "cerrada": false,
+      "motivoCierre": null,
+      "actualizadoEn": "2026-10-01T02:53:26.526429900Z",
+      "version": 0
+    },
+    "institucionalOriginal": {
+      "idContenidoInstitucional": 1,
+      "resumen": "El Centro Deportivo Erick Bernabé Barrondo García es un espacio público de recreación, deporte y naturaleza en la Ciudad de Guatemala. Sus áreas deportivas, ciclovía, juegos y espacios familiares permiten una convivencia activa y gratuita.",
+      "mision": "Promover el deporte, la recreación y la convivencia familiar mediante espacios accesibles, seguros e inclusivos para la comunidad.",
+      "vision": "Ser un referente de bienestar, inclusión y desarrollo deportivo para las familias de Guatemala.",
+      "valores": "Inclusión, respeto, bienestar, convivencia, seguridad y cuidado de la naturaleza.",
+      "actualizadoEn": "2026-10-01T03:17:44.999184Z",
+      "version": 1
+    },
+    "aparienciaOriginal": {
+      "colorPrincipal": "#25b4b6",
+      "portadaUrl": null,
+      "version": 6
+    },
+    "borradorLimitesFinal": {
+      "idSolicitud": 8,
+      "tipoSolicitud": "USOINSTALACION",
+      "nombreTipoSolicitud": "Uso de cancha o instalación",
+      "estado": "BORRADOR",
+      "detalle": {
+        "codigoArea": null,
+        "nombreArea": null,
+        "fechaSolicitada": null,
+        "horaInicio": null,
+        "horaFin": null,
+        "tipoActividad": null,
+        "cantidadPersonas": 0,
+        "descripcion": null,
+        "datosSolicitante": {
+          "nombre": "QA Integral Preproduccion",
+          "apellido": "",
+          "correo": "nelson2031997p@gmail.com",
+          "dpi": "9000000930001",
+          "celular": "55550001",
+          "fechaNacimiento": "1995-05-10"
+        },
+        "codigoTramite": "QAINTEGRAL20260930SINHORARIO",
+        "tipoReserva": null,
+        "centroDeportivo": "Centro Deportivo y Recreativo Parque Erick Bernabé Barrondo García",
+        "nombreResponsable": null,
+        "representanteLegal": false,
+        "institucion": null,
+        "tipoReporte": null,
+        "asunto": null
+      },
+      "documentos": [],
+      "resolucion": null,
+      "creadoEn": "2026-10-01T03:18:17.161527800Z",
+      "actualizadoEn": "2026-10-01T03:18:17.161527800Z",
+      "resueltoEn": null,
+      "version": 0
+    }
+  },
+  "idUsuarioQa": 2,
+  "areaData": {
+    "idCategoriaArea": 1,
+    "nombre": "QA integral 20260930 área",
+    "descripcion": "No es un espacio real; validación funcional",
+    "estado": "DISPONIBLE",
+    "motivoCambioEstado": "Alta controlada de QA",
+    "horarioJson": null,
+    "perimetro": []
+  },
+  "eventData": {
+    "titulo": "QA integral 20260930 evento",
+    "descripcion": "Evento de validación, no actividad real",
+    "lugar": "QA",
+    "iniciaEn": "2026-11-14T15:00:00Z",
+    "finalizaEn": "2026-11-14T17:00:00Z",
+    "inscripcionAbreEn": "2026-09-01T00:00:00Z",
+    "inscripcionCierraEn": "2026-11-10T00:00:00Z",
+    "capacidadTotal": 2,
+    "esquemaFormularioJson": null,
+    "configuracionGruposJson": "{\"grupos\":[{\"codigo\":\"ninos\",\"nombre\":\"Niños QA\",\"categoriaEdad\":\"Niños\",\"edadMinima\":0,\"edadMaxima\":14,\"horarios\":[{\"dia\":\"SABADO\",\"horaInicio\":\"09:00\",\"horaFin\":\"10:00\",\"lugar\":\"QA\"}]},{\"codigo\":\"adultos\",\"nombre\":\"Adultos QA\",\"categoriaEdad\":\"Adultos\",\"edadMinima\":15,\"edadMaxima\":120,\"horarios\":[{\"dia\":\"SABADO\",\"horaInicio\":\"10:00\",\"horaFin\":\"11:00\",\"lugar\":\"QA\"}]}]}",
+    "requisitos": [
+      {
+        "descripcion": "Comprobación de requisitos",
+        "obligatorio": true,
+        "ordenVisualizacion": 1
+      }
+    ]
+  }
+}

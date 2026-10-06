@@ -308,7 +308,7 @@ public class ServicioInscripcionesEvento {
                     if (edadMinima != null && edad < edadMinima
                             || edadMaxima != null && edad > edadMaxima) {
                         throw new SolicitudInvalidaException(
-                                "Tu edad no corresponde a la categoría del grupo seleccionado.");
+                                "Selecciona uno de los grupos disponibles para tu edad.");
                     }
                 }
                 return new GrupoSeleccionado(

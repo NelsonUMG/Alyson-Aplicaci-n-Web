@@ -20,12 +20,12 @@
 }
 
 html {
-  min-width: 320px;
+  min-width: 0;
   background: #f4f6f1;
 }
 
 body {
-  min-width: 320px;
+  min-width: 0;
   min-height: 100vh;
   margin: 0;
 }
@@ -520,6 +520,35 @@ button:disabled {
   border-top: 0.45rem solid #59b7df;
   border-radius: 0;
   box-shadow: 0 1.5rem 4rem rgb(0 0 0 / 28%);
+}
+
+.pagina-verificacion-correo {
+  width: 100%;
+  max-width: none;
+  background: #fff;
+  color: #111;
+}
+
+.tarjeta-formulario.tarjeta-verificacion-correo {
+  border: 1px solid #000;
+  background: #fff;
+  color: #111;
+  box-shadow: none;
+}
+
+.tarjeta-verificacion-correo .mensaje-confirmacion-correo {
+  color: #111;
+}
+
+.tarjeta-verificacion-correo .boton-enlace-registro {
+  border: 1px solid #000;
+  background: #fff;
+  color: #111;
+}
+
+.tarjeta-verificacion-correo .boton-enlace-registro:hover {
+  background: #111;
+  color: #fff;
 }
 
 .cabecera-registro {
@@ -1063,11 +1092,14 @@ button:disabled {
 .campos-formulario-administracion {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   gap: 1rem;
 }
 
 .campos-formulario-administracion > div {
   display: grid;
+  min-width: 0;
+  align-content: start;
   gap: 0.45rem;
 }
 
@@ -1138,6 +1170,7 @@ button:disabled {
 }
 
 .tabla-contenedor {
+  position: relative;
   overflow-x: auto;
   border: 1px solid #c7d0ca;
   border-radius: 0.65rem;
@@ -4573,7 +4606,7 @@ th {
   --solicitud-dorado: #e6b648;
   display: grid;
   grid-template-columns: 17rem minmax(0, 1fr);
-  min-width: 320px;
+  min-width: 0;
   min-height: 100vh;
   color: var(--solicitud-tinta);
   background: #f2f6f4;
@@ -5913,8 +5946,8 @@ th {
 
 @media (max-width: 540px) {
   .cuenta-superior-solicitudes > span,
-  .cuenta-superior-solicitudes > i,
-  .notificaciones-solicitudes { display: none; }
+  .cuenta-superior-solicitudes > i { display: none; }
+  .notificaciones-solicitudes { display: grid; }
   .encabezado-mis-solicitudes { align-items: flex-start; flex-direction: column; padding-bottom: .7rem; }
   .accion-nueva-superior { width: 100%; }
   .accion-nueva-superior button:first-child { flex: 1; justify-content: center; }
@@ -5928,6 +5961,14 @@ th {
   .estado-vacio-dashboard { min-height: 16rem; padding: 1rem; text-align: center; }
   .tarjeta-solicitud-dashboard { grid-template-columns: 1fr; }
   .tarjeta-solicitud-dashboard .respuesta-solicitud { grid-column: 1; }
+  .contenido-cabecera-portal-solicitudes { width: calc(100% - 1rem); grid-template-columns: minmax(0, 1fr) auto; gap: .5rem; }
+  .marca-superior-solicitudes { min-width: 0; }
+  .navegacion-superior-solicitudes { display: none; }
+  .contenido-aplicacion-solicitudes { min-width: 0; padding-inline: .5rem; }
+  .panel-filtros-solicitudes,
+  .panel-tabla-solicitudes { min-width: 0; max-width: 100%; }
+  .pestanas-solicitudes { display: grid; width: 100%; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .pestanas-solicitudes button { min-width: 0; padding-inline: .35rem; }
 }
 
 /* Portal del usuario: navegación superior, sin panel lateral. */
@@ -6270,7 +6311,6 @@ th {
   }
 
   .marca-superior-solicitudes small,
-  .cabecera-portal-solicitudes .acciones-superiores-solicitudes .notificaciones-solicitudes,
   .cabecera-portal-solicitudes .cuenta-superior-solicitudes > span,
   .cabecera-portal-solicitudes .cuenta-superior-solicitudes > i {
     display: none;
@@ -6289,7 +6329,7 @@ th {
 
 /* Avisos transversales: conexión, operaciones asíncronas y páginas de error. */
 .aplicacion-inscripciones {
-  min-width: 320px;
+  min-width: 0;
   min-height: 100vh;
   color: #17342c;
   background: #f4f8fa;
@@ -7358,13 +7398,10 @@ th {
 .seguridad-perfil-usuario form {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   gap: .3rem .85rem;
 }
 
-.seguridad-perfil-usuario form label:nth-of-type(1) { grid-column: 1; }
-.seguridad-perfil-usuario form label:nth-of-type(2) { grid-column: 2; grid-row: 1; }
-.seguridad-perfil-usuario form input:nth-of-type(1) { grid-column: 1; }
-.seguridad-perfil-usuario form input:nth-of-type(2) { grid-column: 2; grid-row: 2; }
 .seguridad-perfil-usuario form button { grid-column: 1 / -1; margin-top: .55rem; }
 .seguridad-perfil-usuario > .mensaje-error,
 .seguridad-perfil-usuario > .mensaje-exito { grid-column: 1 / -1; margin: 0; }
@@ -7628,3 +7665,30 @@ th {
     font-size: clamp(2.1rem, 11vw, 2.8rem);
   }
 }
+.campo-contrasena { display: grid; min-width: 0; align-content: start; gap: .45rem; }
+.campo-contrasena > label { margin: 0; }
+.fortaleza-contrasena { display: grid; grid-template-rows: .32rem auto minmax(2.8em, auto); align-content: start; gap: .35rem; min-width: 0; margin-top: .25rem; color: #526575; font-size: .82rem; line-height: 1.4; }
+.fortaleza-contrasena-barras { display: grid; grid-template-columns: repeat(4, minmax(1.5rem, 1fr)); gap: .3rem; }
+.fortaleza-contrasena-barras i { height: .32rem; border-radius: 999px; background: #d8e0e5; }
+.fortaleza-muy-debil .fortaleza-contrasena-barras i.activa { background: #b42318; }
+.fortaleza-debil .fortaleza-contrasena-barras i.activa { background: #d97706; }
+.fortaleza-normal .fortaleza-contrasena-barras i.activa { background: #1f78a8; }
+.fortaleza-segura .fortaleza-contrasena-barras i.activa { background: #168153; }
+.fortaleza-muy-debil strong { color: #b42318; }
+.fortaleza-debil strong { color: #9a5200; }
+.fortaleza-normal strong { color: #16658e; }
+.fortaleza-segura strong { color: #11653f; }
+.fortaleza-contrasena small { display: block; margin: 0; color: #607382; font-size: .78rem; line-height: 1.4; }
+.grupos-roles-administracion { display: grid; gap: 1rem; }
+.grupos-roles-administracion > section { padding: .85rem; border: 1px solid #dce5ea; border-radius: .4rem; background: #fbfcfd; }
+.grupos-roles-administracion > section > h3 { margin: 0 0 .65rem; font-size: .9rem; color: #244e63; }
+.grupos-roles-administracion .rol-obligatorio { background: #eef6f1; }
+.grupos-roles-administracion input:disabled + span { opacity: 1; }
+.contenedor-notificaciones-solicitudes { position: relative; }
+.panel-notificaciones-solicitudes { position: absolute; z-index: 50; top: calc(100% + .55rem); right: 0; width: min(24rem, calc(100vw - 2rem)); max-height: 26rem; overflow: auto; padding: .8rem; border: 1px solid #d4e0e5; border-radius: .55rem; background: #fff; box-shadow: 0 .8rem 2rem rgb(20 53 68 / 18%); color: #244653; }
+.panel-notificaciones-solicitudes header { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding-bottom: .55rem; border-bottom: 1px solid #e1e8ec; }
+.panel-notificaciones-solicitudes header button { width: auto; min-height: auto; padding: .25rem .45rem; background: transparent; color: #1b627d; }
+.panel-notificaciones-solicitudes ul { list-style: none; margin: .5rem 0 0; padding: 0; }
+.panel-notificaciones-solicitudes li button { display: grid; width: 100%; gap: .25rem; padding: .7rem; border: 0; border-bottom: 1px solid #edf1f3; border-radius: 0; background: #fff; color: inherit; text-align: left; }
+.panel-notificaciones-solicitudes li.no-leida button { background: #eaf5fa; }
+.panel-notificaciones-solicitudes small { color: #687d86; font-weight: 400; }

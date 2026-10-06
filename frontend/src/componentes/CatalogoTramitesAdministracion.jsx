@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  actualizarPortadaTramite, actualizarTramiteAdministrado, crearCategoriaTramiteAdministrada,
+  actualizarCategoriaTramiteAdministrada, actualizarPortadaTramite, actualizarTramiteAdministrado, crearCategoriaTramiteAdministrada,
   crearTramiteAdministrado, listarCategoriasTramitesAdministradas, listarCatalogoTramitesAdministrado,
 } from "../api/administracionSolicitudes";
 import { DialogoCatalogo, IconoCatalogo, ListaEditableCatalogo } from "./ControlesCatalogoTramites";
@@ -10,8 +10,8 @@ const comoElementos = (lista) => lista.map((valor) => ({ id: window.crypto.rando
 const comoLista = (elementos) => elementos.map(({ valor }) => valor.trim()).filter(Boolean);
 const pasos = ["Información básica", "Requisitos", "Publicación"];
 
-function FormularioCategoria({ ocupado, guardar }) {
-  const [nombre, establecerNombre] = useState("");
+function FormularioCategoria({ categoria, ocupado, guardar }) {
+  const [nombre, establecerNombre] = useState(categoria?.nombre || "");
   return <form onSubmit={(evento) => { evento.preventDefault(); if (nombre.trim()) guardar(nombre.trim()); }}>
     <div className="dialogo-catalogo-cuerpo">
       <label className="catalogo-campo">Nombre de la categoría general
@@ -19,7 +19,7 @@ function FormularioCategoria({ ocupado, guardar }) {
       </label>
       <div className="catalogo-ejemplo-jerarquia"><IconoCatalogo nombre="carpeta" /><div><strong>{nombre.trim() || "Actividades deportivas"}</strong><span>Dentro de esta categoría podrás agregar trámites, como «Curso de natación».</span></div></div>
     </div>
-    <footer className="dialogo-catalogo-pie"><span>Podrás agregar trámites después.</span><button type="submit" className="catalogo-boton-principal" disabled={ocupado || !nombre.trim()}>{ocupado ? "Creando…" : "Crear categoría"}</button></footer>
+    <footer className="dialogo-catalogo-pie"><span>{categoria ? "Los trámites conservarán esta categoría." : "Podrás agregar trámites después."}</span><button type="submit" className="catalogo-boton-principal" disabled={ocupado || !nombre.trim()}>{ocupado ? "Guardando…" : categoria ? "Guardar cambios" : "Crear categoría"}</button></footer>
   </form>;
 }
 
@@ -139,7 +139,13 @@ export function CatalogoTramitesAdministracion() {
 
   function abrirCategoria() {
     establecerEstado((actual) => ({ ...actual, error: "", mensaje: "" }));
-    establecerEditor({ tipo: "categoria" });
+    establecerEditor({ tipo: "categoria", datos: null });
+  }
+
+  function editarCategoria() {
+    if (!categoriaSeleccionada) return;
+    establecerEstado((actual) => ({ ...actual, error: "", mensaje: "" }));
+    establecerEditor({ tipo: "categoria", datos: categoriaSeleccionada });
   }
 
   function abrirTramite(tramite) {
@@ -156,10 +162,16 @@ export function CatalogoTramitesAdministracion() {
     if (estado.guardando) return;
     establecerEstado((actual) => ({ ...actual, guardando: true, error: "" }));
     try {
-      const creada = await crearCategoriaTramiteAdministrada({ nombre });
-      establecerCategorias((lista) => [...lista, creada].sort((a, b) => a.ordenVisualizacion - b.ordenVisualizacion));
-      establecerSeleccion(creada.idCategoria); establecerBusqueda(""); establecerEditor(null);
-      establecerEstado((actual) => ({ ...actual, guardando: false, mensaje: `Categoría «${creada.nombre}» creada. Ya puedes agregar su primer trámite.` }));
+      const guardada = editor.datos
+        ? await actualizarCategoriaTramiteAdministrada(editor.datos.idCategoria, { nombre })
+        : await crearCategoriaTramiteAdministrada({ nombre });
+      establecerCategorias((lista) => editor.datos
+        ? lista.map((item) => item.idCategoria === guardada.idCategoria ? guardada : item)
+        : [...lista, guardada].sort((a, b) => a.ordenVisualizacion - b.ordenVisualizacion));
+      establecerSeleccion(guardada.idCategoria); establecerBusqueda(""); establecerEditor(null);
+      establecerEstado((actual) => ({ ...actual, guardando: false, mensaje: editor.datos
+        ? `Categoría «${guardada.nombre}» actualizada.`
+        : `Categoría «${guardada.nombre}» creada. Ya puedes agregar su primer trámite.` }));
     } catch (error) { establecerEstado((actual) => ({ ...actual, guardando: false, error: error.message })); }
   }
 
@@ -198,7 +210,7 @@ export function CatalogoTramitesAdministracion() {
         <button type="button" className="catalogo-boton-texto catalogo-agregar-categoria" onClick={abrirCategoria}><IconoCatalogo nombre="agregar" />Nueva categoría general</button>
       </aside>
       <div className="catalogo-contenido">
-        <header className="catalogo-cabecera-listado"><div><p className="catalogo-ruta">Catálogo{categoriaSeleccionada && <> / Categoría general</>}</p><h3>{categoriaSeleccionada?.nombre || "Todos los trámites"}</h3><p>{categoriaSeleccionada ? "Trámites de esta categoría" : "Consulta y edita los trámites disponibles"}</p></div>
+        <header className="catalogo-cabecera-listado"><div><p className="catalogo-ruta">Catálogo{categoriaSeleccionada && <> / Categoría general</>}</p><h3>{categoriaSeleccionada?.nombre || "Todos los trámites"}</h3><p>{categoriaSeleccionada ? "Trámites de esta categoría" : "Consulta y edita los trámites disponibles"}</p>{categoriaSeleccionada && <button type="button" className="catalogo-boton-texto" onClick={editarCategoria}><IconoCatalogo nombre="editar" />Editar categoría</button>}</div>
           <label className="catalogo-buscador"><span className="solo-lectores-catalogo">Buscar trámite</span><IconoCatalogo nombre="buscar" /><input type="search" placeholder="Buscar trámite…" value={busqueda} onChange={(evento) => establecerBusqueda(evento.target.value)} /></label>
         </header>
         {visibles.length > 0 ? <>
@@ -215,9 +227,9 @@ export function CatalogoTramitesAdministracion() {
         </div>}
       </div>
     </div>}
-    {editor && <DialogoCatalogo key={editor.tipo} compacto={editor.tipo === "categoria"} ocupado={estado.guardando} cerrar={() => { establecerEditor(null); establecerEstado((actual) => ({ ...actual, error: "" })); }} titulo={editor.tipo === "categoria" ? "Nueva categoría general" : editor.datos.idTramite === null ? "Nuevo trámite" : "Editar trámite"} descripcion={editor.tipo === "categoria" ? "Agrupa los trámites que pertenecen al mismo tema." : "Completa la información que verá la persona solicitante."}>
+    {editor && <DialogoCatalogo key={`${editor.tipo}-${editor.datos?.idCategoria || editor.datos?.idTramite || "nuevo"}`} compacto={editor.tipo === "categoria"} ocupado={estado.guardando} cerrar={() => { establecerEditor(null); establecerEstado((actual) => ({ ...actual, error: "" })); }} titulo={editor.tipo === "categoria" ? editor.datos ? "Editar categoría general" : "Nueva categoría general" : editor.datos.idTramite === null ? "Nuevo trámite" : "Editar trámite"} descripcion={editor.tipo === "categoria" ? "Agrupa los trámites que pertenecen al mismo tema." : "Completa la información que verá la persona solicitante."}>
       {estado.error && <p className="catalogo-aviso catalogo-aviso-error" role="alert">{estado.error}</p>}
-      {editor.tipo === "categoria" ? <FormularioCategoria ocupado={estado.guardando} guardar={guardarCategoria} /> : <FormularioTramite tramite={editor.datos} categorias={categorias} ocupado={estado.guardando} guardar={guardarTramite} />}
+      {editor.tipo === "categoria" ? <FormularioCategoria categoria={editor.datos} ocupado={estado.guardando} guardar={guardarCategoria} /> : <FormularioTramite tramite={editor.datos} categorias={categorias} ocupado={estado.guardando} guardar={guardarTramite} />}
     </DialogoCatalogo>}
   </section>;
 }

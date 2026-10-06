@@ -1,0 +1,117 @@
+{
+  "fecha": "2026-10-01T02:58:00.254Z",
+  "mode": "confirmaciones",
+  "results": [
+    {
+      "name": "Administrador autentica en servidor real",
+      "ok": true
+    },
+    {
+      "name": "Rol base obligatorio con versión actual",
+      "ok": true,
+      "status": 400,
+      "ms": 12,
+      "detail": "Toda cuenta activa debe conservar el rol USUARIOREGISTRADO."
+    },
+    {
+      "name": "Retirar permisos de empleado QA con versión actual",
+      "ok": true,
+      "status": 200,
+      "ms": 25
+    },
+    {
+      "name": "Cambio de permisos invalida sesión anterior",
+      "ok": true,
+      "status": 401,
+      "ms": 4,
+      "detail": "Debes iniciar sesión para consultar este recurso."
+    },
+    {
+      "name": "Cuenta sin permiso de eventos ya no puede consultarlos",
+      "ok": true,
+      "status": 403,
+      "ms": 3,
+      "detail": "No tienes permiso para realizar esta operación."
+    },
+    {
+      "name": "Descarga propia del PDF correcto",
+      "ok": true,
+      "status": 200,
+      "ms": 11
+    },
+    {
+      "name": "Documento ajeno protegido contra IDOR",
+      "ok": true,
+      "status": 404,
+      "ms": 7,
+      "detail": "No se encontró la solicitud indicada."
+    },
+    {
+      "name": "Documento no accesible anónimamente",
+      "ok": true,
+      "status": 401,
+      "ms": 2,
+      "detail": "Debes iniciar sesión para consultar este recurso."
+    },
+    {
+      "name": "Calendario consultado con rango explícito",
+      "ok": true,
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "name": "Calendario incorpora la solicitud aprobada",
+      "ok": false,
+      "reservasEncontradas": 1
+    },
+    {
+      "name": "Versión antigua de solicitud rechazada",
+      "ok": true,
+      "status": 409,
+      "ms": 5,
+      "detail": "La solicitud cambió. Recarga la información antes de continuar."
+    },
+    {
+      "name": "Cancelar inscripción propia",
+      "ok": true,
+      "status": 200,
+      "ms": 39
+    },
+    {
+      "name": "Cancelación libera cupo real",
+      "ok": true,
+      "ocupados": 0
+    },
+    {
+      "name": "Usuario puede reinscribirse después de cancelar",
+      "ok": true,
+      "status": 201,
+      "ms": 23
+    },
+    {
+      "name": "Reinscripción no duplica contador",
+      "ok": true,
+      "ocupados": 1
+    },
+    {
+      "name": "Token de recuperación inválido se rechaza",
+      "ok": true,
+      "status": 400,
+      "ms": 12,
+      "detail": "El enlace de recuperación no es válido, ya fue utilizado o venció. Solicita uno nuevo."
+    },
+    {
+      "name": "Cerrar sesión",
+      "ok": true,
+      "status": 204,
+      "ms": 4
+    },
+    {
+      "name": "Sesión cerrada no consulta perfil",
+      "ok": true,
+      "status": 401,
+      "ms": 3,
+      "detail": "Debes iniciar sesión para consultar este recurso."
+    }
+  ]
+}

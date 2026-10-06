@@ -301,6 +301,9 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         nombre = 'Empleado'
         apellido = 'Integración'
         correo = "empleado.$sufijo@prueba.local"
+        dpi = '9000000940001'
+        celular = '55554001'
+        fechaNacimiento = '1990-05-10'
         contrasenaInicial = $contrasenaAdministrador
         codigosRoles = @($rolEmpleado.codigo)
     } | ConvertTo-Json
@@ -316,6 +319,21 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         $empleadoCreado.roles -notcontains $rolEmpleado.codigo) {
         throw 'El empleado creado no recibió los roles esperados.'
     }
+    $sesionEmpleado = [Microsoft.PowerShell.Commands.WebRequestSession]::new()
+    $csrfEmpleado = Invoke-RestMethod -Uri "$urlAutenticacion/csrf" -WebSession $sesionEmpleado -TimeoutSec 5
+    $encabezadosEmpleado = @{}
+    $encabezadosEmpleado[$csrfEmpleado.nombreEncabezado] = $csrfEmpleado.token
+    $datosInicioEmpleado = @{
+        correo = "empleado.$sufijo@prueba.local"
+        contrasena = $contrasenaAdministrador
+        mantenerSesionActiva = $false
+    } | ConvertTo-Json
+    [void](Invoke-RestMethod -Uri "$urlAutenticacion/iniciar-sesion" -Method Post `
+        -ContentType 'application/json' -Headers $encabezadosEmpleado -Body $datosInicioEmpleado `
+        -WebSession $sesionEmpleado -TimeoutSec 5)
+    $csrfEmpleado = Invoke-RestMethod -Uri "$urlAutenticacion/csrf" -WebSession $sesionEmpleado -TimeoutSec 5
+    $encabezadosEmpleado = @{}
+    $encabezadosEmpleado[$csrfEmpleado.nombreEncabezado] = $csrfEmpleado.token
     $metricaSolicitudes = Invoke-RestMethod `
         -Uri "http://127.0.0.1:$puerto/actuator/metrics/http.server.requests" `
         -WebSession $sesionWeb `
@@ -379,6 +397,10 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
     if ($publicacionCreada.idPublicacion -ne $publicacionRepetida.idPublicacion) {
         throw 'La creación idempotente generó publicaciones diferentes.'
     }
+    $imagenQa = Get-Item -LiteralPath (Join-Path $raizRepositorio 'frontend\public\imagenes\escudo-guatemala.png')
+    [void](Invoke-RestMethod -Uri "$urlAdministracion/publicaciones/$($publicacionCreada.idPublicacion)/imagenes" `
+        -Method Post -Headers $encabezadosCsrf -Form @{ archivo = $imagenQa; textoAlternativo = 'Imagen de integración'; esPortada = 'true' } `
+        -WebSession $sesionWeb -TimeoutSec 10)
     $publicacionesAntes = Invoke-RestMethod -Uri "$urlApiPublica/publicaciones" -TimeoutSec 5
     if ($publicacionesAntes.totalElementos -ne 0) {
         throw 'Un borrador fue expuesto en el portal público.'
@@ -476,17 +498,17 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         -Uri "$urlEventos/$($eventoPublicado.idEvento)/inscripciones" `
         -Method Post `
         -ContentType 'application/json' `
-        -Headers $encabezadosInscripcion `
+        -Headers (@{ $csrfEmpleado.nombreEncabezado = $csrfEmpleado.token; 'Idempotency-Key' = $claveInscripcion }) `
         -Body $datosInscripcion `
-        -WebSession $sesionWeb `
+        -WebSession $sesionEmpleado `
         -TimeoutSec 5
     $inscripcionRepetida = Invoke-RestMethod `
         -Uri "$urlEventos/$($eventoPublicado.idEvento)/inscripciones" `
         -Method Post `
         -ContentType 'application/json' `
-        -Headers $encabezadosInscripcion `
+        -Headers (@{ $csrfEmpleado.nombreEncabezado = $csrfEmpleado.token; 'Idempotency-Key' = $claveInscripcion }) `
         -Body $datosInscripcion `
-        -WebSession $sesionWeb `
+        -WebSession $sesionEmpleado `
         -TimeoutSec 5
     if ($inscripcionCreada.idInscripcionEvento -ne $inscripcionRepetida.idInscripcionEvento) {
         throw 'La inscripción idempotente generó registros diferentes.'
@@ -507,9 +529,9 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         -Uri "$urlEventos/$($eventoPublicado.idEvento)/inscripciones/cancelar" `
         -Method Post `
         -ContentType 'application/json' `
-        -Headers $encabezadosCsrf `
+        -Headers $encabezadosEmpleado `
         -Body $datosCancelacion `
-        -WebSession $sesionWeb `
+        -WebSession $sesionEmpleado `
         -TimeoutSec 5
     if ($inscripcionCancelada.estado -ne 'CANCELADA' -or $inscripcionCancelada.cuposDisponibles -ne 2) {
         throw 'La cancelación no liberó el cupo de forma correcta.'
@@ -538,11 +560,12 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         descripcion = 'Área temporal para verificar la fase de áreas y mapa.'
         estado = 'DISPONIBLE'
         notaDisponibilidad = 'Disponible durante la prueba.'
-        latitud = 14.60000000
-        longitud = -90.55000000
-        coordenadasConfirmadas = $true
-        perimetro = @()
-        perimetroConfirmado = $false
+        perimetro = @(
+            @{ latitud = 14.63935400; longitud = -90.54246400 },
+            @{ latitud = 14.63923100; longitud = -90.54138900 },
+            @{ latitud = 14.63885100; longitud = -90.54141800 },
+            @{ latitud = 14.63895500; longitud = -90.54249300 }
+        )
         horarioJson = '{"lunes":"08:00-17:00"}'
         observacionesInternas = 'Registro temporal.'
         motivoCambioEstado = 'Registro inicial confirmado.'
@@ -556,8 +579,11 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         -Body $datosArea `
         -WebSession $sesionWeb `
         -TimeoutSec 5
+    $areaCreada = Invoke-RestMethod -Uri "$urlAdministracion/areas/$($areaCreada.idArea)/imagen" `
+        -Method Post -Headers $encabezadosCsrf -Form @{ archivo = $imagenQa } `
+        -WebSession $sesionWeb -TimeoutSec 10
     $areasDurante = Invoke-RestMethod -Uri "$urlApiPublica/areas" -TimeoutSec 5
-    if ($areasDurante.Count -ne 1 -or $areasDurante[0].codigo -ne 'CANCHAINTEGRACION') {
+    if ($areasDurante.Count -ne 1 -or $areasDurante[0].nombre -ne 'Cancha de integración') {
         throw 'El área confirmada no apareció en el portal público.'
     }
 
@@ -565,8 +591,8 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         idArea = $areaCreada.idArea
         tipoNodo = 'DESTINO'
         nombre = 'Cancha de integración'
-        latitud = 14.60100000
-        longitud = -90.55100000
+        latitud = 14.63917860
+        longitud = -90.54108240
         coordenadasConfirmadas = $true
         accesible = $true
         version = $null
@@ -637,21 +663,102 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         motivoCambioEstado = 'Mantenimiento programado de integración.'
         version = $areaCreada.version
     } | ConvertTo-Json
-    [void](Invoke-RestMethod `
+    $areaEnMantenimiento = Invoke-RestMethod `
         -Uri "$urlAdministracion/areas/$($areaCreada.idArea)" `
         -Method Put `
         -ContentType 'application/json' `
         -Headers $encabezadosCsrf `
         -Body $datosAreaActualizada `
         -WebSession $sesionWeb `
-        -TimeoutSec 5)
+        -TimeoutSec 5
+    $mapaEnMantenimiento = Invoke-RestMethod -Uri "$urlApiPublica/mapa" -TimeoutSec 5
+    $nodoEnMantenimiento = $mapaEnMantenimiento.nodos | Where-Object { $_.idNodoMapa -eq $nodoDestino.idNodoMapa } | Select-Object -First 1
+    if ($null -eq $nodoEnMantenimiento -or $nodoEnMantenimiento.estadoCalculadoArea -ne 'ENMANTENIMIENTO') {
+        throw 'El mapa público no mostró el área en mantenimiento en el punto del Parque Erick Barrondo.'
+    }
+    $datosAreaFueraServicio = @{
+        idCategoriaArea = $areaEnMantenimiento.idCategoriaArea
+        codigo = $areaEnMantenimiento.codigo
+        numeroVisibleMapa = $areaEnMantenimiento.numeroVisibleMapa
+        nombre = $areaEnMantenimiento.nombre
+        descripcion = $areaEnMantenimiento.descripcion
+        estado = 'FUERADESERVICIO'
+        notaDisponibilidad = 'Fuera de servicio durante la comprobación.'
+        latitud = $areaEnMantenimiento.latitud
+        longitud = $areaEnMantenimiento.longitud
+        coordenadasConfirmadas = $areaEnMantenimiento.coordenadasConfirmadas
+        perimetro = @($areaEnMantenimiento.perimetro)
+        perimetroConfirmado = $areaEnMantenimiento.perimetroConfirmado
+        horarioJson = $areaEnMantenimiento.horarioJson
+        observacionesInternas = 'Comprobación final fuera de servicio.'
+        motivoCambioEstado = 'Validación del estado fuera de servicio.'
+        version = $areaEnMantenimiento.version
+    } | ConvertTo-Json
+    [void](Invoke-RestMethod -Uri "$urlAdministracion/areas/$($areaCreada.idArea)" -Method Put `
+        -ContentType 'application/json' -Headers $encabezadosCsrf -Body $datosAreaFueraServicio `
+        -WebSession $sesionWeb -TimeoutSec 5)
+    $mapaFueraServicio = Invoke-RestMethod -Uri "$urlApiPublica/mapa" -TimeoutSec 5
+    $nodoFueraServicio = $mapaFueraServicio.nodos | Where-Object { $_.idNodoMapa -eq $nodoDestino.idNodoMapa } | Select-Object -First 1
+    if ($null -eq $nodoFueraServicio -or $nodoFueraServicio.estadoCalculadoArea -ne 'FUERADESERVICIO') {
+        throw 'El mapa público no mostró el área fuera de servicio en el punto del Parque Erick Barrondo.'
+    }
     $historialArea = Invoke-RestMethod `
         -Uri "$urlAdministracion/areas/$($areaCreada.idArea)/historial" `
         -Headers $encabezadosCsrf `
         -WebSession $sesionWeb `
         -TimeoutSec 5
-    if ($historialArea.Count -ne 2 -or $historialArea[0].estadoNuevo -ne 'ENMANTENIMIENTO') {
+    if ($historialArea.Count -ne 3 -or $historialArea[0].estadoNuevo -ne 'FUERADESERVICIO') {
         throw 'El cambio de estado no conservó el historial inmutable del área.'
+    }
+
+    $datosCategoriaTramite = @{ nombre = 'Gestiones de integración' } | ConvertTo-Json
+    $categoriaTramite = Invoke-RestMethod -Uri "$urlAdministracion/solicitudes/catalogo/categorias" `
+        -Method Post -ContentType 'application/json' -Headers $encabezadosCsrf `
+        -Body $datosCategoriaTramite -WebSession $sesionWeb -TimeoutSec 5
+    $datosTramite = @{
+        idCategoria = $categoriaTramite.idCategoria
+        nombre = 'Solicitud documental de integración'
+        resumen = 'Trámite temporal para validar documentos.'
+        acerca = 'Prueba técnica sin validez administrativa.'
+        requisitos = @('Completar los datos del solicitante.')
+        documentosRequeridos = @('DPI simulado en PDF')
+        costo = 'Sin costo'
+        tiempoRespuesta = 'Prueba'
+        requiereReserva = $false
+        activo = $true
+    } | ConvertTo-Json -Depth 5
+    $tramite = Invoke-RestMethod -Uri "$urlAdministracion/solicitudes/catalogo" `
+        -Method Post -ContentType 'application/json' -Headers $encabezadosCsrf `
+        -Body $datosTramite -WebSession $sesionWeb -TimeoutSec 5
+    $datosSolicitante = @{
+        nombreCompleto = 'Empleado Integración'
+        dpi = '9000000940001'
+        telefono = '55554001'
+        correo = "empleado.$sufijo@prueba.local"
+        representanteLegal = $false
+        institucion = $null
+    } | ConvertTo-Json
+    $solicitudDocumento = Invoke-RestMethod -Uri "http://127.0.0.1:$puerto/api/v1/solicitudes/tramites/$($tramite.codigo)/borradores" `
+        -Method Post -ContentType 'application/json' -Headers $encabezadosEmpleado `
+        -Body $datosSolicitante -WebSession $sesionEmpleado -TimeoutSec 5
+    $archivoDpi = Get-Item -LiteralPath (Join-Path $raizRepositorio 'output\pdf\dpi-documento-de-prueba.pdf')
+    $documentoDpi = Invoke-RestMethod -Uri "http://127.0.0.1:$puerto/api/v1/solicitudes/$($solicitudDocumento.idSolicitud)/documentos" `
+        -Method Post -Headers $encabezadosEmpleado -Form @{ archivo = $archivoDpi } `
+        -WebSession $sesionEmpleado -TimeoutSec 10
+    if ($documentoDpi.categoriaDocumento -ne 'DPISOLICITANTE') {
+        throw 'El documento DPI simulado no apareció con su categoría esperada.'
+    }
+    $detalleSolicitud = Invoke-RestMethod -Uri "http://127.0.0.1:$puerto/api/v1/solicitudes/$($solicitudDocumento.idSolicitud)" `
+        -Headers $encabezadosEmpleado -WebSession $sesionEmpleado -TimeoutSec 5
+    $solicitudEnviada = Invoke-RestMethod -Uri "http://127.0.0.1:$puerto/api/v1/solicitudes/$($solicitudDocumento.idSolicitud)/enviar" `
+        -Method Post -ContentType 'application/json' -Headers $encabezadosEmpleado `
+        -Body (@{ version = $detalleSolicitud.version } | ConvertTo-Json) -WebSession $sesionEmpleado -TimeoutSec 5
+    $solicitudesPropias = Invoke-RestMethod -Uri "http://127.0.0.1:$puerto/api/v1/solicitudes/mias" `
+        -Headers $encabezadosEmpleado -WebSession $sesionEmpleado -TimeoutSec 5
+    $solicitudAdministrada = Invoke-RestMethod -Uri "$urlAdministracion/solicitudes/$($solicitudEnviada.idSolicitud)" `
+        -Headers $encabezadosCsrf -WebSession $sesionWeb -TimeoutSec 5
+    if ($solicitudesPropias.totalElementos -ne 1 -or $solicitudAdministrada.documentos.Count -ne 1) {
+        throw 'La solicitud o su DPI simulado no apareció para el usuario y la administración.'
     }
 
     $datosBicicleta = @{
@@ -743,6 +850,56 @@ ALTER ROLE db_owner ADD MEMBER [$nombreUsuario];
         $auditoriaBicicleta.contenido[0].idCorrelacion -ne $idCorrelacionBicicleta -or
         $auditoriaBicicleta.contenido[0].nombreActor -ne 'Administrador Prueba') {
         throw 'La consulta de auditoría no conservó el actor o la correlación de la operación.'
+    }
+
+    $datosSegundoAdministrador = @{
+        nombre = 'Administrador'
+        apellido = 'Secundario'
+        correo = "administrador.secundario.$sufijo@prueba.local"
+        dpi = '9000000940002'
+        celular = '55554002'
+        fechaNacimiento = '1988-08-08'
+        contrasenaInicial = $contrasenaAdministrador
+        codigosRoles = @('ADMINISTRADOR')
+    } | ConvertTo-Json
+    $segundoAdministrador = Invoke-RestMethod -Uri "$urlAdministracion/empleados" -Method Post `
+        -ContentType 'application/json' -Headers $encabezadosCsrf -Body $datosSegundoAdministrador `
+        -WebSession $sesionWeb -TimeoutSec 5
+    $respuestaEliminarAdministrador = Invoke-WebRequest -Uri "$urlAdministracion/usuarios/$($segundoAdministrador.idUsuario)" `
+        -Method Delete -ContentType 'application/json' -Headers $encabezadosCsrf `
+        -Body (@{ versionUsuario = $segundoAdministrador.version } | ConvertTo-Json) `
+        -WebSession $sesionWeb -UseBasicParsing -TimeoutSec 5
+    if ($respuestaEliminarAdministrador.StatusCode -ne 204) {
+        throw 'No se pudo eliminar un administrador cuando existía otro administrador activo.'
+    }
+
+    $paginaEmpleado = Invoke-RestMethod -Uri "$urlAdministracion/usuarios?busqueda=$([Uri]::EscapeDataString("empleado.$sufijo@prueba.local"))" `
+        -Headers $encabezadosCsrf -WebSession $sesionWeb -TimeoutSec 5
+    $empleadoVigente = $paginaEmpleado.contenido | Select-Object -First 1
+    if ($null -eq $empleadoVigente) { throw 'No se encontró la cuenta de usuario antes de eliminarla.' }
+    $respuestaEliminarEmpleado = Invoke-WebRequest -Uri "$urlAdministracion/usuarios/$($empleadoVigente.idUsuario)" `
+        -Method Delete -ContentType 'application/json' -Headers $encabezadosCsrf `
+        -Body (@{ versionUsuario = $empleadoVigente.version } | ConvertTo-Json) `
+        -WebSession $sesionWeb -UseBasicParsing -TimeoutSec 5
+    if ($respuestaEliminarEmpleado.StatusCode -ne 204) { throw 'La eliminación de la cuenta de usuario no devolvió 204.' }
+    $paginaTrasEliminar = Invoke-RestMethod -Uri "$urlAdministracion/usuarios?busqueda=$([Uri]::EscapeDataString("empleado.$sufijo@prueba.local"))" `
+        -Headers $encabezadosCsrf -WebSession $sesionWeb -TimeoutSec 5
+    if ($paginaTrasEliminar.totalElementos -ne 0) { throw 'La cuenta eliminada continúa visible en el módulo de usuarios.' }
+    $estadoLoginEliminado = $null
+    try {
+        $sesionEliminada = [Microsoft.PowerShell.Commands.WebRequestSession]::new()
+        $csrfEliminado = Invoke-RestMethod -Uri "$urlAutenticacion/csrf" -WebSession $sesionEliminada -TimeoutSec 5
+        $encabezadoEliminado = @{ $csrfEliminado.nombreEncabezado = $csrfEliminado.token }
+        [void](Invoke-WebRequest -Uri "$urlAutenticacion/iniciar-sesion" -Method Post -ContentType 'application/json' `
+            -Headers $encabezadoEliminado -Body $datosInicioEmpleado -WebSession $sesionEliminada -UseBasicParsing -TimeoutSec 5)
+    } catch {
+        if ($null -ne $_.Exception.Response) { $estadoLoginEliminado = [int]$_.Exception.Response.StatusCode }
+    }
+    if ($estadoLoginEliminado -ne 401) { throw 'La cuenta eliminada todavía pudo iniciar sesión.' }
+    $solicitudConservada = Invoke-RestMethod -Uri "$urlAdministracion/solicitudes/$($solicitudEnviada.idSolicitud)" `
+        -Headers $encabezadosCsrf -WebSession $sesionWeb -TimeoutSec 5
+    if ($solicitudConservada.idSolicitud -ne $solicitudEnviada.idSolicitud) {
+        throw 'La eliminación de cuenta dañó el historial de solicitudes.'
     }
 
     $lineaBaseRendimiento = & (Join-Path $PSScriptRoot 'Medir Rendimiento Local.ps1') `

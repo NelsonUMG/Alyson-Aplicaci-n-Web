@@ -34,6 +34,18 @@ function interpretarGrupos(configuracionGruposJson) {
   } catch { return []; }
 }
 
+function calcularEdad(fechaNacimiento, fechaActividad) {
+  if (!fechaNacimiento || !fechaActividad) return null;
+  const nacimiento = new Date(`${fechaNacimiento}T12:00:00`);
+  const actividad = new Date(fechaActividad);
+  if (Number.isNaN(nacimiento.getTime()) || Number.isNaN(actividad.getTime())) return null;
+  let edad = actividad.getFullYear() - nacimiento.getFullYear();
+  const antesDelCumpleanos = actividad.getMonth() < nacimiento.getMonth()
+    || (actividad.getMonth() === nacimiento.getMonth() && actividad.getDate() < nacimiento.getDate());
+  if (antesDelCumpleanos) edad -= 1;
+  return edad;
+}
+
 const nombresDias = {
   LUNES: "Lunes", MARTES: "Martes", MIERCOLES: "Miércoles", JUEVES: "Jueves",
   VIERNES: "Viernes", SABADO: "Sábado", DOMINGO: "Domingo",
@@ -178,6 +190,11 @@ function DetalleEvento({ identificadorUrl, usuario, cargandoSesion }) {
 
   const requisitosFormulario = interpretarRequisitos(evento?.esquemaFormularioJson);
   const gruposEvento = interpretarGrupos(evento?.configuracionGruposJson);
+  const edadEnEvento = calcularEdad(usuario?.fechaNacimiento, evento?.iniciaEn);
+  const gruposDisponibles = edadEnEvento === null ? gruposEvento : gruposEvento.filter((grupo) => (
+    (grupo.edadMinima === null || grupo.edadMinima === undefined || edadEnEvento >= Number(grupo.edadMinima))
+    && (grupo.edadMaxima === null || grupo.edadMaxima === undefined || edadEnEvento <= Number(grupo.edadMaxima))
+  ));
 
   return (
     <>
@@ -258,7 +275,13 @@ function DetalleEvento({ identificadorUrl, usuario, cargandoSesion }) {
                 {usuario && !cargandoSesion && estadoConsulta === "lista" && inscripcion?.estado !== "CONFIRMADA" && inscripcionAbierta && (
                   <form className="portal-formulario-inscripcion" onSubmit={confirmarInscripcion}>
                     <p>{inscripcion?.estado === "CANCELADA" ? "Tu inscripción anterior fue cancelada. Puedes volver a inscribirte." : "Aún no estás inscrito en esta actividad."}</p>
-                    {gruposEvento.length > 0 && <label htmlFor="grupoEvento">Grupo o categoría *<select id="grupoEvento" required value={codigoGrupo} onChange={(eventoCampo) => establecerCodigoGrupo(eventoCampo.target.value)}><option value="">Selecciona un grupo</option>{gruposEvento.map((grupo) => <option key={grupo.codigo} value={grupo.codigo}>{grupo.nombre} · {grupo.categoriaEdad}</option>)}</select></label>}
+                    {gruposEvento.length > 0 && <>
+                      {edadEnEvento !== null && <p className="nota-formulario-administracion">Según la fecha de nacimiento de tu cuenta, tienes {edadEnEvento} años para la fecha de esta actividad. Solo mostramos los grupos que corresponden a tu edad.</p>}
+                      {edadEnEvento === null && <p className="portal-mensaje-error">Agrega tu fecha de nacimiento en Mi perfil para mostrar los grupos adecuados.</p>}
+                      {gruposDisponibles.length > 0
+                        ? <label htmlFor="grupoEvento">Grupo o categoría *<select id="grupoEvento" required value={codigoGrupo} onChange={(eventoCampo) => establecerCodigoGrupo(eventoCampo.target.value)}><option value="">Selecciona un grupo</option>{gruposDisponibles.map((grupo) => <option key={grupo.codigo} value={grupo.codigo}>{grupo.nombre} · {grupo.categoriaEdad}</option>)}</select></label>
+                        : <p className="portal-mensaje-error" role="alert">No hay un grupo disponible para tu edad en esta actividad.</p>}
+                    </>}
                     {requisitosFormulario.length > 0 && <h3>Requisitos para la inscripción</h3>}
                     {requisitosFormulario.map((campo) => (
                       <label key={campo.id} htmlFor={`requisito-${campo.id}`}>
@@ -266,7 +289,7 @@ function DetalleEvento({ identificadorUrl, usuario, cargandoSesion }) {
                         <CampoRequisito campo={campo} valor={respuestasRequisitos[campo.id]} alCambiar={actualizarRespuesta} />
                       </label>
                     ))}
-                    <button type="submit" disabled={operacion.procesando}>{operacion.procesando ? "Confirmando…" : "Confirmar inscripción"}</button>
+                    <button type="submit" disabled={operacion.procesando || (gruposEvento.length > 0 && gruposDisponibles.length === 0)}>{operacion.procesando ? "Confirmando…" : "Confirmar inscripción"}</button>
                   </form>
                 )}
                 {usuario && !cargandoSesion && estadoConsulta === "lista" && inscripcion?.estado !== "CONFIRMADA" && !inscripcionAbierta && (

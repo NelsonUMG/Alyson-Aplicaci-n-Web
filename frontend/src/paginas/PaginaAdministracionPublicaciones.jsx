@@ -325,7 +325,9 @@ export function PaginaAdministracionPublicaciones() {
       establecerImagenesGaleriaPendientes([]);
       establecerImagenes(await listarImagenesPublicacion(guardada.idPublicacion));
       await recargarPublicaciones(pagina.pagina);
-      establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Noticia guardada como borrador." });
+      establecerEstado({ cargando: false, guardando: false, error: "", mensaje: guardada.estado === "PUBLICADA"
+        ? "Noticia publicada y cambios guardados."
+        : "Noticia guardada como borrador." });
     } catch (error) {
       if (guardada) establecerPublicacionEdicion({ ...guardada, fechaEditorial: guardada.fechaEditorial || "" });
       if (cantidadGaleriaSubida > 0) {
@@ -348,7 +350,9 @@ export function PaginaAdministracionPublicaciones() {
       const actualizada = await accion(publicacionEdicion.idPublicacion, publicacionEdicion.version);
       establecerPublicacionEdicion({ ...actualizada, fechaEditorial: actualizada.fechaEditorial || "" });
       await recargarPublicaciones(pagina.pagina);
-      establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Estado de la noticia actualizado." });
+      establecerEstado({ cargando: false, guardando: false, error: "", mensaje: actualizada.estado === "PUBLICADA"
+        ? "Noticia publicada correctamente."
+        : actualizada.estado === "ARCHIVADA" ? "Noticia archivada." : "Noticia guardada como borrador." });
     } catch (error) {
       establecerEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
     }

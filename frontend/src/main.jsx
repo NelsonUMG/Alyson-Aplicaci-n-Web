@@ -9,6 +9,7 @@ import "./estilos/ventanilla.css";
 import "./estilos/detalleEvento.css";
 import "./estilos/administracion.css";
 import "./estilos/perfilAdministracion.css";
+import "./estilos/configuracionPortada.css";
 
 const elementoRaiz = document.getElementById("root");
 

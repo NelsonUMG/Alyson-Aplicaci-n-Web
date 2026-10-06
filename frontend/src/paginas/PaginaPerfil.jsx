@@ -7,6 +7,7 @@ import {
   obtenerPerfil,
   subirFotoPerfil,
 } from "../api/autenticacion";
+import { IndicadorFortalezaContrasena } from "../componentes/IndicadorFortalezaContrasena";
 import { usarSesion } from "../autenticacion/ContextoSesion";
 import { esUsuarioComun } from "../autenticacion/clasificacionUsuario";
 import { MODULO_BICICLETAS_VISIBLE } from "../configuracion/modulos";
@@ -29,6 +30,13 @@ export function PaginaPerfil() {
     }
   }, [hash]);
   const modulosAdministracion = usuarioComun ? [] : [
+    {
+      permiso: "INSTITUCIONALGESTIONAR",
+      destino: "/administracion/pagina-principal",
+      etiqueta: "Página principal",
+      descripcion: "Cambia el color y la imagen de portada de Inicio.",
+      icono: "institucional",
+    },
     {
       permiso: "ROLGESTIONAR",
       destino: "/administracion/usuarios",
@@ -181,7 +189,8 @@ export function PaginaPerfil() {
             <label htmlFor="contrasenaActual">Contraseña actual</label>
             <input id="contrasenaActual" type="password" autoComplete="current-password" required maxLength="128" value={datos.contrasenaActual} onChange={(evento) => setDatos({ ...datos, contrasenaActual: evento.target.value })} />
             <label htmlFor="contrasenaNueva">Contraseña nueva</label>
-            <input id="contrasenaNueva" type="password" autoComplete="new-password" required minLength="12" maxLength="128" value={datos.contrasenaNueva} onChange={(evento) => setDatos({ ...datos, contrasenaNueva: evento.target.value })} />
+            <input id="contrasenaNueva" type="password" autoComplete="new-password" required minLength="12" maxLength="128" aria-describedby="fortalezaContrasenaPerfilAdministrativo" value={datos.contrasenaNueva} onChange={(evento) => setDatos({ ...datos, contrasenaNueva: evento.target.value })} />
+            <IndicadorFortalezaContrasena id="fortalezaContrasenaPerfilAdministrativo" contrasena={datos.contrasenaNueva} />
             <button type="submit" disabled={estado.enviando}>Actualizar contraseña</button>
           </form>
         </section>
@@ -366,10 +375,15 @@ function PerfilUsuarioComun({
           {estadoContrasena.error && <p className="mensaje-error" role="alert">{estadoContrasena.error}</p>}
           {estadoContrasena.mensaje && <p className="mensaje-exito" role="status">{estadoContrasena.mensaje}</p>}
           <form onSubmit={enviarCambio}>
-            <label htmlFor="contrasenaActual">Contraseña actual</label>
-            <input id="contrasenaActual" type="password" autoComplete="current-password" required maxLength="128" value={datosContrasena.contrasenaActual} onChange={(evento) => establecerDatosContrasena({ ...datosContrasena, contrasenaActual: evento.target.value })} />
-            <label htmlFor="contrasenaNueva">Contraseña nueva</label>
-            <input id="contrasenaNueva" type="password" autoComplete="new-password" required minLength="12" maxLength="128" value={datosContrasena.contrasenaNueva} onChange={(evento) => establecerDatosContrasena({ ...datosContrasena, contrasenaNueva: evento.target.value })} />
+            <div className="campo-contrasena">
+              <label htmlFor="contrasenaActual">Contraseña actual</label>
+              <input id="contrasenaActual" type="password" autoComplete="current-password" required maxLength="128" value={datosContrasena.contrasenaActual} onChange={(evento) => establecerDatosContrasena({ ...datosContrasena, contrasenaActual: evento.target.value })} />
+            </div>
+            <div className="campo-contrasena">
+              <label htmlFor="contrasenaNueva">Contraseña nueva</label>
+              <input id="contrasenaNueva" type="password" autoComplete="new-password" required minLength="12" maxLength="128" aria-describedby="fortalezaContrasenaPerfil" value={datosContrasena.contrasenaNueva} onChange={(evento) => establecerDatosContrasena({ ...datosContrasena, contrasenaNueva: evento.target.value })} />
+              <IndicadorFortalezaContrasena id="fortalezaContrasenaPerfil" contrasena={datosContrasena.contrasenaNueva} />
+            </div>
             <button type="submit" disabled={estadoContrasena.enviando}>Actualizar contraseña</button>
           </form>
         </section>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import * as api from "../api/solicitudes";
+import { listarNotificaciones, marcarNotificacionLeida } from "../api/notificaciones";
 import { listarAreas } from "../api/portalPublico";
 import { formatearTextoTecnico } from "../utilidades/formatoTexto";
 
@@ -81,6 +82,8 @@ export function PaginaMisSolicitudes() {
   const [exito, setExito] = useState("");
   const [busquedaSolicitudes, setBusquedaSolicitudes] = useState("");
   const [orden, setOrden] = useState("RECIENTES");
+  const [notificaciones, setNotificaciones] = useState({ noLeidas: 0, contenido: [] });
+  const [mostrarNotificaciones, setMostrarNotificaciones] = useState(false);
 
   async function cargar(codigoGrupo = grupo, numeroPagina = 0) {
     setEstado((actual) => ({ ...actual, cargando: true, error: "" }));
@@ -88,6 +91,23 @@ export function PaginaMisSolicitudes() {
     catch (error) { setEstado((a) => ({ ...a, cargando: false, error: error.message })); }
   }
   useEffect(() => { cargar(grupo, 0); }, [grupo]);
+  useEffect(() => {
+    let vigente = true;
+    listarNotificaciones().then((respuesta) => { if (vigente) setNotificaciones(respuesta); }).catch(() => {});
+    return () => { vigente = false; };
+  }, []);
+
+  async function leerNotificacion(notificacion) {
+    if (!notificacion.leida) {
+      try {
+        const actualizada = await marcarNotificacionLeida(notificacion.idNotificacion);
+        setNotificaciones((actuales) => ({
+          noLeidas: Math.max(0, actuales.noLeidas - 1),
+          contenido: actuales.contenido.map((item) => item.idNotificacion === actualizada.idNotificacion ? actualizada : item),
+        }));
+      } catch { /* La notificación permanece visible y puede intentarse nuevamente. */ }
+    }
+  }
 
   async function abrirCatalogo() {
     setEstado((a) => ({ ...a, cargando: true, error: "", mensaje: "" }));
@@ -199,11 +219,12 @@ export function PaginaMisSolicitudes() {
     setEstado((a) => ({ ...a, cargando: true, error: "" }));
     try {
       const [guardada, areasParque] = await Promise.all([api.consultarSolicitud(idSolicitud), listarAreas()]);
-      const codigo = guardada.detalle.codigoTramite || "RESERVACANCHAS"; setTramite(await api.consultarTramite(codigo));
+      const codigo = guardada.detalle.codigoTramite || "RESERVACANCHAS";
+      const detalleTramite = await api.consultarTramite(codigo); setTramite(detalleTramite);
       setSolicitud(guardada); setAreas(areasParque);
       setAspirante({ nombreCompleto: `${guardada.detalle.datosSolicitante?.nombre || ""} ${guardada.detalle.datosSolicitante?.apellido || ""}`.trim(), dpi: guardada.detalle.datosSolicitante?.dpi || "", telefono: guardada.detalle.datosSolicitante?.celular || "", correo: guardada.detalle.datosSolicitante?.correo || "", representanteLegal: Boolean(guardada.detalle.representanteLegal), institucion: guardada.detalle.institucion || "" });
       setEspacio({ codigoArea: guardada.detalle.codigoArea || "", fechaSolicitada: guardada.detalle.fechaSolicitada || "", horaInicio: guardada.detalle.horaInicio?.slice(0, 5) || "", horaFin: guardada.detalle.horaFin?.slice(0, 5) || "", tipoActividad: guardada.detalle.tipoActividad || "", cantidadPersonas: guardada.detalle.cantidadPersonas || 51, descripcion: guardada.detalle.descripcion || "", tipoReserva: guardada.detalle.tipoReserva || "", nombreResponsable: guardada.detalle.nombreResponsable || "" });
-      setModal(guardada.detalle.codigoArea ? "paso3" : guardada.detalle.tipoReserva ? "paso2" : "tipo"); setEstado((a) => ({ ...a, cargando: false }));
+      setModal(!detalleTramite.requiereReserva ? "paso3" : guardada.detalle.codigoArea ? "paso3" : guardada.detalle.tipoReserva ? "paso2" : "tipo"); setEstado((a) => ({ ...a, cargando: false }));
     } catch (error) { setEstado((a) => ({ ...a, cargando: false, error: error.message })); }
   }
 
@@ -259,7 +280,10 @@ export function PaginaMisSolicitudes() {
           <button type="button" onClick={abrirDenuncias}><IconoPanel tipo="ayuda" /><span>Denuncias y quejas</span></button>
         </nav>
         <div className="acciones-superiores-solicitudes">
-          <button type="button" className="notificaciones-solicitudes" aria-label="Notificaciones"><IconoPanel tipo="campana" /><i /></button>
+          <div className="contenedor-notificaciones-solicitudes">
+            <button type="button" className="notificaciones-solicitudes" aria-label={`Notificaciones${notificaciones.noLeidas ? `, ${notificaciones.noLeidas} sin leer` : ""}`} aria-expanded={mostrarNotificaciones} onClick={() => setMostrarNotificaciones((visible) => !visible)}><IconoPanel tipo="campana" />{notificaciones.noLeidas > 0 && <i>{notificaciones.noLeidas > 9 ? "9+" : notificaciones.noLeidas}</i>}</button>
+            {mostrarNotificaciones && <section className="panel-notificaciones-solicitudes" aria-label="Notificaciones recientes"><header><strong>Notificaciones</strong><button type="button" onClick={() => setMostrarNotificaciones(false)}>Cerrar</button></header>{notificaciones.contenido.length === 0 ? <p>No tienes notificaciones recientes.</p> : <ul>{notificaciones.contenido.map((notificacion) => <li key={notificacion.idNotificacion} className={notificacion.leida ? "" : "no-leida"}><button type="button" onClick={() => leerNotificacion(notificacion)}><strong>{notificacion.asunto}</strong><small>{formatoFecha.format(new Date(notificacion.creadaEn))}</small></button></li>)}</ul>}</section>}
+          </div>
           <Link to="/perfil" className="cuenta-superior-solicitudes"><span>Mi cuenta</span><b>U</b><i>⌄</i></Link>
         </div>
       </div>
@@ -288,9 +312,9 @@ export function PaginaMisSolicitudes() {
       {modal === "paso1" && <PasoSolicitante datos={aspirante} setDatos={setAspirante} guardar={guardarSolicitante} guardando={estado.guardando} />}
       {modal === "tipo" && <SelectorTipo seleccionar={seleccionarTipo} volver={() => setModal("paso1")} />}
       {modal === "paso2" && <PasoEspacio datos={espacio} setDatos={setEspacio} areas={areas} minimoFecha={minimoFecha} guardar={guardarEspacio} volver={() => setModal("tipo")} guardando={estado.guardando} />}
-      {modal === "paso3" && solicitud && <PasoDocumentos solicitud={solicitud} subir={subirDocumento} quitar={quitarDocumento} enviar={enviarSolicitud} volver={() => setModal("paso2")} continuar={cerrarModal} guardando={estado.guardando} />}
+      {modal === "paso3" && solicitud && <PasoDocumentos solicitud={solicitud} subir={subirDocumento} quitar={quitarDocumento} enviar={enviarSolicitud} volver={() => setModal(tramite?.requiereReserva ? "paso2" : "paso1")} continuar={cerrarModal} guardando={estado.guardando} />}
       {modal === "denuncia" && <FormularioDenuncia datos={denuncia} setDatos={setDenuncia} enviar={enviarDenuncia} guardando={estado.guardando} catalogo={catalogoSolicitudes} />}
-      {exito && <div className="fondo-exito-guardado"><div><span>✓</span><h3>Guardado exitoso</h3><p>{exito}</p><button type="button" onClick={() => { setExito(""); setModal(modal === "paso1" ? "tipo" : "paso3"); }}>Continuar</button></div></div>}
+      {exito && <div className="fondo-exito-guardado"><div><span>✓</span><h3>Guardado exitoso</h3><p>{exito}</p><button type="button" onClick={() => { setExito(""); setModal(modal === "paso1" ? (tramite?.requiereReserva ? "tipo" : "paso3") : "paso3"); }}>Continuar</button></div></div>}
     </section></div>}
   </div>;
 }
@@ -370,7 +394,7 @@ function DetalleTramite({ tramite, volver, comenzar, resena, setResena, guardarR
 }
 
 function PasoSolicitante({ datos, setDatos, guardar, guardando }) {
-  return <div className="contenido-modal-tramites formulario-tramite"><Pasos paso={1} /><h3>Paso 1 · Información del solicitante</h3><p className="nota-informativa-solicitud"><strong>Importante:</strong> escribe tus datos tal y como aparecen en tu DPI.</p><form onSubmit={guardar} className="cuadricula-formulario-solicitud"><label>Nombre completo *<input required maxLength="200" value={datos.nombreCompleto} onChange={(e) => setDatos({ ...datos, nombreCompleto: e.target.value })} /></label><label>DPI - CUI *<input required inputMode="numeric" pattern="[0-9]{13}" maxLength="13" value={datos.dpi} onChange={(e) => setDatos({ ...datos, dpi: e.target.value })} /></label><label>Teléfono *<input required value={datos.telefono} onChange={(e) => setDatos({ ...datos, telefono: e.target.value })} /></label><label>Correo electrónico *<input type="email" required value={datos.correo} onChange={(e) => setDatos({ ...datos, correo: e.target.value })} /></label><label>¿Eres representante legal de una institución? *<select value={String(datos.representanteLegal)} onChange={(e) => setDatos({ ...datos, representanteLegal: e.target.value === "true" })}><option value="false">No</option><option value="true">Sí</option></select></label>{datos.representanteLegal && <label>Institución *<input required value={datos.institucion} onChange={(e) => setDatos({ ...datos, institucion: e.target.value })} /></label>}<div className="acciones-formulario-solicitud campo-ancho"><button disabled={guardando}>Guardar y siguiente</button></div></form></div>;
+  return <div className="contenido-modal-tramites formulario-tramite"><Pasos paso={1} /><h3>Paso 1 · Información del solicitante</h3><p className="nota-informativa-solicitud"><strong>Importante:</strong> escribe tus datos tal y como aparecen en tu DPI.</p><form onSubmit={guardar} className="cuadricula-formulario-solicitud"><label>Nombre completo *<input required maxLength="200" value={datos.nombreCompleto} onChange={(e) => setDatos({ ...datos, nombreCompleto: e.target.value })} /></label><label>DPI - CUI *<input required inputMode="numeric" pattern="[0-9]{13}" minLength="13" maxLength="13" title="Ingresa exactamente 13 números." value={datos.dpi} onChange={(e) => setDatos({ ...datos, dpi: e.target.value.replace(/\D/g, "").slice(0, 13) })} /></label><label>Teléfono *<input type="tel" required inputMode="numeric" pattern="[0-9]{8}" minLength="8" maxLength="8" title="Ingresa exactamente 8 números." value={datos.telefono} onChange={(e) => setDatos({ ...datos, telefono: e.target.value.replace(/\D/g, "").slice(0, 8) })} /></label><label>Correo electrónico *<input type="email" required maxLength="254" value={datos.correo} onChange={(e) => setDatos({ ...datos, correo: e.target.value })} /></label><label>¿Eres representante legal de una institución? *<select value={String(datos.representanteLegal)} onChange={(e) => setDatos({ ...datos, representanteLegal: e.target.value === "true" })}><option value="false">No</option><option value="true">Sí</option></select></label>{datos.representanteLegal && <label>Institución *<input required maxLength="200" value={datos.institucion} onChange={(e) => setDatos({ ...datos, institucion: e.target.value })} /></label>}<div className="acciones-formulario-solicitud campo-ancho"><button disabled={guardando}>Guardar y siguiente</button></div></form></div>;
 }
 
 function SelectorTipo({ seleccionar, volver }) {

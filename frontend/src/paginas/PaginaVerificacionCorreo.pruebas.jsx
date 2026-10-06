@@ -28,6 +28,9 @@ describe("Verificación de correo", () => {
     expect(screen.queryByText("Seguridad de la cuenta")).toBeNull();
     expect(screen.queryByText("Confirma tu dirección de correo para habilitar el acceso a tu cuenta.")).toBeNull();
     expect(screen.getByRole("link", { name: "Ir a iniciar sesión" })).toBeTruthy();
+    expect(screen.getByRole("main").classList.contains("pagina-verificacion-correo")).toBe(true);
+    expect(screen.getByRole("main").classList.contains("pagina-registro")).toBe(false);
+    expect(screen.getByRole("region", { name: "Correo verificado" }).classList.contains("tarjeta-verificacion-correo")).toBe(true);
   });
 
   it("permite solicitar otro enlace cuando no hay token", async () => {

@@ -5,17 +5,22 @@ import {
   actualizarRolesUsuario,
   crearEmpleado,
   crearRol,
+  eliminarCuentaUsuario,
   listarPermisos,
   listarRoles,
   listarUsuarios,
 } from "../api/administracionUsuarios";
 import { MODULO_BICICLETAS_VISIBLE } from "../configuracion/modulos";
 import { formatearPermiso, formatearTextoTecnico } from "../utilidades/formatoTexto";
+import { IndicadorFortalezaContrasena } from "../componentes/IndicadorFortalezaContrasena";
 
 const datosEmpleadoIniciales = {
   nombre: "",
   apellido: "",
   correo: "",
+  dpi: "",
+  celular: "",
+  fechaNacimiento: "",
   contrasenaInicial: "",
   confirmarContrasena: "",
   codigosRoles: [],
@@ -107,6 +112,7 @@ export function PaginaAdministracionUsuarios() {
   }
 
   function alternarRol(codigo) {
+    if (codigo === "USUARIOREGISTRADO") return;
     setSeleccion((actual) => {
       const codigos = new Set(actual.rolesSeleccionados);
       if (codigos.has(codigo)) codigos.delete(codigo);
@@ -160,7 +166,24 @@ export function PaginaAdministracionUsuarios() {
         )),
       }));
       setSeleccion({ ...actualizado, rolesSeleccionados: [...actualizado.roles] });
-      setEstado({ cargando: false, guardando: false, error: "", mensaje: "Roles actualizados." });
+      setEstado({ cargando: false, guardando: false, error: "", mensaje: `Roles de ${actualizado.nombre} ${actualizado.apellido} actualizados.` });
+    } catch (error) {
+      setEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
+    }
+  }
+
+  async function eliminarCuentaSeleccionada() {
+    const confirmada = window.confirm(
+      `¿Eliminar la cuenta de ${seleccion.nombre} ${seleccion.apellido}? Se anonimizarán sus datos personales y perderá todo acceso. El historial administrativo se conservará.`,
+    );
+    if (!confirmada) return;
+    setEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
+    try {
+      const nombre = `${seleccion.nombre} ${seleccion.apellido}`;
+      await eliminarCuentaUsuario(seleccion.idUsuario, seleccion.version);
+      await recargarUsuarios(busqueda, pagina.pagina);
+      setSeleccion(null);
+      setEstado({ cargando: false, guardando: false, error: "", mensaje: `Cuenta de ${nombre} eliminada.` });
     } catch (error) {
       setEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
     }
@@ -188,6 +211,9 @@ export function PaginaAdministracionUsuarios() {
         nombre: datosEmpleado.nombre,
         apellido: datosEmpleado.apellido,
         correo: datosEmpleado.correo,
+        dpi: datosEmpleado.dpi,
+        celular: datosEmpleado.celular,
+        fechaNacimiento: datosEmpleado.fechaNacimiento,
         contrasenaInicial: datosEmpleado.contrasenaInicial,
         codigosRoles: datosEmpleado.codigosRoles,
       });
@@ -223,6 +249,8 @@ export function PaginaAdministracionUsuarios() {
     rol.codigo !== "USUARIOREGISTRADO"
   ));
   const registroEmpleadoNoDisponible = estado.cargando || rolesParaEmpleado.length === 0;
+  const gruposRolesEdicion = categorizarRoles(rolesVisiblesAdministracion);
+  const gruposRolesEmpleado = categorizarRoles(rolesParaEmpleado);
   const gruposPermisos = agruparPermisos(permisos.filter((permiso) => (
     MODULO_BICICLETAS_VISIBLE || !permiso.codigo.startsWith("BICICLETA")
   )));
@@ -289,8 +317,21 @@ export function PaginaAdministracionUsuarios() {
             <input id="correoEmpleado" type="email" autoComplete="email" required maxLength="254" value={datosEmpleado.correo} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, correo: evento.target.value }))} />
             <div className="campos-formulario-administracion">
               <div>
+                <label htmlFor="dpiEmpleado">DPI o CUI</label>
+                <input id="dpiEmpleado" inputMode="numeric" pattern="[0-9]{13}" minLength="13" maxLength="13" required value={datosEmpleado.dpi} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, dpi: evento.target.value.replace(/\D/g, "").slice(0, 13) }))} />
+              </div>
+              <div>
+                <label htmlFor="celularEmpleado">Celular</label>
+                <input id="celularEmpleado" type="tel" inputMode="numeric" pattern="[0-9]{8}" minLength="8" maxLength="8" required value={datosEmpleado.celular} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, celular: evento.target.value.replace(/\D/g, "").slice(0, 8) }))} />
+              </div>
+            </div>
+            <label htmlFor="fechaNacimientoEmpleado">Fecha de nacimiento</label>
+            <input id="fechaNacimientoEmpleado" type="date" required min="1900-01-01" max={new Date().toISOString().slice(0, 10)} value={datosEmpleado.fechaNacimiento} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, fechaNacimiento: evento.target.value }))} />
+            <div className="campos-formulario-administracion">
+              <div>
                 <label htmlFor="contrasenaEmpleado">Contraseña inicial</label>
-                <input id="contrasenaEmpleado" type="password" autoComplete="new-password" required minLength="12" maxLength="128" value={datosEmpleado.contrasenaInicial} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, contrasenaInicial: evento.target.value }))} />
+                <input id="contrasenaEmpleado" type="password" autoComplete="new-password" required minLength="12" maxLength="128" aria-describedby="fortalezaContrasenaEmpleado" value={datosEmpleado.contrasenaInicial} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, contrasenaInicial: evento.target.value }))} />
+                <IndicadorFortalezaContrasena id="fortalezaContrasenaEmpleado" contrasena={datosEmpleado.contrasenaInicial} />
               </div>
               <div>
                 <label htmlFor="confirmarContrasenaEmpleado">Confirmar contraseña</label>
@@ -300,13 +341,10 @@ export function PaginaAdministracionUsuarios() {
             <fieldset className="selector-administracion">
               <legend>Roles del empleado</legend>
               <p>El rol Usuario registrado se asigna automáticamente.</p>
-              <div className="lista-seleccion-administracion">
-                {rolesParaEmpleado.map((rol) => (
-                  <label key={rol.codigo}>
-                    <input type="checkbox" checked={datosEmpleado.codigosRoles.includes(rol.codigo)} onChange={() => alternarRolEmpleado(rol.codigo)} />
-                    <span><strong>{rol.nombre}</strong><small>{rol.descripcion}</small></span>
-                  </label>
-                ))}
+              <div className="grupos-roles-administracion">
+                {gruposRolesEmpleado.map((grupo) => <section key={grupo.nombre}><h3>{grupo.nombre}</h3><div className="lista-seleccion-administracion">
+                  {grupo.roles.map((rol) => <label key={rol.codigo}><input type="checkbox" checked={datosEmpleado.codigosRoles.includes(rol.codigo)} onChange={() => alternarRolEmpleado(rol.codigo)} /><span><strong>{rol.nombre}</strong><small>{rol.descripcion}</small></span></label>)}
+                </div></section>)}
               </div>
             </fieldset>
             <button type="submit" disabled={estado.guardando || datosEmpleado.codigosRoles.length === 0}>{estado.guardando ? "Guardando…" : "Registrar empleado"}</button>
@@ -409,21 +447,20 @@ export function PaginaAdministracionUsuarios() {
       {seleccion && (
         <section id="detalle-usuario-seleccionado" className="panel-edicion panel-detalle-administracion" aria-labelledby="titulo-edicion">
           <h2 id="titulo-edicion">Roles de {seleccion.nombre} {seleccion.apellido}</h2>
-          <div className="lista-roles">
-            {rolesVisiblesAdministracion.map((rol) => (
-              <label key={rol.codigo}>
-                <input
-                  type="checkbox"
-                  checked={seleccion.rolesSeleccionados.includes(rol.codigo)}
-                  onChange={() => alternarRol(rol.codigo)}
-                />
-                <span><strong>{rol.nombre}</strong><small>{rol.descripcion}</small></span>
-              </label>
-            ))}
+          <p className="nota-formulario-administracion">Asigna únicamente las funciones que esta persona necesita. El acceso básico se conserva siempre.</p>
+          <div className="grupos-roles-administracion lista-roles">
+            {gruposRolesEdicion.map((grupo) => <section key={grupo.nombre}><h3>{grupo.nombre}</h3><div className="lista-seleccion-administracion">
+              {grupo.roles.map((rol) => <label key={rol.codigo} className={rol.codigo === "USUARIOREGISTRADO" ? "rol-obligatorio" : ""}><input type="checkbox" checked={seleccion.rolesSeleccionados.includes(rol.codigo)} disabled={rol.codigo === "USUARIOREGISTRADO"} onChange={() => alternarRol(rol.codigo)} /><span><strong>{rol.nombre}</strong><small>{rol.codigo === "USUARIOREGISTRADO" ? "Acceso básico obligatorio: permite usar las funciones personales del sistema." : rol.descripcion}</small></span></label>)}
+            </div></section>)}
           </div>
-          <button type="button" disabled={estado.guardando} onClick={guardarRoles}>
-            {estado.guardando ? "Guardando…" : "Guardar roles"}
-          </button>
+          <div className="acciones-edicion-usuario">
+            <button type="button" disabled={estado.guardando} onClick={guardarRoles}>
+              {estado.guardando ? "Guardando…" : "Guardar roles"}
+            </button>
+            <button className="boton-peligro" type="button" disabled={estado.guardando} onClick={eliminarCuentaSeleccionada}>
+              Eliminar cuenta
+            </button>
+          </div>
         </section>
       )}
         </div>
@@ -465,4 +502,20 @@ function agruparPermisos(permisos) {
   });
 
   return [...grupos.values()];
+}
+
+function categorizarRoles(roles) {
+  const categorias = [
+    { nombre: "Acceso básico", probar: (codigo) => codigo === "USUARIOREGISTRADO" },
+    { nombre: "Administración", probar: (codigo) => codigo === "ADMINISTRADOR" || codigo === "GENERAL" },
+    { nombre: "Operación de módulos", probar: (codigo) => codigo.includes("OPERADOR") },
+    { nombre: "Consulta y reportes", probar: (codigo) => codigo.includes("CONSULTA") || codigo.includes("REPORTE") },
+    { nombre: "Roles personalizados", probar: () => true },
+  ];
+  const pendientes = [...roles];
+  return categorias.map((categoria) => {
+    const incluidos = pendientes.filter((rol) => categoria.probar(rol.codigo));
+    incluidos.forEach((rol) => pendientes.splice(pendientes.indexOf(rol), 1));
+    return { nombre: categoria.nombre, roles: incluidos };
+  }).filter((categoria) => categoria.roles.length > 0);
 }

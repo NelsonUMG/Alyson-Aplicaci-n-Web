@@ -57,9 +57,9 @@ final class ResolvedorUrlPublicaCorreo {
                     || !("http".equalsIgnoreCase(uri.getScheme()) || "https".equalsIgnoreCase(uri.getScheme()))) {
                 return null;
             }
+            var configuradaEsLocal = esLocal(configuradaUri.getHost());
             var hostPermitido = host.equalsIgnoreCase(configuradaUri.getHost())
-                    || esLocal(host)
-                    || host.toLowerCase(Locale.ROOT).endsWith(".trycloudflare.com");
+                    || (configuradaEsLocal && esLocal(host));
             if (!hostPermitido) {
                 return null;
             }

@@ -1,9 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import * as maplibregl from "maplibre-gl";
+import { maplibregl } from "../utilidades/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import trabajadorMapLibre from "maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url";
-
-maplibregl.setWorkerUrl(trabajadorMapLibre);
 
 const coordenadaParque = [-90.5410824, 14.6391786];
 const estiloOpenFreeMap = "https://tiles.openfreemap.org/styles/liberty";

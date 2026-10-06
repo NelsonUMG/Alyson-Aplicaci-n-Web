@@ -145,6 +145,19 @@ public class ServicioCatalogoTramites {
 
     @Transactional
     @PreAuthorize("hasAuthority('SOLICITUDGESTIONAR')")
+    public RespuestaCategoriaTramiteAdministrada actualizarCategoria(
+            Long idCategoria, Long idAdministrador, SolicitudCategoriaTramiteAdministrada solicitud) {
+        var categoria = categorias.findById(idCategoria)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la categoría seleccionada."));
+        categoria.actualizarNombre(solicitud.nombre().strip());
+        categorias.saveAndFlush(categoria);
+        auditoria.registrar(idAdministrador, "CATEGORIATRAMITEACTUALIZADA", "CATEGORIATRAMITE",
+                categoria.obtenerIdCategoriaTramite().toString(), "EXITOSO", IdentificadorCorrelacion.actual());
+        return convertirCategoriaAdministrada(categoria);
+    }
+
+    @Transactional
+    @PreAuthorize("hasAuthority('SOLICITUDGESTIONAR')")
     public RespuestaTramiteAdministrado crearTramite(
             Long idAdministrador, SolicitudTramiteAdministrado solicitud) {
         var categoria = categorias.findByIdCategoriaTramiteAndActivaTrue(solicitud.idCategoria())

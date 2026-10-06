@@ -1,0 +1,105 @@
+{
+  "fecha": "2026-10-01T14:37:11.012Z",
+  "mode": "limpieza",
+  "results": [
+    {
+      "name": "Administrador autentica en servidor real",
+      "ok": true
+    },
+    {
+      "name": "Cancelar inscripción QA antes de retirar el evento",
+      "ok": true,
+      "status": 200,
+      "ms": 64
+    },
+    {
+      "name": "Cancelar evento temporal de QA",
+      "ok": true,
+      "status": 200,
+      "ms": 31
+    },
+    {
+      "name": "Archivar noticia temporal de QA",
+      "ok": true,
+      "status": 200,
+      "ms": 23
+    },
+    {
+      "name": "Desactivar categoría usada por noticia QA",
+      "ok": true,
+      "status": 200,
+      "ms": 35
+    },
+    {
+      "name": "Eliminar categoría duplicada creada por QA",
+      "ok": true,
+      "status": 204,
+      "ms": 33
+    },
+    {
+      "name": "Cerrar área temporal de QA",
+      "ok": true,
+      "status": 200,
+      "ms": 102
+    },
+    {
+      "name": "Desactivar categoría de área temporal",
+      "ok": true,
+      "status": 200,
+      "ms": 24
+    },
+    {
+      "name": "Desactivar trámite temporal 4",
+      "ok": true,
+      "status": 200,
+      "ms": 40
+    },
+    {
+      "name": "Desactivar trámite temporal 5",
+      "ok": true,
+      "status": 200,
+      "ms": 10
+    },
+    {
+      "name": "Eliminar conexión temporal del mapa",
+      "ok": true,
+      "status": 204,
+      "ms": 19
+    },
+    {
+      "name": "Eliminar nodo temporal 2",
+      "ok": true,
+      "status": 204,
+      "ms": 25
+    },
+    {
+      "name": "Eliminar nodo temporal 1",
+      "ok": true,
+      "status": 204,
+      "ms": 10
+    },
+    {
+      "name": "Noticia QA ya no es pública",
+      "ok": true,
+      "status": 404,
+      "ms": 7,
+      "detail": "No se encontró la publicación solicitada."
+    },
+    {
+      "name": "Evento QA ya no figura como publicado",
+      "ok": false,
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "name": "Área QA ya no figura disponible",
+      "ok": true,
+      "status": 200,
+      "ms": 6
+    },
+    {
+      "name": "Área QA retirada de la exposición pública",
+      "ok": true
+    }
+  ]
+}

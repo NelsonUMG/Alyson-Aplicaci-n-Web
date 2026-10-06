@@ -46,8 +46,8 @@ export function PaginaVerificacionCorreo() {
       ? "Verificando correo"
       : "Verificación de correo";
   return (
-    <main className="pagina-formulario pagina-registro">
-      <section className="tarjeta-formulario tarjeta-formulario-amplia tarjeta-registro" aria-labelledby="titulo-verificacion">
+    <main className="pagina-formulario pagina-verificacion-correo">
+      <section className="tarjeta-formulario tarjeta-formulario-amplia tarjeta-registro tarjeta-verificacion-correo" aria-labelledby="titulo-verificacion">
         <header className="cabecera-registro">
           <div className="marca-identidad-acceso"><MarcaPortal mostrarDerechos={false} /></div>
           <h1 id="titulo-verificacion">{titulo}</h1>

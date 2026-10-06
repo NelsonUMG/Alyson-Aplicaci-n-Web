@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { listarPublicaciones } from "../api/portalPublico";
 import { obtenerMensajeError } from "../api/clienteHttp";
 import { formatearTextoEditorial } from "../utilidades/formatoTexto";
+import { usarPortada } from "../componentes/ContextoPortada";
 
 const publicacionesProvisionales = [
   {
@@ -18,6 +19,7 @@ const publicacionesProvisionales = [
 ];
 
 export function PaginaBase() {
+  const { configuracion } = usarPortada();
   const [publicaciones, establecerPublicaciones] = useState(publicacionesProvisionales);
   const [errorPublicaciones, establecerErrorPublicaciones] = useState("");
   const [indicePublicacion, establecerIndicePublicacion] = useState(0);
@@ -68,7 +70,7 @@ export function PaginaBase() {
 
   return (
     <>
-      <section className="inicio-portada" aria-labelledby="titulo-inicio">
+      <section className="inicio-portada" aria-labelledby="titulo-inicio" style={configuracion.portadaUrl ? { backgroundImage: `linear-gradient(90deg, #000b, #0004), url("${configuracion.portadaUrl}")`, backgroundSize: "cover", backgroundPosition: "center" } : undefined}>
         <div className="portal-contenedor inicio-portada-contenido">
           <p className="portal-sobrelinea">Bienvenido</p>
           <h1 id="titulo-inicio">Parque Erick Barrondo</h1>
@@ -78,7 +80,7 @@ export function PaginaBase() {
             <Link className="portal-boton portal-boton-secundario" to="/eventos">Ver próximos eventos</Link>
           </div>
         </div>
-        <span className="inicio-imagen-provisional">Imagen provisional</span>
+        {!configuracion.portadaUrl && <span className="inicio-imagen-provisional">Imagen provisional</span>}
       </section>
 
       <section className="portal-seccion inicio-publicaciones" aria-labelledby="titulo-publicaciones">

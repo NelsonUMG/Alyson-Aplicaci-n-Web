@@ -60,6 +60,14 @@ public class ControladorAdministracionSolicitudes {
         return catalogo.crearCategoria(actor.obtenerIdUsuario(), solicitud);
     }
 
+    @PutMapping("/catalogo/categorias/{idCategoria}")
+    public RespuestaCategoriaTramiteAdministrada actualizarCategoriaCatalogo(
+            @PathVariable Long idCategoria,
+            @AuthenticationPrincipal UsuarioSesion actor,
+            @Valid @RequestBody SolicitudCategoriaTramiteAdministrada solicitud) {
+        return catalogo.actualizarCategoria(idCategoria, actor.obtenerIdUsuario(), solicitud);
+    }
+
     @PostMapping("/catalogo")
     @ResponseStatus(HttpStatus.CREATED)
     public RespuestaTramiteAdministrado crearTramite(

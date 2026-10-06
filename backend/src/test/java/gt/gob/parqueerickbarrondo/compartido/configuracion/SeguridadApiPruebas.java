@@ -132,6 +132,7 @@ class SeguridadApiPruebas {
         clienteApi.perform(get("/api/v1/autenticacion/csrf").secure(true))
                 .andExpect(header().string("Content-Security-Policy", Matchers.allOf(
                         Matchers.containsString("script-src 'self'"),
+                        Matchers.containsString("worker-src 'self' blob:"),
                         Matchers.containsString("https://tiles.openfreemap.org"),
                         Matchers.containsString("frame-ancestors 'none'"))))
                 .andExpect(header().string("X-Content-Type-Options", "nosniff"))

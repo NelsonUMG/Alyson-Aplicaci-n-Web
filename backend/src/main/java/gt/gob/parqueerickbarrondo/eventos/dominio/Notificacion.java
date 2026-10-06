@@ -85,4 +85,18 @@ public class Notificacion {
         cantidadIntentos++;
         actualizadoEn = Instant.now();
     }
+
+    public Long obtenerIdNotificacion() { return idNotificacion; }
+    public String obtenerTipoNotificacion() { return tipoNotificacion; }
+    public String obtenerAsunto() { return asunto; }
+    public String obtenerContenidoJson() { return contenidoJson; }
+    public Instant obtenerLeidaEn() { return leidaEn; }
+    public Instant obtenerCreadoEn() { return creadoEn; }
+
+    public void marcarLeida() {
+        if (leidaEn == null) {
+            leidaEn = Instant.now();
+            actualizadoEn = leidaEn;
+        }
+    }
 }

@@ -16,7 +16,7 @@ public interface RepositorioImagenEvento extends JpaRepository<ImagenEvento, Lon
     @Query("""
             select i from ImagenEvento i join fetch i.evento e
             where i.idImagenEvento = :idImagenEvento
-              and e.estado in ('PUBLICADO', 'CERRADO', 'CANCELADO', 'FINALIZADO')
+              and e.estado in ('PUBLICADO', 'CERRADO', 'FINALIZADO')
             """)
     Optional<ImagenEvento> buscarImagenPublica(@Param("idImagenEvento") Long idImagenEvento);
 }

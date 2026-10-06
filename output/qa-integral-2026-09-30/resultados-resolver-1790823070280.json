@@ -1,0 +1,58 @@
+{
+  "fecha": "2026-10-01T02:51:10.280Z",
+  "mode": "resolver",
+  "results": [
+    {
+      "name": "Administrador autentica en servidor real",
+      "ok": true
+    },
+    {
+      "name": "Iniciar revisión 1",
+      "ok": true,
+      "status": 200,
+      "ms": 13
+    },
+    {
+      "name": "Resolver aprobación y enviar correo real",
+      "ok": true,
+      "status": 200,
+      "ms": 2794
+    },
+    {
+      "name": "Iniciar revisión 2",
+      "ok": true,
+      "status": 200,
+      "ms": 15
+    },
+    {
+      "name": "Resolver rechazo y enviar correo real",
+      "ok": true,
+      "status": 200,
+      "ms": 2460
+    },
+    {
+      "name": "Resoluciones visibles para solicitante",
+      "ok": true,
+      "status": 200,
+      "ms": 37
+    },
+    {
+      "name": "Notificaciones de resolución",
+      "ok": true,
+      "status": 200,
+      "ms": 6
+    },
+    {
+      "name": "Reservas tras aprobar una solicitud",
+      "ok": true,
+      "status": 200,
+      "ms": 17
+    },
+    {
+      "name": "Auditoría de operaciones",
+      "ok": true,
+      "status": 200,
+      "ms": 11
+    }
+  ]
+}

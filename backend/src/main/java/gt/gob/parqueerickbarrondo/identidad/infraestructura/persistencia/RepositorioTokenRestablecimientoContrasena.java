@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 public interface RepositorioTokenRestablecimientoContrasena extends JpaRepository<TokenRestablecimientoContrasena, Long> {
+
+    void deleteAllByUsuario_IdUsuario(Long idUsuario);
     @Query("select t.usuario.correoNormalizado from TokenRestablecimientoContrasena t where t.hashToken = :hash")
     Optional<String> buscarCorreoPorHash(@Param("hash") byte[] hash);
     @Lock(LockModeType.PESSIMISTIC_WRITE)

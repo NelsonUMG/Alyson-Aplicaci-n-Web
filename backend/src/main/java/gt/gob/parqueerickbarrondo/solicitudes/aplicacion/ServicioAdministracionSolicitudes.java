@@ -1,5 +1,6 @@
 package gt.gob.parqueerickbarrondo.solicitudes.aplicacion;
 
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -8,11 +9,14 @@ import java.util.Set;
 import gt.gob.parqueerickbarrondo.compartido.observabilidad.IdentificadorCorrelacion;
 import gt.gob.parqueerickbarrondo.eventos.dominio.Notificacion;
 import gt.gob.parqueerickbarrondo.eventos.infraestructura.persistencia.RepositorioNotificacion;
+import gt.gob.parqueerickbarrondo.areas.dominio.ReservaArea;
+import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioReservaArea;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ConflictoDatosException;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.RecursoNoEncontradoException;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioAuditoria;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.SolicitudInvalidaException;
 import gt.gob.parqueerickbarrondo.identidad.seguridad.UsuarioSesion;
+import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioUsuario;
 import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaPaginaPublica;
 import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.DetalleUsoInstalacionSolicitud;
 import gt.gob.parqueerickbarrondo.solicitudes.api.modelo.RespuestaDetalleSolicitud;
@@ -23,11 +27,13 @@ import gt.gob.parqueerickbarrondo.solicitudes.dominio.Solicitud;
 import gt.gob.parqueerickbarrondo.solicitudes.dominio.SolicitudDocumento;
 import gt.gob.parqueerickbarrondo.solicitudes.infraestructura.persistencia.RepositorioSolicitud;
 import gt.gob.parqueerickbarrondo.solicitudes.infraestructura.persistencia.RepositorioSolicitudDocumento;
+import gt.gob.parqueerickbarrondo.portalpublico.infraestructura.persistencia.RepositorioArea;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Isolation;
 import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
@@ -40,6 +46,9 @@ public class ServicioAdministracionSolicitudes {
     private final RepositorioSolicitud repositorioSolicitud;
     private final RepositorioSolicitudDocumento repositorioDocumento;
     private final RepositorioNotificacion repositorioNotificacion;
+    private final RepositorioReservaArea repositorioReserva;
+    private final RepositorioArea repositorioArea;
+    private final RepositorioUsuario repositorioUsuario;
     private final ServicioAlmacenamientoDocumentosSolicitud almacenamiento;
     private final ServicioAuditoria auditoria;
     private final EnviadorCorreoResolucionSolicitud enviadorCorreo;
@@ -49,6 +58,9 @@ public class ServicioAdministracionSolicitudes {
             RepositorioSolicitud repositorioSolicitud,
             RepositorioSolicitudDocumento repositorioDocumento,
             RepositorioNotificacion repositorioNotificacion,
+            RepositorioReservaArea repositorioReserva,
+            RepositorioArea repositorioArea,
+            RepositorioUsuario repositorioUsuario,
             ServicioAlmacenamientoDocumentosSolicitud almacenamiento,
             ServicioAuditoria auditoria,
             EnviadorCorreoResolucionSolicitud enviadorCorreo,
@@ -56,6 +68,9 @@ public class ServicioAdministracionSolicitudes {
         this.repositorioSolicitud = repositorioSolicitud;
         this.repositorioDocumento = repositorioDocumento;
         this.repositorioNotificacion = repositorioNotificacion;
+        this.repositorioReserva = repositorioReserva;
+        this.repositorioArea = repositorioArea;
+        this.repositorioUsuario = repositorioUsuario;
         this.almacenamiento = almacenamiento;
         this.auditoria = auditoria;
         this.enviadorCorreo = enviadorCorreo;
@@ -99,11 +114,14 @@ public class ServicioAdministracionSolicitudes {
     }
 
     @PreAuthorize("hasAuthority('SOLICITUDGESTIONAR')")
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public RespuestaDetalleSolicitud resolver(
             Long idSolicitud, SolicitudResolucionAdministrativa datos, UsuarioSesion actor) {
         var solicitud = buscar(idSolicitud);
         validarVersion(solicitud, datos.version());
+        if ("APROBADA".equals(datos.decision())) {
+            crearReservaSiCorresponde(solicitud, actor);
+        }
         try {
             solicitud.resolver("APROBADA".equals(datos.decision()), datos.respuesta().strip());
         } catch (IllegalStateException excepcion) {
@@ -113,6 +131,39 @@ public class ServicioAdministracionSolicitudes {
         guardarNotificacionYEnviarCorreo(solicitud);
         auditar(actor, "SOLICITUD" + datos.decision(), solicitud);
         return convertirDetalle(solicitud);
+    }
+
+    private void crearReservaSiCorresponde(Solicitud solicitud, UsuarioSesion actor) {
+        var detalle = leerDetalle(solicitud);
+        if (detalle.codigoArea() == null || detalle.codigoArea().isBlank()
+                || detalle.fechaSolicitada() == null || detalle.horaInicio() == null
+                || detalle.horaFin() == null) {
+            return;
+        }
+        var area = repositorioArea.bloquearPorCodigoParaReserva(detalle.codigoArea().strip())
+                .orElseThrow(() -> new SolicitudInvalidaException(
+                        "El área de la solicitud ya no está disponible."));
+        var zona = ZoneId.of("America/Guatemala");
+        var iniciaEn = detalle.fechaSolicitada().atTime(detalle.horaInicio()).atZone(zona).toInstant();
+        var finalizaEn = detalle.fechaSolicitada().atTime(detalle.horaFin()).atZone(zona).toInstant();
+        if (!finalizaEn.isAfter(iniciaEn)) {
+            throw new SolicitudInvalidaException("El horario de la solicitud no es válido.");
+        }
+        if (repositorioReserva.contarTraslapesActivos(
+                area.obtenerIdArea(), iniciaEn, finalizaEn, null) > 0) {
+            throw new ConflictoDatosException(
+                    "El área ya tiene una reserva activa que coincide con el horario solicitado.");
+        }
+        var responsable = repositorioUsuario.findById(actor.obtenerIdUsuario())
+                .orElseThrow(() -> new RecursoNoEncontradoException(
+                        "No se encontró el usuario responsable de la resolución."));
+        var actividad = detalle.tipoActividad() == null || detalle.tipoActividad().isBlank()
+                ? "Uso de instalación" : detalle.tipoActividad().strip();
+        var titulo = "Solicitud #" + solicitud.obtenerIdSolicitud() + " · " + actividad;
+        if (titulo.length() > 150) titulo = titulo.substring(0, 150);
+        repositorioReserva.saveAndFlush(new ReservaArea(
+                area, titulo, iniciaEn, finalizaEn, "PROGRAMADA",
+                "Reserva creada al aprobar la solicitud #" + solicitud.obtenerIdSolicitud(), responsable));
     }
 
     @PreAuthorize("hasAuthority('SOLICITUDGESTIONAR')")

@@ -1,0 +1,4178 @@
+{
+  "capturadoEn": "2026-09-15T18:39:48.7728057-06:00",
+  "base": "RevisionParqueLocal",
+  "motor": [
+    {
+      "version": "17.0.1000.7",
+      "edicion": "Enterprise Evaluation Edition (64-bit)"
+    }
+  ],
+  "objetos": [
+    {
+      "esquema": "dbo",
+      "nombre": "sp_alterdiagram",
+      "tipo": "SQL_STORED_PROCEDURE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "sp_creatediagram",
+      "tipo": "SQL_STORED_PROCEDURE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "sp_dropdiagram",
+      "tipo": "SQL_STORED_PROCEDURE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "sp_helpdiagramdefinition",
+      "tipo": "SQL_STORED_PROCEDURE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "sp_helpdiagrams",
+      "tipo": "SQL_STORED_PROCEDURE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "sp_renamediagram",
+      "tipo": "SQL_STORED_PROCEDURE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "sp_upgraddiagrams",
+      "tipo": "SQL_STORED_PROCEDURE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "TR_EventosAuditoriaInmutable",
+      "tipo": "SQL_TRIGGER"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "Areas",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "Bicicletas",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "CategoriasArea",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "CategoriasPublicacion",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "CategoriasTramite",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "ConexionesMapa",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "ContenidoInstitucional",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "Documentos",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "Eventos",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "EventosAuditoria",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "HistorialEstadosArea",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "HistorialEstadosBicicleta",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "HistorialMigraciones",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "ImagenesEvento",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "ImagenesPublicacion",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "InscripcionesEvento",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "IntentosInicioSesion",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "NodosMapa",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "Notificaciones",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "Permisos",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "PrestamosBicicleta",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "Publicaciones",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "RegistrosIdempotencia",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "RegistrosPendientes",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "RequisitosEvento",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "ResenasTramite",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "ReservasArea",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "Roles",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "RolesPermisos",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "Solicitudes",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "SolicitudesDocumentos",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "SolicitudesMantenimiento",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "sysdiagrams",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "TokensRestablecimientoContrasena",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "TokensVerificacionCorreo",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "Tramites",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "Usuarios",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "UsuariosRoles",
+      "tipo": "USER_TABLE"
+    },
+    {
+      "esquema": "dbo",
+      "nombre": "VerticesAreasMapa",
+      "tipo": "USER_TABLE"
+    }
+  ],
+  "columnas": [
+    {
+      "tabla": "Areas",
+      "columna": "IdArea",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "Areas",
+      "columna": "IdCategoriaArea",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "Codigo",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "NumeroVisibleMapa",
+      "tipo": "int",
+      "bytes": 4,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "Nombre",
+      "tipo": "nvarchar",
+      "bytes": 300,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "Descripcion",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "Estado",
+      "tipo": "varchar",
+      "bytes": 40,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "NotaDisponibilidad",
+      "tipo": "nvarchar",
+      "bytes": 600,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "Latitud",
+      "tipo": "decimal",
+      "bytes": 9,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "Longitud",
+      "tipo": "decimal",
+      "bytes": 9,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "CoordenadasConfirmadas",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "HorarioJson",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "ObservacionesInternas",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "ClaveImagen",
+      "tipo": "nvarchar",
+      "bytes": 1000,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "CreadoPor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "ActualizadoPor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Areas",
+      "columna": "PerimetroConfirmado",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Bicicletas",
+      "columna": "IdBicicleta",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "Bicicletas",
+      "columna": "Codigo",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Bicicletas",
+      "columna": "Estado",
+      "tipo": "nvarchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Bicicletas",
+      "columna": "ObservacionesInventario",
+      "tipo": "nvarchar",
+      "bytes": 1000,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Bicicletas",
+      "columna": "CreadoPor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Bicicletas",
+      "columna": "ActualizadoPor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Bicicletas",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Bicicletas",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Bicicletas",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasArea",
+      "columna": "IdCategoriaArea",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "CategoriasArea",
+      "columna": "Codigo",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasArea",
+      "columna": "Nombre",
+      "tipo": "nvarchar",
+      "bytes": 200,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasArea",
+      "columna": "Descripcion",
+      "tipo": "nvarchar",
+      "bytes": 600,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasArea",
+      "columna": "Activa",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasArea",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasArea",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasArea",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasPublicacion",
+      "columna": "IdCategoriaPublicacion",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "CategoriasPublicacion",
+      "columna": "Codigo",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasPublicacion",
+      "columna": "Nombre",
+      "tipo": "nvarchar",
+      "bytes": 200,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasPublicacion",
+      "columna": "Descripcion",
+      "tipo": "nvarchar",
+      "bytes": 600,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasPublicacion",
+      "columna": "OrdenVisualizacion",
+      "tipo": "smallint",
+      "bytes": 2,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasPublicacion",
+      "columna": "Activa",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasPublicacion",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasPublicacion",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasPublicacion",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasTramite",
+      "columna": "IdCategoriaTramite",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "CategoriasTramite",
+      "columna": "Codigo",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasTramite",
+      "columna": "Nombre",
+      "tipo": "nvarchar",
+      "bytes": 320,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasTramite",
+      "columna": "OrdenVisualizacion",
+      "tipo": "smallint",
+      "bytes": 2,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "CategoriasTramite",
+      "columna": "Activa",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ConexionesMapa",
+      "columna": "IdConexionMapa",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "ConexionesMapa",
+      "columna": "IdNodoOrigen",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ConexionesMapa",
+      "columna": "IdNodoDestino",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ConexionesMapa",
+      "columna": "DistanciaMetros",
+      "tipo": "decimal",
+      "bytes": 9,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ConexionesMapa",
+      "columna": "Bidireccional",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ConexionesMapa",
+      "columna": "Accesible",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ConexionesMapa",
+      "columna": "Cerrada",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ConexionesMapa",
+      "columna": "MotivoCierre",
+      "tipo": "nvarchar",
+      "bytes": 600,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "ConexionesMapa",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ConexionesMapa",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ConexionesMapa",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ContenidoInstitucional",
+      "columna": "IdContenidoInstitucional",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ContenidoInstitucional",
+      "columna": "Resumen",
+      "tipo": "nvarchar",
+      "bytes": 2000,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ContenidoInstitucional",
+      "columna": "Mision",
+      "tipo": "nvarchar",
+      "bytes": 8000,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ContenidoInstitucional",
+      "columna": "Vision",
+      "tipo": "nvarchar",
+      "bytes": 8000,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ContenidoInstitucional",
+      "columna": "Valores",
+      "tipo": "nvarchar",
+      "bytes": 8000,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ContenidoInstitucional",
+      "columna": "ActualizadoPor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "ContenidoInstitucional",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ContenidoInstitucional",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Documentos",
+      "columna": "IdDocumento",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "Documentos",
+      "columna": "IdUsuarioPropietario",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Documentos",
+      "columna": "TipoDocumento",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Documentos",
+      "columna": "ClaveAlmacenamiento",
+      "tipo": "nvarchar",
+      "bytes": 1000,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Documentos",
+      "columna": "NombreArchivoOriginal",
+      "tipo": "nvarchar",
+      "bytes": 510,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Documentos",
+      "columna": "TipoMedio",
+      "tipo": "varchar",
+      "bytes": 100,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Documentos",
+      "columna": "TamanoBytes",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Documentos",
+      "columna": "Estado",
+      "tipo": "varchar",
+      "bytes": 24,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Documentos",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Documentos",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Documentos",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "IdEvento",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "CreadoPor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "Titulo",
+      "tipo": "nvarchar",
+      "bytes": 360,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "IdentificadorUrl",
+      "tipo": "varchar",
+      "bytes": 190,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "Descripcion",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "Lugar",
+      "tipo": "nvarchar",
+      "bytes": 360,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "IniciaEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "FinalizaEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "InscripcionAbreEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "InscripcionCierraEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "CapacidadTotal",
+      "tipo": "int",
+      "bytes": 4,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "CantidadOcupada",
+      "tipo": "int",
+      "bytes": 4,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "Estado",
+      "tipo": "varchar",
+      "bytes": 24,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "ClaveImagen",
+      "tipo": "nvarchar",
+      "bytes": 1000,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "EsquemaFormularioJson",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Eventos",
+      "columna": "ConfiguracionGruposJson",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "EventosAuditoria",
+      "columna": "IdEventoAuditoria",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "EventosAuditoria",
+      "columna": "IdUsuarioActor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "EventosAuditoria",
+      "columna": "CodigoAccion",
+      "tipo": "varchar",
+      "bytes": 80,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "EventosAuditoria",
+      "columna": "TipoRecurso",
+      "tipo": "varchar",
+      "bytes": 80,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "EventosAuditoria",
+      "columna": "IdRecurso",
+      "tipo": "varchar",
+      "bytes": 80,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "EventosAuditoria",
+      "columna": "Resultado",
+      "tipo": "varchar",
+      "bytes": 32,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "EventosAuditoria",
+      "columna": "IdCorrelacion",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "EventosAuditoria",
+      "columna": "MetadatosJson",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "EventosAuditoria",
+      "columna": "OcurridoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialEstadosArea",
+      "columna": "IdHistorialEstadoArea",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "HistorialEstadosArea",
+      "columna": "IdArea",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialEstadosArea",
+      "columna": "EstadoAnterior",
+      "tipo": "varchar",
+      "bytes": 40,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialEstadosArea",
+      "columna": "EstadoNuevo",
+      "tipo": "varchar",
+      "bytes": 40,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialEstadosArea",
+      "columna": "Motivo",
+      "tipo": "nvarchar",
+      "bytes": 1000,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialEstadosArea",
+      "columna": "CambiadoPor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialEstadosArea",
+      "columna": "CambiadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialEstadosBicicleta",
+      "columna": "IdHistorialEstadoBicicleta",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "HistorialEstadosBicicleta",
+      "columna": "IdBicicleta",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialEstadosBicicleta",
+      "columna": "EstadoAnterior",
+      "tipo": "nvarchar",
+      "bytes": 64,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialEstadosBicicleta",
+      "columna": "EstadoNuevo",
+      "tipo": "nvarchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialEstadosBicicleta",
+      "columna": "Motivo",
+      "tipo": "nvarchar",
+      "bytes": 1000,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialEstadosBicicleta",
+      "columna": "CambiadoPor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialEstadosBicicleta",
+      "columna": "CambiadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialMigraciones",
+      "columna": "installed_rank",
+      "tipo": "int",
+      "bytes": 4,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialMigraciones",
+      "columna": "version",
+      "tipo": "nvarchar",
+      "bytes": 100,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialMigraciones",
+      "columna": "description",
+      "tipo": "nvarchar",
+      "bytes": 400,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialMigraciones",
+      "columna": "type",
+      "tipo": "nvarchar",
+      "bytes": 40,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialMigraciones",
+      "columna": "script",
+      "tipo": "nvarchar",
+      "bytes": 2000,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialMigraciones",
+      "columna": "checksum",
+      "tipo": "int",
+      "bytes": 4,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialMigraciones",
+      "columna": "installed_by",
+      "tipo": "nvarchar",
+      "bytes": 200,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialMigraciones",
+      "columna": "installed_on",
+      "tipo": "datetime",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialMigraciones",
+      "columna": "execution_time",
+      "tipo": "int",
+      "bytes": 4,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "HistorialMigraciones",
+      "columna": "success",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesEvento",
+      "columna": "IdImagenEvento",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "ImagenesEvento",
+      "columna": "IdEvento",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesEvento",
+      "columna": "ClaveAlmacenamiento",
+      "tipo": "nvarchar",
+      "bytes": 1000,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesEvento",
+      "columna": "NombreArchivoOriginal",
+      "tipo": "nvarchar",
+      "bytes": 510,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesEvento",
+      "columna": "TipoMedio",
+      "tipo": "varchar",
+      "bytes": 100,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesEvento",
+      "columna": "TamanoBytes",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesEvento",
+      "columna": "AnchoPixeles",
+      "tipo": "int",
+      "bytes": 4,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesEvento",
+      "columna": "AltoPixeles",
+      "tipo": "int",
+      "bytes": 4,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesEvento",
+      "columna": "OrdenVisualizacion",
+      "tipo": "smallint",
+      "bytes": 2,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesEvento",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesPublicacion",
+      "columna": "IdImagenPublicacion",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "ImagenesPublicacion",
+      "columna": "IdPublicacion",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesPublicacion",
+      "columna": "ClaveAlmacenamiento",
+      "tipo": "nvarchar",
+      "bytes": 1000,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesPublicacion",
+      "columna": "NombreArchivoOriginal",
+      "tipo": "nvarchar",
+      "bytes": 510,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesPublicacion",
+      "columna": "TipoMedio",
+      "tipo": "varchar",
+      "bytes": 100,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesPublicacion",
+      "columna": "TamanoBytes",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesPublicacion",
+      "columna": "AnchoPixeles",
+      "tipo": "int",
+      "bytes": 4,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesPublicacion",
+      "columna": "AltoPixeles",
+      "tipo": "int",
+      "bytes": 4,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesPublicacion",
+      "columna": "TextoAlternativo",
+      "tipo": "nvarchar",
+      "bytes": 510,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesPublicacion",
+      "columna": "OrdenVisualizacion",
+      "tipo": "smallint",
+      "bytes": 2,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ImagenesPublicacion",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "InscripcionesEvento",
+      "columna": "IdInscripcionEvento",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "InscripcionesEvento",
+      "columna": "IdEvento",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "InscripcionesEvento",
+      "columna": "IdUsuario",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "InscripcionesEvento",
+      "columna": "Estado",
+      "tipo": "varchar",
+      "bytes": 24,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "InscripcionesEvento",
+      "columna": "RequisitosAceptadosEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "InscripcionesEvento",
+      "columna": "ConfirmadaEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "InscripcionesEvento",
+      "columna": "CanceladaEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "InscripcionesEvento",
+      "columna": "MotivoCancelacion",
+      "tipo": "nvarchar",
+      "bytes": 600,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "InscripcionesEvento",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "InscripcionesEvento",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "InscripcionesEvento",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "InscripcionesEvento",
+      "columna": "RespuestasFormularioJson",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "InscripcionesEvento",
+      "columna": "GrupoSeleccionadoCodigo",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "IntentosInicioSesion",
+      "columna": "IdIntentoInicioSesion",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "IntentosInicioSesion",
+      "columna": "IdUsuario",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "IntentosInicioSesion",
+      "columna": "HuellaCorreo",
+      "tipo": "varbinary",
+      "bytes": 32,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "IntentosInicioSesion",
+      "columna": "HuellaIp",
+      "tipo": "varbinary",
+      "bytes": 32,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "IntentosInicioSesion",
+      "columna": "HuellaAgenteUsuario",
+      "tipo": "varbinary",
+      "bytes": 32,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "IntentosInicioSesion",
+      "columna": "Resultado",
+      "tipo": "varchar",
+      "bytes": 32,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "IntentosInicioSesion",
+      "columna": "MotivoFallo",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "IntentosInicioSesion",
+      "columna": "IdCorrelacion",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "IntentosInicioSesion",
+      "columna": "IntentadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "NodosMapa",
+      "columna": "IdNodoMapa",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "NodosMapa",
+      "columna": "IdArea",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "NodosMapa",
+      "columna": "TipoNodo",
+      "tipo": "varchar",
+      "bytes": 32,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "NodosMapa",
+      "columna": "Nombre",
+      "tipo": "nvarchar",
+      "bytes": 300,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "NodosMapa",
+      "columna": "Latitud",
+      "tipo": "decimal",
+      "bytes": 9,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "NodosMapa",
+      "columna": "Longitud",
+      "tipo": "decimal",
+      "bytes": 9,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "NodosMapa",
+      "columna": "CoordenadasConfirmadas",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "NodosMapa",
+      "columna": "Accesible",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "NodosMapa",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "NodosMapa",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "NodosMapa",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Notificaciones",
+      "columna": "IdNotificacion",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "Notificaciones",
+      "columna": "IdUsuarioDestinatario",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Notificaciones",
+      "columna": "TipoNotificacion",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Notificaciones",
+      "columna": "Asunto",
+      "tipo": "nvarchar",
+      "bytes": 360,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Notificaciones",
+      "columna": "ContenidoJson",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Notificaciones",
+      "columna": "Estado",
+      "tipo": "varchar",
+      "bytes": 24,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Notificaciones",
+      "columna": "LeidaEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Notificaciones",
+      "columna": "EnviadaEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Notificaciones",
+      "columna": "CantidadIntentos",
+      "tipo": "smallint",
+      "bytes": 2,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Notificaciones",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Notificaciones",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Permisos",
+      "columna": "IdPermiso",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "Permisos",
+      "columna": "Codigo",
+      "tipo": "varchar",
+      "bytes": 80,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Permisos",
+      "columna": "Descripcion",
+      "tipo": "nvarchar",
+      "bytes": 600,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Permisos",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "PrestamosBicicleta",
+      "columna": "IdPrestamoBicicleta",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "PrestamosBicicleta",
+      "columna": "IdBicicleta",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "PrestamosBicicleta",
+      "columna": "IdUsuario",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "PrestamosBicicleta",
+      "columna": "Estado",
+      "tipo": "varchar",
+      "bytes": 24,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "PrestamosBicicleta",
+      "columna": "PrestadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "PrestamosBicicleta",
+      "columna": "VenceEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "PrestamosBicicleta",
+      "columna": "DevueltoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "PrestamosBicicleta",
+      "columna": "PrestadoPor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "PrestamosBicicleta",
+      "columna": "RecibidoPor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "PrestamosBicicleta",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "PrestamosBicicleta",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "PrestamosBicicleta",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Publicaciones",
+      "columna": "IdPublicacion",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "Publicaciones",
+      "columna": "IdCategoriaPublicacion",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Publicaciones",
+      "columna": "IdUsuarioAutor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Publicaciones",
+      "columna": "Titulo",
+      "tipo": "nvarchar",
+      "bytes": 360,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Publicaciones",
+      "columna": "IdentificadorUrl",
+      "tipo": "varchar",
+      "bytes": 190,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Publicaciones",
+      "columna": "Resumen",
+      "tipo": "nvarchar",
+      "bytes": 1000,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Publicaciones",
+      "columna": "Contenido",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Publicaciones",
+      "columna": "Estado",
+      "tipo": "varchar",
+      "bytes": 24,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Publicaciones",
+      "columna": "FechaEditorial",
+      "tipo": "date",
+      "bytes": 3,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Publicaciones",
+      "columna": "PublicadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Publicaciones",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Publicaciones",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Publicaciones",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosIdempotencia",
+      "columna": "IdRegistroIdempotencia",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "RegistrosIdempotencia",
+      "columna": "IdUsuarioActor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosIdempotencia",
+      "columna": "AlcanceActor",
+      "tipo": "varchar",
+      "bytes": 128,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosIdempotencia",
+      "columna": "CodigoOperacion",
+      "tipo": "varchar",
+      "bytes": 80,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosIdempotencia",
+      "columna": "HashClaveIdempotencia",
+      "tipo": "varbinary",
+      "bytes": 32,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosIdempotencia",
+      "columna": "HashSolicitud",
+      "tipo": "varbinary",
+      "bytes": 32,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosIdempotencia",
+      "columna": "Estado",
+      "tipo": "varchar",
+      "bytes": 24,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosIdempotencia",
+      "columna": "EstadoRespuesta",
+      "tipo": "smallint",
+      "bytes": 2,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosIdempotencia",
+      "columna": "RespuestaJson",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosIdempotencia",
+      "columna": "ExpiraEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosIdempotencia",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosIdempotencia",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosPendientes",
+      "columna": "IdRegistroPendiente",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "RegistrosPendientes",
+      "columna": "CorreoNormalizado",
+      "tipo": "varchar",
+      "bytes": 254,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosPendientes",
+      "columna": "Nombre",
+      "tipo": "nvarchar",
+      "bytes": 160,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosPendientes",
+      "columna": "Apellido",
+      "tipo": "nvarchar",
+      "bytes": 160,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosPendientes",
+      "columna": "Dpi",
+      "tipo": "varchar",
+      "bytes": 13,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosPendientes",
+      "columna": "Celular",
+      "tipo": "varchar",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosPendientes",
+      "columna": "FechaNacimiento",
+      "tipo": "date",
+      "bytes": 3,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosPendientes",
+      "columna": "HashContrasena",
+      "tipo": "varchar",
+      "bytes": 255,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosPendientes",
+      "columna": "HashToken",
+      "tipo": "varbinary",
+      "bytes": 32,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosPendientes",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RegistrosPendientes",
+      "columna": "ExpiraEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RequisitosEvento",
+      "columna": "IdRequisitoEvento",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "RequisitosEvento",
+      "columna": "IdEvento",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RequisitosEvento",
+      "columna": "Descripcion",
+      "tipo": "nvarchar",
+      "bytes": 1000,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RequisitosEvento",
+      "columna": "Obligatorio",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RequisitosEvento",
+      "columna": "OrdenVisualizacion",
+      "tipo": "smallint",
+      "bytes": 2,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RequisitosEvento",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ResenasTramite",
+      "columna": "IdResenaTramite",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "ResenasTramite",
+      "columna": "IdTramite",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ResenasTramite",
+      "columna": "IdUsuario",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ResenasTramite",
+      "columna": "Estrellas",
+      "tipo": "tinyint",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ResenasTramite",
+      "columna": "Comentario",
+      "tipo": "nvarchar",
+      "bytes": 2000,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ResenasTramite",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ResenasTramite",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ResenasTramite",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ReservasArea",
+      "columna": "IdReservaArea",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "ReservasArea",
+      "columna": "IdArea",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ReservasArea",
+      "columna": "Titulo",
+      "tipo": "nvarchar",
+      "bytes": 300,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ReservasArea",
+      "columna": "IniciaEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ReservasArea",
+      "columna": "FinalizaEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ReservasArea",
+      "columna": "Estado",
+      "tipo": "varchar",
+      "bytes": 32,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ReservasArea",
+      "columna": "Observaciones",
+      "tipo": "nvarchar",
+      "bytes": 600,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "ReservasArea",
+      "columna": "CreadoPor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ReservasArea",
+      "columna": "ActualizadoPor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ReservasArea",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ReservasArea",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "ReservasArea",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Roles",
+      "columna": "IdRol",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "Roles",
+      "columna": "Codigo",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Roles",
+      "columna": "Nombre",
+      "tipo": "nvarchar",
+      "bytes": 200,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Roles",
+      "columna": "Descripcion",
+      "tipo": "nvarchar",
+      "bytes": 600,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Roles",
+      "columna": "Activo",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Roles",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Roles",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Roles",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RolesPermisos",
+      "columna": "IdRol",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RolesPermisos",
+      "columna": "IdPermiso",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "RolesPermisos",
+      "columna": "OtorgadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Solicitudes",
+      "columna": "IdSolicitud",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "Solicitudes",
+      "columna": "IdUsuarioSolicitante",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Solicitudes",
+      "columna": "TipoSolicitud",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Solicitudes",
+      "columna": "Estado",
+      "tipo": "varchar",
+      "bytes": 24,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Solicitudes",
+      "columna": "Detalle",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Solicitudes",
+      "columna": "Resolucion",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Solicitudes",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Solicitudes",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Solicitudes",
+      "columna": "ResueltoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Solicitudes",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesDocumentos",
+      "columna": "IdSolicitudDocumento",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "SolicitudesDocumentos",
+      "columna": "IdSolicitud",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesDocumentos",
+      "columna": "IdDocumento",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesDocumentos",
+      "columna": "CategoriaDocumento",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesDocumentos",
+      "columna": "Obligatorio",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesDocumentos",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "IdSolicitudMantenimiento",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "IdArea",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "IdBicicleta",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "ReportadoPor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "AsignadoA",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "Prioridad",
+      "tipo": "varchar",
+      "bytes": 16,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "Estado",
+      "tipo": "varchar",
+      "bytes": 24,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "Descripcion",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "ObservacionesResolucion",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "AbiertaEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "ResueltaEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "sysdiagrams",
+      "columna": "name",
+      "tipo": "sysname",
+      "bytes": 256,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "sysdiagrams",
+      "columna": "principal_id",
+      "tipo": "int",
+      "bytes": 4,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "sysdiagrams",
+      "columna": "diagram_id",
+      "tipo": "int",
+      "bytes": 4,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "sysdiagrams",
+      "columna": "version",
+      "tipo": "int",
+      "bytes": 4,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "sysdiagrams",
+      "columna": "definition",
+      "tipo": "varbinary",
+      "bytes": -1,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "TokensRestablecimientoContrasena",
+      "columna": "IdTokenRestablecimientoContrasena",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "TokensRestablecimientoContrasena",
+      "columna": "IdUsuario",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "TokensRestablecimientoContrasena",
+      "columna": "HashToken",
+      "tipo": "varbinary",
+      "bytes": 32,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "TokensRestablecimientoContrasena",
+      "columna": "ExpiraEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "TokensRestablecimientoContrasena",
+      "columna": "ConsumidoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "TokensRestablecimientoContrasena",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "TokensRestablecimientoContrasena",
+      "columna": "HashContrasenaAlEmitir",
+      "tipo": "varchar",
+      "bytes": 255,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "TokensVerificacionCorreo",
+      "columna": "IdTokenVerificacionCorreo",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "TokensVerificacionCorreo",
+      "columna": "IdUsuario",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "TokensVerificacionCorreo",
+      "columna": "HashToken",
+      "tipo": "varbinary",
+      "bytes": 32,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "TokensVerificacionCorreo",
+      "columna": "ExpiraEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "TokensVerificacionCorreo",
+      "columna": "ConsumidoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "TokensVerificacionCorreo",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "IdTramite",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "IdCategoriaTramite",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "Codigo",
+      "tipo": "varchar",
+      "bytes": 64,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "Nombre",
+      "tipo": "nvarchar",
+      "bytes": 360,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "Resumen",
+      "tipo": "nvarchar",
+      "bytes": 1000,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "Acerca",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "RequisitosJson",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "DocumentosRequeridosJson",
+      "tipo": "nvarchar",
+      "bytes": -1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "Costo",
+      "tipo": "nvarchar",
+      "bytes": 360,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "TiempoRespuesta",
+      "tipo": "nvarchar",
+      "bytes": 360,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "RequiereReserva",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "Activo",
+      "tipo": "bit",
+      "bytes": 1,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "ClavePortada",
+      "tipo": "nvarchar",
+      "bytes": 1000,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Tramites",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "IdUsuario",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": true
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "CorreoNormalizado",
+      "tipo": "varchar",
+      "bytes": 254,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "Nombre",
+      "tipo": "nvarchar",
+      "bytes": 160,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "Apellido",
+      "tipo": "nvarchar",
+      "bytes": 160,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "HashContrasena",
+      "tipo": "varchar",
+      "bytes": 255,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "Estado",
+      "tipo": "varchar",
+      "bytes": 32,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "CorreoVerificadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "BloqueadoHasta",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "CreadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "ActualizadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "Version",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "TerminosAceptadosEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "UltimoAccesoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "Dpi",
+      "tipo": "varchar",
+      "bytes": 13,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "Celular",
+      "tipo": "varchar",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "FechaNacimiento",
+      "tipo": "date",
+      "bytes": 3,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "DpiExtendidoEn",
+      "tipo": "nvarchar",
+      "bytes": 240,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "Telefono",
+      "tipo": "varchar",
+      "bytes": 24,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "Direccion",
+      "tipo": "nvarchar",
+      "bytes": 600,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "Usuarios",
+      "columna": "ClaveFotoPerfil",
+      "tipo": "varchar",
+      "bytes": 200,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "UsuariosRoles",
+      "columna": "IdUsuario",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "UsuariosRoles",
+      "columna": "IdRol",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "UsuariosRoles",
+      "columna": "AsignadoPor",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": true,
+      "identidad": false
+    },
+    {
+      "tabla": "UsuariosRoles",
+      "columna": "AsignadoEn",
+      "tipo": "datetime2",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "VerticesAreasMapa",
+      "columna": "IdArea",
+      "tipo": "bigint",
+      "bytes": 8,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "VerticesAreasMapa",
+      "columna": "Orden",
+      "tipo": "int",
+      "bytes": 4,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "VerticesAreasMapa",
+      "columna": "Latitud",
+      "tipo": "decimal",
+      "bytes": 9,
+      "nullable": false,
+      "identidad": false
+    },
+    {
+      "tabla": "VerticesAreasMapa",
+      "columna": "Longitud",
+      "tipo": "decimal",
+      "bytes": 9,
+      "nullable": false,
+      "identidad": false
+    }
+  ],
+  "relaciones": [
+    {
+      "restriccion": "FKAreasActualizadoPor",
+      "tabla": "Areas",
+      "columna": "ActualizadoPor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKAreasCreadoPor",
+      "tabla": "Areas",
+      "columna": "CreadoPor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKAreasCategoria",
+      "tabla": "Areas",
+      "columna": "IdCategoriaArea",
+      "referencia": "CategoriasArea",
+      "columnaReferencia": "IdCategoriaArea"
+    },
+    {
+      "restriccion": "FKBicicletasActualizadoPor",
+      "tabla": "Bicicletas",
+      "columna": "ActualizadoPor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKBicicletasCreadoPor",
+      "tabla": "Bicicletas",
+      "columna": "CreadoPor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKConexionesMapaDestino",
+      "tabla": "ConexionesMapa",
+      "columna": "IdNodoDestino",
+      "referencia": "NodosMapa",
+      "columnaReferencia": "IdNodoMapa"
+    },
+    {
+      "restriccion": "FKConexionesMapaOrigen",
+      "tabla": "ConexionesMapa",
+      "columna": "IdNodoOrigen",
+      "referencia": "NodosMapa",
+      "columnaReferencia": "IdNodoMapa"
+    },
+    {
+      "restriccion": "FKContenidoInstitucionalActualizadoPor",
+      "tabla": "ContenidoInstitucional",
+      "columna": "ActualizadoPor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKDocumentosPropietario",
+      "tabla": "Documentos",
+      "columna": "IdUsuarioPropietario",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKEventosCreadoPor",
+      "tabla": "Eventos",
+      "columna": "CreadoPor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKEventosAuditoriaActor",
+      "tabla": "EventosAuditoria",
+      "columna": "IdUsuarioActor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKHistorialEstadosAreaCambiadoPor",
+      "tabla": "HistorialEstadosArea",
+      "columna": "CambiadoPor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKHistorialEstadosAreaArea",
+      "tabla": "HistorialEstadosArea",
+      "columna": "IdArea",
+      "referencia": "Areas",
+      "columnaReferencia": "IdArea"
+    },
+    {
+      "restriccion": "FKHistorialEstadosBicicletaCambiadoPor",
+      "tabla": "HistorialEstadosBicicleta",
+      "columna": "CambiadoPor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKHistorialEstadosBicicletaBicicleta",
+      "tabla": "HistorialEstadosBicicleta",
+      "columna": "IdBicicleta",
+      "referencia": "Bicicletas",
+      "columnaReferencia": "IdBicicleta"
+    },
+    {
+      "restriccion": "FKImagenesEventoEvento",
+      "tabla": "ImagenesEvento",
+      "columna": "IdEvento",
+      "referencia": "Eventos",
+      "columnaReferencia": "IdEvento"
+    },
+    {
+      "restriccion": "FKImagenesPublicacionPublicacion",
+      "tabla": "ImagenesPublicacion",
+      "columna": "IdPublicacion",
+      "referencia": "Publicaciones",
+      "columnaReferencia": "IdPublicacion"
+    },
+    {
+      "restriccion": "FKInscripcionesEventoEvento",
+      "tabla": "InscripcionesEvento",
+      "columna": "IdEvento",
+      "referencia": "Eventos",
+      "columnaReferencia": "IdEvento"
+    },
+    {
+      "restriccion": "FKInscripcionesEventoUsuario",
+      "tabla": "InscripcionesEvento",
+      "columna": "IdUsuario",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKIntentosInicioSesionUsuario",
+      "tabla": "IntentosInicioSesion",
+      "columna": "IdUsuario",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKNodosMapaArea",
+      "tabla": "NodosMapa",
+      "columna": "IdArea",
+      "referencia": "Areas",
+      "columnaReferencia": "IdArea"
+    },
+    {
+      "restriccion": "FKNotificacionesDestinatario",
+      "tabla": "Notificaciones",
+      "columna": "IdUsuarioDestinatario",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKPrestamosBicicletaBicicleta",
+      "tabla": "PrestamosBicicleta",
+      "columna": "IdBicicleta",
+      "referencia": "Bicicletas",
+      "columnaReferencia": "IdBicicleta"
+    },
+    {
+      "restriccion": "FKPrestamosBicicletaUsuario",
+      "tabla": "PrestamosBicicleta",
+      "columna": "IdUsuario",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKPrestamosBicicletaPrestadoPor",
+      "tabla": "PrestamosBicicleta",
+      "columna": "PrestadoPor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKPrestamosBicicletaRecibidoPor",
+      "tabla": "PrestamosBicicleta",
+      "columna": "RecibidoPor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKPublicacionesCategoria",
+      "tabla": "Publicaciones",
+      "columna": "IdCategoriaPublicacion",
+      "referencia": "CategoriasPublicacion",
+      "columnaReferencia": "IdCategoriaPublicacion"
+    },
+    {
+      "restriccion": "FKPublicacionesAutor",
+      "tabla": "Publicaciones",
+      "columna": "IdUsuarioAutor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKRegistrosIdempotenciaActor",
+      "tabla": "RegistrosIdempotencia",
+      "columna": "IdUsuarioActor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKRequisitosEventoEvento",
+      "tabla": "RequisitosEvento",
+      "columna": "IdEvento",
+      "referencia": "Eventos",
+      "columnaReferencia": "IdEvento"
+    },
+    {
+      "restriccion": "FKResenasTramiteTramite",
+      "tabla": "ResenasTramite",
+      "columna": "IdTramite",
+      "referencia": "Tramites",
+      "columnaReferencia": "IdTramite"
+    },
+    {
+      "restriccion": "FKResenasTramiteUsuario",
+      "tabla": "ResenasTramite",
+      "columna": "IdUsuario",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKReservasAreaActualizadoPor",
+      "tabla": "ReservasArea",
+      "columna": "ActualizadoPor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKReservasAreaCreadoPor",
+      "tabla": "ReservasArea",
+      "columna": "CreadoPor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKReservasAreaArea",
+      "tabla": "ReservasArea",
+      "columna": "IdArea",
+      "referencia": "Areas",
+      "columnaReferencia": "IdArea"
+    },
+    {
+      "restriccion": "FKRolesPermisosPermiso",
+      "tabla": "RolesPermisos",
+      "columna": "IdPermiso",
+      "referencia": "Permisos",
+      "columnaReferencia": "IdPermiso"
+    },
+    {
+      "restriccion": "FKRolesPermisosRol",
+      "tabla": "RolesPermisos",
+      "columna": "IdRol",
+      "referencia": "Roles",
+      "columnaReferencia": "IdRol"
+    },
+    {
+      "restriccion": "FKSolicitudesSolicitante",
+      "tabla": "Solicitudes",
+      "columna": "IdUsuarioSolicitante",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKSolicitudesDocumentosDocumento",
+      "tabla": "SolicitudesDocumentos",
+      "columna": "IdDocumento",
+      "referencia": "Documentos",
+      "columnaReferencia": "IdDocumento"
+    },
+    {
+      "restriccion": "FKSolicitudesDocumentosSolicitud",
+      "tabla": "SolicitudesDocumentos",
+      "columna": "IdSolicitud",
+      "referencia": "Solicitudes",
+      "columnaReferencia": "IdSolicitud"
+    },
+    {
+      "restriccion": "FKSolicitudesMantenimientoAsignadoA",
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "AsignadoA",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKSolicitudesMantenimientoArea",
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "IdArea",
+      "referencia": "Areas",
+      "columnaReferencia": "IdArea"
+    },
+    {
+      "restriccion": "FKSolicitudesMantenimientoBicicleta",
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "IdBicicleta",
+      "referencia": "Bicicletas",
+      "columnaReferencia": "IdBicicleta"
+    },
+    {
+      "restriccion": "FKSolicitudesMantenimientoReportadoPor",
+      "tabla": "SolicitudesMantenimiento",
+      "columna": "ReportadoPor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKTokensRestablecimientoUsuario",
+      "tabla": "TokensRestablecimientoContrasena",
+      "columna": "IdUsuario",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKTokensVerificacionUsuario",
+      "tabla": "TokensVerificacionCorreo",
+      "columna": "IdUsuario",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKTramitesCategoria",
+      "tabla": "Tramites",
+      "columna": "IdCategoriaTramite",
+      "referencia": "CategoriasTramite",
+      "columnaReferencia": "IdCategoriaTramite"
+    },
+    {
+      "restriccion": "FKUsuariosRolesAsignadoPor",
+      "tabla": "UsuariosRoles",
+      "columna": "AsignadoPor",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKUsuariosRolesRol",
+      "tabla": "UsuariosRoles",
+      "columna": "IdRol",
+      "referencia": "Roles",
+      "columnaReferencia": "IdRol"
+    },
+    {
+      "restriccion": "FKUsuariosRolesUsuario",
+      "tabla": "UsuariosRoles",
+      "columna": "IdUsuario",
+      "referencia": "Usuarios",
+      "columnaReferencia": "IdUsuario"
+    },
+    {
+      "restriccion": "FKVerticesAreasMapaArea",
+      "tabla": "VerticesAreasMapa",
+      "columna": "IdArea",
+      "referencia": "Areas",
+      "columnaReferencia": "IdArea"
+    }
+  ],
+  "roles": [
+    {
+      "Codigo": "ADMINISTRADOR",
+      "Nombre": "Administrador",
+      "Activo": true
+    },
+    {
+      "Codigo": "CONSULTAREPORTES",
+      "Nombre": "Consulta de reportes",
+      "Activo": true
+    },
+    {
+      "Codigo": "EMPLEADO_AD",
+      "Nombre": "AD",
+      "Activo": true
+    },
+    {
+      "Codigo": "EMPLEADO_GENERAL",
+      "Nombre": "General",
+      "Activo": true
+    },
+    {
+      "Codigo": "EMPLEADO_PRUEBA_ALYSON",
+      "Nombre": "PRUEBA ALYSON",
+      "Activo": true
+    },
+    {
+      "Codigo": "OPERADORBICICLETAS",
+      "Nombre": "Operador de bicicletas",
+      "Activo": true
+    },
+    {
+      "Codigo": "OPERADOREVENTOS",
+      "Nombre": "Operador de eventos",
+      "Activo": true
+    },
+    {
+      "Codigo": "OPERADORMANTENIMIENTO",
+      "Nombre": "Operador de mantenimiento",
+      "Activo": true
+    },
+    {
+      "Codigo": "USUARIOREGISTRADO",
+      "Nombre": "Usuario registrado",
+      "Activo": true
+    }
+  ],
+  "permisos": [
+    {
+      "Codigo": "AREAACTUALIZARESTADO",
+      "Descripcion": "Actualizar estado de áreas."
+    },
+    {
+      "Codigo": "AREAELIMINAR",
+      "Descripcion": "Eliminar áreas sin información operativa asociada."
+    },
+    {
+      "Codigo": "AREALEER",
+      "Descripcion": "Consultar áreas."
+    },
+    {
+      "Codigo": "AUDITORIALEER",
+      "Descripcion": "Consultar auditoría."
+    },
+    {
+      "Codigo": "BICICLETAACTUALIZARESTADO",
+      "Descripcion": "Actualizar el estado y los datos de inventario de bicicletas."
+    },
+    {
+      "Codigo": "BICICLETACREAR",
+      "Descripcion": "Registrar bicicletas."
+    },
+    {
+      "Codigo": "BICICLETADEVOLVER",
+      "Descripcion": "Registrar devolución de bicicleta."
+    },
+    {
+      "Codigo": "BICICLETALEER",
+      "Descripcion": "Consultar bicicletas."
+    },
+    {
+      "Codigo": "BICICLETAPRESTAR",
+      "Descripcion": "Registrar préstamo de bicicleta."
+    },
+    {
+      "Codigo": "EVENTOACTUALIZAR",
+      "Descripcion": "Actualizar eventos."
+    },
+    {
+      "Codigo": "EVENTOCREAR",
+      "Descripcion": "Crear eventos."
+    },
+    {
+      "Codigo": "EVENTOGESTIONARINSCRIPCIONES",
+      "Descripcion": "Gestionar inscripciones de eventos."
+    },
+    {
+      "Codigo": "EVENTOLEER",
+      "Descripcion": "Consultar eventos."
+    },
+    {
+      "Codigo": "INSTITUCIONALGESTIONAR",
+      "Descripcion": "Gestionar contenido institucional."
+    },
+    {
+      "Codigo": "MANTENIMIENTOACTUALIZAR",
+      "Descripcion": "Actualizar mantenimiento."
+    },
+    {
+      "Codigo": "MANTENIMIENTOCREAR",
+      "Descripcion": "Crear solicitud de mantenimiento."
+    },
+    {
+      "Codigo": "MANTENIMIENTOLEER",
+      "Descripcion": "Consultar mantenimiento."
+    },
+    {
+      "Codigo": "PUBLICACIONACTUALIZAR",
+      "Descripcion": "Actualizar publicaciones."
+    },
+    {
+      "Codigo": "PUBLICACIONCREAR",
+      "Descripcion": "Crear publicaciones."
+    },
+    {
+      "Codigo": "PUBLICACIONELIMINAR",
+      "Descripcion": "Archivar o eliminar publicaciones según política."
+    },
+    {
+      "Codigo": "PUBLICACIONLEER",
+      "Descripcion": "Consultar publicaciones."
+    },
+    {
+      "Codigo": "REPORTELEER",
+      "Descripcion": "Consultar reportes autorizados."
+    },
+    {
+      "Codigo": "ROLGESTIONAR",
+      "Descripcion": "Gestionar roles y permisos."
+    },
+    {
+      "Codigo": "SOLICITUDGESTIONAR",
+      "Descripcion": "Gestionar solicitudes de uso de instalaciones."
+    },
+    {
+      "Codigo": "USUARIOGESTIONAR",
+      "Descripcion": "Gestionar usuarios."
+    }
+  ],
+  "rolPermiso": [
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "AREAACTUALIZARESTADO"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "AREAELIMINAR"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "AREALEER"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "AUDITORIALEER"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "BICICLETAACTUALIZARESTADO"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "BICICLETACREAR"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "BICICLETADEVOLVER"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "BICICLETALEER"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "BICICLETAPRESTAR"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "EVENTOACTUALIZAR"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "EVENTOCREAR"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "EVENTOGESTIONARINSCRIPCIONES"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "EVENTOLEER"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "INSTITUCIONALGESTIONAR"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "MANTENIMIENTOACTUALIZAR"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "MANTENIMIENTOCREAR"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "MANTENIMIENTOLEER"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "PUBLICACIONACTUALIZAR"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "PUBLICACIONCREAR"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "PUBLICACIONELIMINAR"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "PUBLICACIONLEER"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "REPORTELEER"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "ROLGESTIONAR"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "SOLICITUDGESTIONAR"
+    },
+    {
+      "rol": "ADMINISTRADOR",
+      "permiso": "USUARIOGESTIONAR"
+    },
+    {
+      "rol": "CONSULTAREPORTES",
+      "permiso": "REPORTELEER"
+    },
+    {
+      "rol": "EMPLEADO_AD",
+      "permiso": "AUDITORIALEER"
+    },
+    {
+      "rol": "EMPLEADO_AD",
+      "permiso": "EVENTOACTUALIZAR"
+    },
+    {
+      "rol": "EMPLEADO_AD",
+      "permiso": "EVENTOCREAR"
+    },
+    {
+      "rol": "EMPLEADO_AD",
+      "permiso": "EVENTOGESTIONARINSCRIPCIONES"
+    },
+    {
+      "rol": "EMPLEADO_AD",
+      "permiso": "EVENTOLEER"
+    },
+    {
+      "rol": "EMPLEADO_AD",
+      "permiso": "MANTENIMIENTOACTUALIZAR"
+    },
+    {
+      "rol": "EMPLEADO_AD",
+      "permiso": "MANTENIMIENTOCREAR"
+    },
+    {
+      "rol": "EMPLEADO_AD",
+      "permiso": "PUBLICACIONACTUALIZAR"
+    },
+    {
+      "rol": "EMPLEADO_AD",
+      "permiso": "REPORTELEER"
+    },
+    {
+      "rol": "EMPLEADO_AD",
+      "permiso": "ROLGESTIONAR"
+    },
+    {
+      "rol": "EMPLEADO_AD",
+      "permiso": "SOLICITUDGESTIONAR"
+    },
+    {
+      "rol": "EMPLEADO_AD",
+      "permiso": "USUARIOGESTIONAR"
+    },
+    {
+      "rol": "EMPLEADO_GENERAL",
+      "permiso": "ROLGESTIONAR"
+    },
+    {
+      "rol": "EMPLEADO_PRUEBA_ALYSON",
+      "permiso": "AREAACTUALIZARESTADO"
+    },
+    {
+      "rol": "EMPLEADO_PRUEBA_ALYSON",
+      "permiso": "AREAELIMINAR"
+    },
+    {
+      "rol": "EMPLEADO_PRUEBA_ALYSON",
+      "permiso": "AREALEER"
+    },
+    {
+      "rol": "EMPLEADO_PRUEBA_ALYSON",
+      "permiso": "AUDITORIALEER"
+    },
+    {
+      "rol": "EMPLEADO_PRUEBA_ALYSON",
+      "permiso": "BICICLETAACTUALIZARESTADO"
+    },
+    {
+      "rol": "EMPLEADO_PRUEBA_ALYSON",
+      "permiso": "BICICLETACREAR"
+    },
+    {
+      "rol": "EMPLEADO_PRUEBA_ALYSON",
+      "permiso": "BICICLETADEVOLVER"
+    },
+    {
+      "rol": "EMPLEADO_PRUEBA_ALYSON",
+      "permiso": "BICICLETALEER"
+    },
+    {
+      "rol": "EMPLEADO_PRUEBA_ALYSON",
+      "permiso": "BICICLETAPRESTAR"
+    },
+    {
+      "rol": "EMPLEADO_PRUEBA_ALYSON",
+      "permiso": "EVENTOACTUALIZAR"
+    },
+    {
+      "rol": "EMPLEADO_PRUEBA_ALYSON",
+      "permiso": "EVENTOCREAR"
+    },
+    {
+      "rol": "EMPLEADO_PRUEBA_ALYSON",
+      "permiso": "EVENTOGESTIONARINSCRIPCIONES"
+    },
+    {
+      "rol": "EMPLEADO_PRUEBA_ALYSON",
+      "permiso": "EVENTOLEER"
+    },
+    {
+      "rol": "EMPLEADO_PRUEBA_ALYSON",
+      "permiso": "REPORTELEER"
+    },
+    {
+      "rol": "OPERADORBICICLETAS",
+      "permiso": "BICICLETAACTUALIZARESTADO"
+    },
+    {
+      "rol": "OPERADORBICICLETAS",
+      "permiso": "BICICLETACREAR"
+    },
+    {
+      "rol": "OPERADORBICICLETAS",
+      "permiso": "BICICLETADEVOLVER"
+    },
+    {
+      "rol": "OPERADORBICICLETAS",
+      "permiso": "BICICLETALEER"
+    },
+    {
+      "rol": "OPERADORBICICLETAS",
+      "permiso": "BICICLETAPRESTAR"
+    },
+    {
+      "rol": "OPERADOREVENTOS",
+      "permiso": "EVENTOACTUALIZAR"
+    },
+    {
+      "rol": "OPERADOREVENTOS",
+      "permiso": "EVENTOCREAR"
+    },
+    {
+      "rol": "OPERADOREVENTOS",
+      "permiso": "EVENTOGESTIONARINSCRIPCIONES"
+    },
+    {
+      "rol": "OPERADOREVENTOS",
+      "permiso": "EVENTOLEER"
+    },
+    {
+      "rol": "OPERADORMANTENIMIENTO",
+      "permiso": "AREAACTUALIZARESTADO"
+    },
+    {
+      "rol": "OPERADORMANTENIMIENTO",
+      "permiso": "AREALEER"
+    },
+    {
+      "rol": "OPERADORMANTENIMIENTO",
+      "permiso": "MANTENIMIENTOACTUALIZAR"
+    },
+    {
+      "rol": "OPERADORMANTENIMIENTO",
+      "permiso": "MANTENIMIENTOCREAR"
+    },
+    {
+      "rol": "OPERADORMANTENIMIENTO",
+      "permiso": "MANTENIMIENTOLEER"
+    }
+  ],
+  "migraciones": [
+    {
+      "version": "1",
+      "description": "Crear Esquema Inicial",
+      "success": true
+    },
+    {
+      "version": "2",
+      "description": "Crear Identidad Y Roles",
+      "success": true
+    },
+    {
+      "version": "3",
+      "description": "Crear Publicaciones",
+      "success": true
+    },
+    {
+      "version": "4",
+      "description": "Crear Eventos E Inscripciones",
+      "success": true
+    },
+    {
+      "version": "5",
+      "description": "Crear Areas Y Mapa",
+      "success": true
+    },
+    {
+      "version": "6",
+      "description": "Crear Bicicletas Y Solicitudes",
+      "success": true
+    },
+    {
+      "version": "7",
+      "description": "Agregar Seguridad A Usuarios",
+      "success": true
+    },
+    {
+      "version": "8",
+      "description": "Agregar Permiso Estado Bicicletas",
+      "success": true
+    },
+    {
+      "version": "9",
+      "description": "Proteger Y Optimizar Auditoria",
+      "success": true
+    },
+    {
+      "version": "10",
+      "description": "Crear Reservas Areas",
+      "success": true
+    },
+    {
+      "version": "11",
+      "description": "Crear Contenido Institucional",
+      "success": true
+    },
+    {
+      "version": "12",
+      "description": "Agregar Perimetros Areas Mapa",
+      "success": true
+    },
+    {
+      "version": "13",
+      "description": "Agregar Permiso Eliminar Areas",
+      "success": true
+    },
+    {
+      "version": "14",
+      "description": "Hacer Legible Auditoria",
+      "success": true
+    },
+    {
+      "version": "15",
+      "description": "Hacer Legibles Intentos De Sesion",
+      "success": true
+    },
+    {
+      "version": "16",
+      "description": "Orden Unico Categorias Publicacion",
+      "success": true
+    },
+    {
+      "version": "17",
+      "description": "Imagenes Secundarias Eventos",
+      "success": true
+    },
+    {
+      "version": "18",
+      "description": "Respuestas Requisitos Inscripciones",
+      "success": true
+    },
+    {
+      "version": "19",
+      "description": "Datos Personales Usuarios",
+      "success": true
+    },
+    {
+      "version": "20",
+      "description": "Agregar Borradores Solicitudes",
+      "success": true
+    },
+    {
+      "version": "21",
+      "description": "Solicitudes Instalaciones Y Grupos Cursos",
+      "success": true
+    },
+    {
+      "version": "22",
+      "description": "Separar Portal Publico De Administracion",
+      "success": true
+    },
+    {
+      "version": "23",
+      "description": "Catalogo Tramites Resenas Y Documentos Obligatorios",
+      "success": true
+    },
+    {
+      "version": "24",
+      "description": "Ampliar Perfil Usuarios",
+      "success": true
+    },
+    {
+      "version": "25",
+      "description": "Registros Pendientes Y Recuperacion",
+      "success": true
+    }
+  ]
+}

@@ -62,15 +62,15 @@ correo:
 
 almacenamiento:
   publicaciones:
-    ruta: ${ALMACENAMIENTORUTAPUBLICACIONES:../datos/publicaciones}
+    ruta: ${ALMACENAMIENTORUTAPUBLICACIONES:${PARQUEDATOS:../datos}/publicaciones}
   eventos:
-    ruta: ${ALMACENAMIENTORUTAEVENTOS:../datos/eventos}
+    ruta: ${ALMACENAMIENTORUTAEVENTOS:${PARQUEDATOS:../datos}/eventos}
   areas:
-    ruta: ${ALMACENAMIENTORUTAAREAS:../datos/areas}
+    ruta: ${ALMACENAMIENTORUTAAREAS:${PARQUEDATOS:../datos}/areas}
   solicitudes:
-    ruta: ${ALMACENAMIENTORUTASOLICITUDES:../datos/solicitudes}
+    ruta: ${ALMACENAMIENTORUTASOLICITUDES:${PARQUEDATOS:../datos}/solicitudes}
   perfiles:
-    ruta: ${ALMACENAMIENTORUTAPERFILES:../datos/perfiles}
+    ruta: ${ALMACENAMIENTORUTAPERFILES:${PARQUEDATOS:../datos}/perfiles}
 
 server:
   port: ${PUERTOSERVIDOR:8080}

@@ -12,7 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ServicioConsultaImagenEventoPublica {
 
     private static final Set<String> ESTADOS_PUBLICOS = Set.of(
-            "PUBLICADO", "CERRADO", "CANCELADO", "FINALIZADO");
+            "PUBLICADO", "CERRADO", "FINALIZADO");
 
     private final RepositorioEvento repositorioEvento;
     private final RepositorioImagenEvento repositorioImagenEvento;

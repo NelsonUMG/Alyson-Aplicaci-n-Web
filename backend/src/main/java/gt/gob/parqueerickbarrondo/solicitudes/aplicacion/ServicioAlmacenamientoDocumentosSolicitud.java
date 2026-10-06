@@ -9,8 +9,11 @@ import java.nio.file.StandardOpenOption;
 import java.util.Locale;
 import java.util.UUID;
 
+import javax.imageio.ImageIO;
+
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.RecursoNoEncontradoException;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.SolicitudInvalidaException;
+import org.apache.pdfbox.Loader;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.stereotype.Service;
@@ -97,21 +100,49 @@ public class ServicioAlmacenamientoDocumentosSolicitud {
                 && bytes[2] == 'D'
                 && bytes[3] == 'F'
                 && bytes[4] == '-') {
+            validarPdf(bytes);
             return new TipoDocumento("pdf", "application/pdf");
         }
         if (bytes.length >= 8
                 && (bytes[0] & 0xff) == 0x89
                 && bytes[1] == 0x50 && bytes[2] == 0x4e && bytes[3] == 0x47
                 && bytes[4] == 0x0d && bytes[5] == 0x0a && bytes[6] == 0x1a && bytes[7] == 0x0a) {
+            validarImagen(bytes);
             return new TipoDocumento("png", "image/png");
         }
         if (bytes.length >= 3
                 && (bytes[0] & 0xff) == 0xff
                 && (bytes[1] & 0xff) == 0xd8
                 && (bytes[2] & 0xff) == 0xff) {
+            validarImagen(bytes);
             return new TipoDocumento("jpg", "image/jpeg");
         }
         throw new SolicitudInvalidaException("Solo se permiten archivos PDF, PNG o JPEG válidos.");
+    }
+
+    private void validarPdf(byte[] bytes) {
+        try (var documento = Loader.loadPDF(bytes)) {
+            if (documento.getNumberOfPages() < 1) {
+                throw new SolicitudInvalidaException("El PDF debe contener al menos una página válida.");
+            }
+        } catch (SolicitudInvalidaException excepcion) {
+            throw excepcion;
+        } catch (IOException | RuntimeException excepcion) {
+            throw new SolicitudInvalidaException("El archivo PDF está dañado o incompleto.");
+        }
+    }
+
+    private void validarImagen(byte[] bytes) {
+        try (var entrada = new java.io.ByteArrayInputStream(bytes)) {
+            var imagen = ImageIO.read(entrada);
+            if (imagen == null || imagen.getWidth() < 1 || imagen.getHeight() < 1) {
+                throw new SolicitudInvalidaException("La imagen está dañada o incompleta.");
+            }
+        } catch (SolicitudInvalidaException excepcion) {
+            throw excepcion;
+        } catch (IOException | RuntimeException excepcion) {
+            throw new SolicitudInvalidaException("La imagen está dañada o incompleta.");
+        }
     }
 
     private String normalizarNombre(String nombre) {

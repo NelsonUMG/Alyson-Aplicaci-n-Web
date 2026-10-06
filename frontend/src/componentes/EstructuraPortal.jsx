@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
 import { usarSesion } from "../autenticacion/ContextoSesion";
 import { esUsuarioComun } from "../autenticacion/clasificacionUsuario";
 import { MODULO_BICICLETAS_VISIBLE } from "../configuracion/modulos";
+import { usarPortada, textoSobreColor } from "./ContextoPortada";
 
 const enlacesNavegacion = [
   { destino: "/", texto: "Inicio" },
@@ -27,6 +28,7 @@ export function MarcaPortal({ mostrarDerechos = true }) {
 }
 
 export function EstructuraPortal() {
+  const { configuracion } = usarPortada();
   const { cargando, usuario } = usarSesion();
   const [menuAbierto, setMenuAbierto] = useState(false);
   const ubicacion = useLocation();
@@ -40,7 +42,7 @@ export function EstructuraPortal() {
   }, [ubicacion.pathname]);
 
   return (
-    <div className="portal-sitio">
+    <div className={`portal-sitio${ubicacion.pathname === "/" ? " portal-inicio-personalizado" : ""}`} style={ubicacion.pathname === "/" ? { "--inicio-color": configuracion.colorPrincipal, "--inicio-contraste": textoSobreColor(configuracion.colorPrincipal) } : undefined}>
       <a className="salto-contenido" href="#contenido-principal">Saltar al contenido</a>
 
       <header className="portal-cabecera">

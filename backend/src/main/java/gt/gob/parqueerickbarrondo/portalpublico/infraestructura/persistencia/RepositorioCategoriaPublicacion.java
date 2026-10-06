@@ -15,6 +15,12 @@ public interface RepositorioCategoriaPublicacion extends JpaRepository<Categoria
 
     Optional<CategoriaPublicacion> findByIdCategoriaPublicacion(Long idCategoriaPublicacion);
 
+    boolean existsByNombreIgnoreCase(String nombre);
+
+    boolean existsByNombreIgnoreCaseAndIdCategoriaPublicacionNot(
+            String nombre,
+            Long idCategoriaPublicacion);
+
     @Query("select c.codigo from CategoriaPublicacion c")
     List<String> findAllCodigos();
 

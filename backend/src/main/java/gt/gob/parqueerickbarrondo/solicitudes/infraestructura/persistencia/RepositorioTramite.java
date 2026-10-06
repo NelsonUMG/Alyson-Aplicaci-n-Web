@@ -18,6 +18,9 @@ public interface RepositorioTramite extends JpaRepository<Tramite, Long> {
     Optional<Tramite> findByCodigoAndActivoTrueAndCategoria_ActivaTrue(String codigo);
 
     @EntityGraph(attributePaths = "categoria")
+    Optional<Tramite> findByCodigo(String codigo);
+
+    @EntityGraph(attributePaths = "categoria")
     Optional<Tramite> findByIdTramite(Long idTramite);
 
     boolean existsByCodigo(String codigo);

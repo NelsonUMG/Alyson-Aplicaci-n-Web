@@ -8,12 +8,14 @@ import gt.gob.parqueerickbarrondo.identidad.api.modelo.RespuestaRol;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.RespuestaUsuarioAdministrado;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudActualizacionRoles;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudEmpleadoAdministrado;
+import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudEliminacionUsuario;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudRolAdministrado;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.ServicioAdministracionUsuarios;
 import gt.gob.parqueerickbarrondo.identidad.seguridad.UsuarioSesion;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -74,5 +76,14 @@ public class ControladorAdministracionUsuarios {
             @Valid @RequestBody SolicitudActualizacionRoles solicitud,
             @AuthenticationPrincipal UsuarioSesion actor) {
         return servicioAdministracion.actualizarRoles(idUsuario, solicitud, actor);
+    }
+
+    @DeleteMapping("/usuarios/{idUsuario}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminarUsuario(
+            @PathVariable Long idUsuario,
+            @Valid @RequestBody SolicitudEliminacionUsuario solicitud,
+            @AuthenticationPrincipal UsuarioSesion actor) {
+        servicioAdministracion.eliminarCuenta(idUsuario, solicitud.versionUsuario(), actor);
     }
 }

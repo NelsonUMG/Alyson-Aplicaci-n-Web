@@ -16,6 +16,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.util.AopTestUtils;
+import org.springframework.transaction.support.TransactionTemplate;
+import gt.gob.parqueerickbarrondo.identidad.seguridad.UsuarioSesion;
 import tools.jackson.databind.ObjectMapper;
 
 @EnabledIfEnvironmentVariable(named = "PRUEBAS_IDENTIDAD_SQLSERVER", matches = "true")
@@ -26,6 +29,8 @@ class IdentidadSqlServerPruebas {
     @Value("${local.server.port}") int puerto;
     @Autowired JdbcTemplate sql;
     @Autowired ServicioRecuperacionContrasena servicioRecuperacion;
+    @Autowired ServicioAdministracionUsuarios servicioAdministracionUsuarios;
+    @Autowired TransactionTemplate transacciones;
     @MockitoBean EnviadorCorreoVerificacion verificacion;
     @MockitoBean EnviadorCorreoRecuperacion recuperacion;
     final ObjectMapper json = new ObjectMapper();
@@ -93,6 +98,52 @@ class IdentidadSqlServerPruebas {
         var primera = java.util.concurrent.CompletableFuture.supplyAsync(consumir);
         var segunda = java.util.concurrent.CompletableFuture.supplyAsync(consumir);
         assertThat(List.of(primera.get(), segunda.get())).containsExactlyInAnyOrder(true, false);
+
+        var idPersona = sql.queryForObject(
+                "SELECT IdUsuario FROM dbo.Usuarios WHERE CorreoNormalizado='persona@example.com'", Long.class);
+        var hashPersona = sql.queryForObject(
+                "SELECT HashContrasena FROM dbo.Usuarios WHERE IdUsuario=?", String.class, idPersona);
+        var versionPersona = sql.queryForObject(
+                "SELECT Version FROM dbo.Usuarios WHERE IdUsuario=?", Long.class, idPersona);
+        var idAdministrador = sql.queryForObject(
+                "SELECT IdRol FROM dbo.Roles WHERE Codigo='ADMINISTRADOR'", Long.class);
+        var idUsuarioRegistrado = sql.queryForObject(
+                "SELECT IdRol FROM dbo.Roles WHERE Codigo='USUARIOREGISTRADO'", Long.class);
+        sql.update("INSERT INTO dbo.UsuariosRoles (IdUsuario,IdRol,AsignadoPor) VALUES (?,?,?)",
+                idPersona, idAdministrador, idPersona);
+        var idSegundoAdministrador = sql.queryForObject("""
+                INSERT INTO dbo.Usuarios (CorreoNormalizado,Nombre,Apellido,HashContrasena,Estado,CorreoVerificadoEn)
+                OUTPUT INSERTED.IdUsuario VALUES ('segundo.admin@example.com','Segundo','Administrador',?,'ACTIVO',SYSUTCDATETIME())
+                """, Long.class, hashPersona);
+        sql.update("INSERT INTO dbo.UsuariosRoles (IdUsuario,IdRol,AsignadoPor) VALUES (?,?,?),(?,?,?)",
+                idSegundoAdministrador, idUsuarioRegistrado, idPersona,
+                idSegundoAdministrador, idAdministrador, idPersona);
+        assertThat(sql.queryForObject("""
+                SELECT COUNT(DISTINCT u.IdUsuario) FROM dbo.Usuarios u
+                JOIN dbo.UsuariosRoles ur ON ur.IdUsuario=u.IdUsuario
+                WHERE ur.IdRol=? AND u.Estado='ACTIVO'
+                """, Integer.class, idAdministrador)).isEqualTo(2);
+
+        var actor = mock(UsuarioSesion.class);
+        when(actor.obtenerIdUsuario()).thenReturn(idPersona);
+        var servicioSinProxy = AopTestUtils.<ServicioAdministracionUsuarios>getTargetObject(servicioAdministracionUsuarios);
+        transacciones.executeWithoutResult(estado ->
+                servicioSinProxy.eliminarCuenta(idSegundoAdministrador, 0L, actor));
+        assertThat(sql.queryForObject("SELECT Estado FROM dbo.Usuarios WHERE IdUsuario=?", String.class, idSegundoAdministrador))
+                .isEqualTo("ELIMINADO");
+        assertThat(sql.queryForObject("SELECT CorreoNormalizado FROM dbo.Usuarios WHERE IdUsuario=?", String.class, idSegundoAdministrador))
+                .isEqualTo("cuenta-eliminada-" + idSegundoAdministrador + "@anonimo.invalid");
+        assertThat(sql.queryForObject("SELECT COUNT(*) FROM dbo.UsuariosRoles WHERE IdUsuario=?", Integer.class, idSegundoAdministrador))
+                .isZero();
+
+        var actorExterno = mock(UsuarioSesion.class);
+        when(actorExterno.obtenerIdUsuario()).thenReturn(999999L);
+        assertThatThrownBy(() -> transacciones.executeWithoutResult(estado ->
+                servicioSinProxy.eliminarCuenta(idPersona, versionPersona, actorExterno)))
+                .isInstanceOf(ConflictoDatosException.class)
+                .hasMessageContaining("último administrador");
+        assertThat(sql.queryForObject("SELECT Estado FROM dbo.Usuarios WHERE IdUsuario=?", String.class, idPersona))
+                .isEqualTo("ACTIVO");
     }
     private Map<String, String> cambio(String token) {
         return Map.of("token", token, "contrasenaNueva", "Prueba renovada segura 456", "confirmarContrasena", "Prueba renovada segura 456");

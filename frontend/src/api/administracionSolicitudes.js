@@ -1,4 +1,5 @@
 import { solicitarApi } from "./clienteHttp";
+import { prepararCsrf } from "./autenticacion";
 
 export function listarSolicitudesAdministradas({ busqueda = "", estado = "", pagina = 0, tamano = 20 } = {}) {
   const parametros = new URLSearchParams({ busqueda, estado, pagina: String(pagina), tamano: String(tamano) });
@@ -13,7 +14,8 @@ export function consultarSolicitudAdministrada(idSolicitud) {
   });
 }
 
-export function iniciarRevisionSolicitud(idSolicitud, version) {
+export async function iniciarRevisionSolicitud(idSolicitud, version) {
+  await prepararCsrf();
   return solicitarApi(`/administracion/solicitudes/${idSolicitud}/iniciar-revision`, {
     method: "POST",
     body: JSON.stringify({ version }),
@@ -21,7 +23,8 @@ export function iniciarRevisionSolicitud(idSolicitud, version) {
   });
 }
 
-export function resolverSolicitud(idSolicitud, decision, respuesta, version) {
+export async function resolverSolicitud(idSolicitud, decision, respuesta, version) {
+  await prepararCsrf();
   return solicitarApi(`/administracion/solicitudes/${idSolicitud}/resolver`, {
     method: "POST",
     body: JSON.stringify({ decision, respuesta, version }),
@@ -41,7 +44,8 @@ export function listarCategoriasTramitesAdministradas() {
   });
 }
 
-export function crearCategoriaTramiteAdministrada(datos) {
+export async function crearCategoriaTramiteAdministrada(datos) {
+  await prepararCsrf();
   return solicitarApi("/administracion/solicitudes/catalogo/categorias", {
     method: "POST",
     body: JSON.stringify(datos),
@@ -49,7 +53,17 @@ export function crearCategoriaTramiteAdministrada(datos) {
   });
 }
 
-export function crearTramiteAdministrado(datos) {
+export async function actualizarCategoriaTramiteAdministrada(idCategoria, datos) {
+  await prepararCsrf();
+  return solicitarApi(`/administracion/solicitudes/catalogo/categorias/${idCategoria}`, {
+    method: "PUT",
+    body: JSON.stringify(datos),
+    descripcionOperacion: `actualizar la categoría general «${datos.nombre || "sin nombre"}»`,
+  });
+}
+
+export async function crearTramiteAdministrado(datos) {
+  await prepararCsrf();
   return solicitarApi("/administracion/solicitudes/catalogo", {
     method: "POST",
     body: JSON.stringify(datos),
@@ -57,7 +71,8 @@ export function crearTramiteAdministrado(datos) {
   });
 }
 
-export function actualizarTramiteAdministrado(idTramite, datos) {
+export async function actualizarTramiteAdministrado(idTramite, datos) {
+  await prepararCsrf();
   return solicitarApi(`/administracion/solicitudes/catalogo/${idTramite}`, {
     method: "PUT",
     body: JSON.stringify(datos),
@@ -65,7 +80,8 @@ export function actualizarTramiteAdministrado(idTramite, datos) {
   });
 }
 
-export function actualizarPortadaTramite(idTramite, archivo) {
+export async function actualizarPortadaTramite(idTramite, archivo) {
+  await prepararCsrf();
   const formulario = new window.FormData();
   formulario.append("archivo", archivo);
   return solicitarApi(`/administracion/solicitudes/catalogo/${idTramite}/portada`, {

@@ -1,0 +1,70 @@
+{
+  "fecha": "2026-10-01T14:37:34.769Z",
+  "mode": "limpieza",
+  "results": [
+    {
+      "name": "Administrador autentica en servidor real",
+      "ok": true
+    },
+    {
+      "name": "Cancelar reserva administrativa temporal",
+      "ok": true,
+      "status": 200,
+      "ms": 38
+    },
+    {
+      "name": "Eliminar conexión temporal del mapa",
+      "ok": true,
+      "status": 404,
+      "ms": 6,
+      "detail": "No se encontró la conexión del mapa solicitada."
+    },
+    {
+      "name": "Eliminar nodo temporal 2",
+      "ok": true,
+      "status": 404,
+      "ms": 6,
+      "detail": "No se encontró el nodo del mapa solicitado."
+    },
+    {
+      "name": "Eliminar nodo temporal 1",
+      "ok": true,
+      "status": 404,
+      "ms": 5,
+      "detail": "No se encontró el nodo del mapa solicitado."
+    },
+    {
+      "name": "Noticia QA ya no es pública",
+      "ok": true,
+      "status": 404,
+      "ms": 6,
+      "detail": "No se encontró la publicación solicitada."
+    },
+    {
+      "name": "Consultar listado público tras cancelar evento",
+      "ok": true,
+      "status": 200,
+      "ms": 6
+    },
+    {
+      "name": "Evento QA ya no figura en el listado público",
+      "ok": false
+    },
+    {
+      "name": "Detalle público conserva aviso del evento cancelado",
+      "ok": true,
+      "status": 200,
+      "ms": 8
+    },
+    {
+      "name": "Área QA ya no figura disponible",
+      "ok": true,
+      "status": 200,
+      "ms": 7
+    },
+    {
+      "name": "Área QA retirada de la exposición pública",
+      "ok": true
+    }
+  ]
+}

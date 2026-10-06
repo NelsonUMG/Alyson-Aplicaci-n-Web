@@ -223,6 +223,8 @@
 .estructura-administracion .contenido-modulo-administracion tr.fila-seleccionada td { background: #eaf3f9; }
 .estructura-administracion .contenido-modulo-administracion tr.fila-seleccionada td:first-child { box-shadow: inset 3px 0 var(--administracion-acento); }
 .estructura-administracion .contenido-modulo-administracion .acciones-paginacion { gap: 1rem; margin-top: 1.25rem; font-size: .875rem; }
+.acciones-exportacion-reporte { display: flex; flex-wrap: wrap; gap: .65rem; }
+.acciones-edicion-usuario { display: flex; flex-wrap: wrap; gap: .75rem; align-items: center; }
 .estructura-administracion .contenido-modulo-administracion :is(.selector-administracion, .formulario-cambio-estado, .gestion-imagen-evento, .panel-imagenes-publicacion) { padding: 1rem; border-color: var(--administracion-borde); background: #fafbfd; }
 .estructura-administracion .contenido-modulo-administracion .formulario-institucional { max-width: 100%; }
 .estructura-administracion .contenido-modulo-administracion .seccion-contenido-institucional {
@@ -395,6 +397,10 @@
   .estructura-administracion .contenido-modulo-administracion .lista-tabular-administracion > button { grid-template-columns: minmax(0, 1fr); gap: .65rem; }
 }
 @media (max-width: 420px) {
+  .estructura-administracion .contenido-modulo-administracion .acciones-paginacion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; }
+  .estructura-administracion .contenido-modulo-administracion .acciones-paginacion > span { grid-column: 1 / -1; grid-row: 1; text-align: center; }
+  .acciones-exportacion-reporte { width: 100%; }
+  .acciones-exportacion-reporte > button { width: 100%; }
   .estructura-administracion .contenido-barra-superior-administracion { gap: .5rem; }
   .estructura-administracion .sesion-barra-administracion { gap: .5rem; font-size: .8125rem; }
   .estructura-administracion .sesion-barra-administracion > span { max-width: 12ch; }

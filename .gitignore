@@ -43,6 +43,7 @@ uploads/
 *.hprof
 
 # Datos y copias locales
+datos/
 backups/
 *.local.sql
 *.dump

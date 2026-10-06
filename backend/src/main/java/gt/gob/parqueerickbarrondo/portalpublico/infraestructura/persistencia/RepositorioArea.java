@@ -8,7 +8,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import jakarta.persistence.LockModeType;
 
 public interface RepositorioArea extends JpaRepository<Area, Long> {
 
@@ -46,6 +48,11 @@ public interface RepositorioArea extends JpaRepository<Area, Long> {
     @EntityGraph(attributePaths = {"categoria", "actualizadoPor"})
     Optional<Area> buscarAdministradaPorId(
             @org.springframework.data.repository.query.Param("idArea") Long idArea);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select a from Area a where a.codigo = :codigo")
+    Optional<Area> bloquearPorCodigoParaReserva(
+            @org.springframework.data.repository.query.Param("codigo") String codigo);
 
     @Query("select a from Area a join a.categoria c where a.codigo = :codigo and c.activa = true")
     Optional<Area> buscarPublicaPorCodigo(

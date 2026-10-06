@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.text.Normalizer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -24,12 +25,16 @@ import gt.gob.parqueerickbarrondo.identidad.dominio.Usuario;
 import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioPermiso;
 import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioRol;
 import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioUsuario;
+import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioTokenRestablecimientoContrasena;
+import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.RepositorioTokenVerificacionCorreo;
 import gt.gob.parqueerickbarrondo.identidad.seguridad.UsuarioSesion;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.session.SessionRegistry;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -37,6 +42,8 @@ import org.springframework.transaction.support.TransactionSynchronizationManager
 
 @Service
 public class ServicioAdministracionUsuarios {
+
+    private static final Logger REGISTRO = LoggerFactory.getLogger(ServicioAdministracionUsuarios.class);
 
     private final RepositorioUsuario repositorioUsuario;
     private final RepositorioRol repositorioRol;
@@ -46,6 +53,9 @@ public class ServicioAdministracionUsuarios {
     private final NormalizadorCorreo normalizadorCorreo;
     private final PoliticaContrasena politicaContrasena;
     private final ServicioAuditoria servicioAuditoria;
+    private final RepositorioTokenRestablecimientoContrasena repositorioTokensRestablecimiento;
+    private final RepositorioTokenVerificacionCorreo repositorioTokensVerificacion;
+    private final ServicioAlmacenamientoFotosPerfil almacenamientoFotos;
 
     public ServicioAdministracionUsuarios(
             RepositorioUsuario repositorioUsuario,
@@ -55,7 +65,10 @@ public class ServicioAdministracionUsuarios {
             PasswordEncoder codificadorContrasena,
             NormalizadorCorreo normalizadorCorreo,
             PoliticaContrasena politicaContrasena,
-            ServicioAuditoria servicioAuditoria) {
+            ServicioAuditoria servicioAuditoria,
+            RepositorioTokenRestablecimientoContrasena repositorioTokensRestablecimiento,
+            RepositorioTokenVerificacionCorreo repositorioTokensVerificacion,
+            ServicioAlmacenamientoFotosPerfil almacenamientoFotos) {
         this.repositorioUsuario = repositorioUsuario;
         this.repositorioRol = repositorioRol;
         this.repositorioPermiso = repositorioPermiso;
@@ -64,6 +77,9 @@ public class ServicioAdministracionUsuarios {
         this.normalizadorCorreo = normalizadorCorreo;
         this.politicaContrasena = politicaContrasena;
         this.servicioAuditoria = servicioAuditoria;
+        this.repositorioTokensRestablecimiento = repositorioTokensRestablecimiento;
+        this.repositorioTokensVerificacion = repositorioTokensVerificacion;
+        this.almacenamientoFotos = almacenamientoFotos;
     }
 
     @PreAuthorize("hasAuthority('USUARIOGESTIONAR')")
@@ -170,7 +186,10 @@ public class ServicioAdministracionUsuarios {
                 solicitud.nombre().strip(),
                 solicitud.apellido().strip(),
                 codificadorContrasena.encode(solicitud.contrasenaInicial()),
-                java.time.Instant.now());
+                java.time.Instant.now(),
+                solicitud.dpi(),
+                solicitud.celular(),
+                solicitud.fechaNacimiento());
         usuario.reemplazarRoles(new LinkedHashSet<>(roles));
         usuario = repositorioUsuario.saveAndFlush(usuario);
         servicioAuditoria.registrar(
@@ -219,6 +238,47 @@ public class ServicioAdministracionUsuarios {
                 "EXITOSO",
                 IdentificadorCorrelacion.actual());
         return convertirUsuario(usuario);
+    }
+
+    @PreAuthorize("hasAuthority('USUARIOGESTIONAR')")
+    @Transactional
+    public void eliminarCuenta(Long idUsuario, Long versionUsuario, UsuarioSesion actor) {
+        if (idUsuario.equals(actor.obtenerIdUsuario())) {
+            throw new SolicitudInvalidaException("No puedes eliminar tu propia cuenta mientras la estás usando.");
+        }
+        repositorioRol.bloquearPorCodigo("ADMINISTRADOR")
+                .orElseThrow(() -> new IllegalStateException("No existe el rol ADMINISTRADOR."));
+        var usuario = repositorioUsuario.buscarConPermisosPorId(idUsuario)
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el usuario solicitado."));
+        if ("ELIMINADO".equals(usuario.obtenerEstado())) {
+            throw new RecursoNoEncontradoException("No se encontró el usuario solicitado.");
+        }
+        if (!usuario.obtenerVersion().equals(versionUsuario)) {
+            throw new ConflictoDatosException("El usuario cambió desde la última consulta. Recarga los datos.");
+        }
+        var eraAdministrador = usuario.obtenerRoles().stream()
+                .anyMatch(rol -> "ADMINISTRADOR".equals(rol.obtenerCodigo()));
+        if (eraAdministrador && repositorioUsuario.contarAdministradoresActivos() <= 1) {
+            throw new ConflictoDatosException("No se puede eliminar el último administrador activo.");
+        }
+
+        var principalAnterior = new UsuarioSesion(usuario);
+        var claveFoto = usuario.obtenerClaveFotoPerfil();
+        repositorioTokensRestablecimiento.deleteAllByUsuario_IdUsuario(idUsuario);
+        repositorioTokensVerificacion.deleteAllByUsuario_IdUsuario(idUsuario);
+        usuario.eliminarCuenta(
+                "cuenta-eliminada-" + idUsuario + "@anonimo.invalid",
+                codificadorContrasena.encode(UUID.randomUUID().toString()));
+        repositorioUsuario.flush();
+        invalidarSesionesDespuesDeConfirmar(principalAnterior);
+        eliminarFotoDespuesDeConfirmar(claveFoto);
+        servicioAuditoria.registrar(
+                actor.obtenerIdUsuario(),
+                "CUENTAUSUARIOELIMINADA",
+                "USUARIO",
+                idUsuario.toString(),
+                "EXITOSO",
+                IdentificadorCorrelacion.actual());
     }
 
     private void validarEscalacion(Collection<Rol> rolesActuales, Collection<Rol> rolesNuevos, UsuarioSesion actor) {
@@ -280,6 +340,20 @@ public class ServicioAdministracionUsuarios {
             public void afterCommit() {
                 registroSesiones.getAllSessions(principal, false)
                         .forEach(informacion -> informacion.expireNow());
+            }
+        });
+    }
+
+    private void eliminarFotoDespuesDeConfirmar(String claveFoto) {
+        if (claveFoto == null) return;
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                try {
+                    almacenamientoFotos.eliminar(claveFoto);
+                } catch (RuntimeException excepcion) {
+                    REGISTRO.warn("La cuenta fue eliminada, pero no se pudo retirar su fotografía sin referencia.", excepcion);
+                }
             }
         });
     }

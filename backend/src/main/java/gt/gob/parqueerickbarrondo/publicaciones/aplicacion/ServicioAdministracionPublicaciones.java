@@ -79,6 +79,7 @@ public class ServicioAdministracionPublicaciones {
             SolicitudCategoriaPublicacion solicitud,
             UsuarioSesion actor) {
         var orden = (short) solicitud.ordenVisualizacion();
+        validarNombreCategoriaDisponible(solicitud.nombre(), null);
         validarOrdenCategoriaDisponible(orden, null);
         var categoria = new CategoriaPublicacion(
                 generarCodigoCategoria(),
@@ -100,6 +101,7 @@ public class ServicioAdministracionPublicaciones {
         var categoria = buscarCategoria(idCategoria);
         validarVersion(categoria.obtenerVersion(), solicitud.version(), "La categoría");
         var orden = (short) solicitud.ordenVisualizacion();
+        validarNombreCategoriaDisponible(solicitud.nombre(), idCategoria);
         validarOrdenCategoriaDisponible(orden, idCategoria);
         categoria.actualizar(
                 categoria.obtenerCodigo(),
@@ -428,6 +430,17 @@ public class ServicioAdministracionPublicaciones {
                         orden, idCategoriaActual);
         if (existe) {
             throw new ConflictoDatosException("El orden " + orden + " ya está asignado a otra categoría.");
+        }
+    }
+
+    private void validarNombreCategoriaDisponible(String nombre, Long idCategoriaActual) {
+        var normalizado = nombre.strip();
+        var existe = idCategoriaActual == null
+                ? repositorioCategoria.existsByNombreIgnoreCase(normalizado)
+                : repositorioCategoria.existsByNombreIgnoreCaseAndIdCategoriaPublicacionNot(
+                        normalizado, idCategoriaActual);
+        if (existe) {
+            throw new ConflictoDatosException("Ya existe una categoría con ese nombre.");
         }
     }
 

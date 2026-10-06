@@ -12,6 +12,7 @@ import java.util.Objects;
 import java.util.Set;
 
 import gt.gob.parqueerickbarrondo.areas.dominio.NodoMapa;
+import gt.gob.parqueerickbarrondo.areas.api.modelo.CoordenadaAreaMapa;
 import gt.gob.parqueerickbarrondo.areas.dominio.ReservaArea;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioNodoMapa;
 import gt.gob.parqueerickbarrondo.areas.infraestructura.persistencia.RepositorioReservaArea;
@@ -227,7 +228,10 @@ public class ServicioMapaPublico {
                 estadoTemporal.tituloProximaReserva(),
                 estadoTemporal.notaDisponibilidad(),
                 latitudCentro,
-                longitudCentro);
+                longitudCentro,
+                area.obtenerPerimetro().stream()
+                        .map(vertice -> new CoordenadaAreaMapa(vertice.obtenerLatitud(), vertice.obtenerLongitud()))
+                        .toList());
     }
 
     private boolean esAlertaPublica(
@@ -237,7 +241,7 @@ public class ServicioMapaPublico {
                 area.obtenerIdArea(),
                 new DisponibilidadArea(area.obtenerEstado(), false, null, null, null, null))
                 .estadoCalculado();
-        return "ENUSO".equals(estado) || "ENMANTENIMIENTO".equals(estado);
+        return Set.of("ENUSO", "ENMANTENIMIENTO", "FUERADESERVICIO").contains(estado);
     }
 
     private record DatosMapa(
