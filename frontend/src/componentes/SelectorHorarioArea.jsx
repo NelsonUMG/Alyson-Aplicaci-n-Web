@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "./AvisosEnContexto";
 import { useState } from "react";
 
 const diasSemana = [
@@ -89,7 +90,7 @@ export function SelectorHorarioArea({ periodos = [], alCambiar, formatoAnterior 
         </label>
         <button type="button" onClick={agregarHorario}>Agregar horario</button>
       </div>
-      {error && <p className="mensaje-error" role="alert">{error}</p>}
+      {error && <AvisoEnContexto className="mensaje-error" role="alert">{error}</AvisoEnContexto>}
       <div className="selector-horario-periodos" aria-live="polite">
         {periodos.length === 0 ? (
           <p>Sin horario definido.</p>

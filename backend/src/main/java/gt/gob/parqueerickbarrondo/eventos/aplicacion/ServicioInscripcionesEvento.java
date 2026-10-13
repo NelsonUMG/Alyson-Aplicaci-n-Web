@@ -84,19 +84,30 @@ public class ServicioInscripcionesEvento {
         var ahora = Instant.now();
         var eventoInicial = buscarEvento(idEvento);
         validarInscripcionDisponible(eventoInicial, ahora);
-        var respuestasFormularioJson = validarYSerializarRespuestas(eventoInicial, solicitud.respuestas());
+        var respuestasFormularioJson = validarYSerializarRespuestas(eventoInicial, solicitud.respuestas(), solicitud.participante() != null);
         var usuario = repositorioUsuario.findById(actor.obtenerIdUsuario())
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el usuario solicitado."));
           if (!usuario.estaActivo()) {
               throw new SolicitudInvalidaException("La cuenta no está habilitada para inscripciones.");
           }
-          var grupoSeleccionado = validarGrupo(eventoInicial, solicitud.codigoGrupo(), usuario.obtenerFechaNacimiento());
+          var participante = solicitud.participante();
+          if (participante != null && (participante.fechaNacimiento() == null
+                  || participante.fechaNacimiento().isAfter(LocalDate.now(ZoneId.of("America/Guatemala"))))) {
+              throw new SolicitudInvalidaException("Verifica la fecha de nacimiento del participante.");
+          }
+          var claveParticipante = participante == null ? "TITULAR" : java.util.HexFormat.of().formatHex(
+                  gt.gob.parqueerickbarrondo.identidad.aplicacion.TokensSeguros.resumir(
+                      (participante.nombre().strip() + "|" + participante.apellido().strip()).toLowerCase(java.util.Locale.ROOT)
+                      + "|" + participante.fechaNacimiento()));
+          var grupoSeleccionado = validarGrupo(eventoInicial, solicitud.codigoGrupo(),
+                  participante == null ? usuario.obtenerFechaNacimiento() : participante.fechaNacimiento());
 
-        var existente = repositorioInscripcion
-                .buscarParaActualizar(idEvento, actor.obtenerIdUsuario())
+        var existente = (participante == null
+                ? repositorioInscripcion.buscarParaActualizar(idEvento, actor.obtenerIdUsuario())
+                : repositorioInscripcion.buscarParticipanteParaActualizar(idEvento, actor.obtenerIdUsuario(), claveParticipante))
                 .orElse(null);
         if (existente != null && existente.estaConfirmada()) {
-            throw new ConflictoDatosException("Ya tienes una inscripción confirmada para este evento.");
+            throw new ConflictoDatosException("El participante ya tiene una inscripción confirmada para este evento.");
         }
 
         if (repositorioEvento.reservarCupo(idEvento, ahora) != 1) {
@@ -119,6 +130,8 @@ public class ServicioInscripcionesEvento {
               }
               inscripcion = existente;
           }
+        if (participante != null) inscripcion.asignarParticipante(claveParticipante,
+                participante.nombre().strip(), participante.apellido().strip(), participante.fechaNacimiento());
         inscripcion = repositorioInscripcion.saveAndFlush(inscripcion);
         guardarNotificacion(
                 usuario,
@@ -139,8 +152,10 @@ public class ServicioInscripcionesEvento {
             Long idEvento,
             SolicitudCancelacionInscripcion solicitud,
             UsuarioSesion actor) {
-        var inscripcion = repositorioInscripcion
-                .buscarParaActualizar(idEvento, actor.obtenerIdUsuario())
+        var inscripcion = (solicitud.idInscripcionEvento() == null
+                ? repositorioInscripcion.buscarParaActualizar(idEvento, actor.obtenerIdUsuario())
+                : repositorioInscripcion.bloquearInscripcionPropia(solicitud.idInscripcionEvento(), actor.obtenerIdUsuario()))
+                .filter(i -> solicitud.idInscripcionEvento() == null || idEvento.equals(i.obtenerEvento().obtenerIdEvento()))
                 .orElseThrow(() -> new RecursoNoEncontradoException(
                         "No se encontró una inscripción para este evento."));
         var evento = buscarEvento(idEvento);
@@ -148,7 +163,7 @@ public class ServicioInscripcionesEvento {
             return convertir(inscripcion, evento);
         }
         var ahora = Instant.now();
-        if (!evento.obtenerIniciaEn().isAfter(ahora)) {
+        if (!evento.esCursoContinuo() && !evento.obtenerIniciaEn().isAfter(ahora)) {
             throw new SolicitudInvalidaException(
                     "La inscripción no puede cancelarse después de iniciar el evento.");
         }
@@ -204,6 +219,15 @@ public class ServicioInscripcionesEvento {
                 pagina.getTotalPages());
     }
 
+    @PreAuthorize("isAuthenticated()")
+    @Transactional(readOnly = true)
+    public RespuestaInscripcionEvento consultarParticipante(Long idEvento, Long idInscripcion, UsuarioSesion actor) {
+        var inscripcion = repositorioInscripcion.findByIdInscripcionEventoAndUsuario_IdUsuario(idInscripcion, actor.obtenerIdUsuario())
+                .filter(i -> i.obtenerEvento().obtenerIdEvento().equals(idEvento))
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la inscripción."));
+        return convertir(inscripcion, inscripcion.obtenerEvento());
+    }
+
     private Evento buscarEvento(Long idEvento) {
         return repositorioEvento.findById(idEvento)
                 .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró el evento solicitado."));
@@ -213,8 +237,11 @@ public class ServicioInscripcionesEvento {
         if (!"PUBLICADO".equals(evento.obtenerEstado())) {
             throw new SolicitudInvalidaException("El evento no está disponible para inscripciones.");
         }
-        if (!evento.obtenerIniciaEn().isAfter(ahora)) {
+        if (!evento.esCursoContinuo() && !evento.obtenerIniciaEn().isAfter(ahora)) {
             throw new SolicitudInvalidaException("El evento ya inició y no admite inscripciones.");
+        }
+        if (evento.esCursoContinuo() && evento.obtenerFinalizaEn() != null && !evento.obtenerFinalizaEn().isAfter(ahora)) {
+            throw new SolicitudInvalidaException("El curso ya finalizó.");
         }
         if (evento.obtenerInscripcionAbreEn() != null && evento.obtenerInscripcionAbreEn().isAfter(ahora)) {
             throw new SolicitudInvalidaException("El periodo de inscripción todavía no está abierto.");
@@ -227,22 +254,31 @@ public class ServicioInscripcionesEvento {
         }
     }
 
-      private String validarYSerializarRespuestas(Evento evento, Map<String, Object> respuestas) {
+      private String validarYSerializarRespuestas(Evento evento, Map<String, Object> respuestas, boolean paraNino) {
         var esquema = evento.obtenerEsquemaFormularioJson();
-        if (esquema == null || esquema.isBlank()) {
-            if (!respuestas.isEmpty()) {
-                throw new SolicitudInvalidaException(
-                        "El evento no solicita requisitos adicionales.");
-      }
-
+        if ((esquema == null || esquema.isBlank()) && !paraNino) {
+            if (!respuestas.isEmpty()) throw new SolicitudInvalidaException("El evento no solicita requisitos adicionales.");
             return null;
         }
         try {
-            var raiz = serializadorJson.readTree(esquema);
+            var raiz = serializadorJson.readTree(esquema == null || esquema.isBlank() ? "{\"campos\":[]}" : esquema);
             var campos = raiz == null ? null : raiz.get("campos");
             if (campos == null || !campos.isArray()) {
                 throw new SolicitudInvalidaException(
                         "La configuración de requisitos del evento no es válida.");
+            }
+            boolean tieneFoto = false;
+            for (var campo : campos) {
+                if (FotoParticipante.esCampoFoto(textoNodo(campo.get("tipo")), textoNodo(campo.get("etiqueta")))) {
+                    ((tools.jackson.databind.node.ObjectNode) campo).put("tipo", "FOTO");
+                    if (paraNino) ((tools.jackson.databind.node.ObjectNode) campo).put("obligatorio", true);
+                    tieneFoto = true;
+                }
+            }
+            if (paraNino && !tieneFoto) {
+                ((tools.jackson.databind.node.ArrayNode) campos).addObject()
+                        .put("id", "_fotoParticipante").put("etiqueta", "Fotografía del niño(a)")
+                        .put("tipo", "FOTO").put("obligatorio", true);
             }
             var clavesPermitidas = new HashSet<String>();
             var normalizadas = new LinkedHashMap<String, Object>();
@@ -299,16 +335,16 @@ public class ServicioInscripcionesEvento {
                 var edadMaxima = enteroOpcional(grupo.get("edadMaxima"));
                 if ((edadMinima != null || edadMaxima != null) && fechaNacimiento == null) {
                     throw new SolicitudInvalidaException(
-                            "Tu cuenta necesita fecha de nacimiento para validar la categoría de edad.");
+                            "El participante necesita fecha de nacimiento para validar la categoría de edad.");
                 }
                 if (fechaNacimiento != null) {
-                    var fechaEvento = evento.obtenerIniciaEn()
+                    var fechaEvento = (evento.esCursoContinuo() && evento.obtenerIniciaEn().isBefore(Instant.now()) ? Instant.now() : evento.obtenerIniciaEn())
                             .atZone(ZoneId.of("America/Guatemala")).toLocalDate();
                     var edad = Period.between(fechaNacimiento, fechaEvento).getYears();
                     if (edadMinima != null && edad < edadMinima
                             || edadMaxima != null && edad > edadMaxima) {
                         throw new SolicitudInvalidaException(
-                                "Selecciona uno de los grupos disponibles para tu edad.");
+                                "Selecciona uno de los grupos disponibles para la edad del participante.");
                     }
                 }
                 return new GrupoSeleccionado(
@@ -346,6 +382,7 @@ public class ServicioInscripcionesEvento {
             String etiqueta) {
         var texto = String.valueOf(valor).strip();
         return switch (tipo) {
+            case "FOTO" -> FotoParticipante.validar(texto);
             case "DPI_CUI" -> {
                 if (!texto.matches("\\d{13}")) {
                     throw respuestaInvalida(etiqueta, "debe contener exactamente 13 números");
@@ -457,7 +494,8 @@ public class ServicioInscripcionesEvento {
                 inscripcion.obtenerCanceladaEn(),
                 inscripcion.obtenerMotivoCancelacion(),
                 Math.max(evento.obtenerCapacidadTotal() - evento.obtenerCantidadOcupada(), 0),
-                  inscripcion.obtenerVersion());
+                  inscripcion.obtenerVersion(), inscripcion.obtenerNombreParticipante(), inscripcion.obtenerApellidoParticipante(),
+                  inscripcion.obtenerNacimientoParticipante(), inscripcion.obtenerNombreResponsable());
       }
 
       private record GrupoSeleccionado(String codigo, String nombre) {

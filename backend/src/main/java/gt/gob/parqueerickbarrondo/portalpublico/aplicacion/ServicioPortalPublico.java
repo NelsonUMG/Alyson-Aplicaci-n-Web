@@ -184,7 +184,9 @@ public class ServicioPortalPublico {
                                 evento.obtenerIdEvento())
                         .stream()
                         .map(imagen -> convertirImagenEvento(evento, imagen))
-                        .toList());
+                        .toList(), evento.esCursoContinuo(),
+                evento.obtenerClaveFormularioInscripcion() == null ? null : "/api/v1/publico/eventos/" + evento.obtenerIdentificadorUrl() + "/formulario-inscripcion",
+                evento.obtenerNombreFormularioInscripcion());
     }
 
     @Transactional(readOnly = true)

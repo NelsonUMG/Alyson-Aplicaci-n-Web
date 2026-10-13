@@ -32,7 +32,16 @@ public record SolicitudEvento(
         @Valid
         @Size(max = 30, message = "Un evento no puede tener más de 30 requisitos.")
         List<SolicitudRequisitoEvento> requisitos,
-        Long version) {
+        Long version,
+        boolean cursoContinuo) {
+
+    public SolicitudEvento(String titulo, String descripcion, String lugar, Instant iniciaEn,
+            Instant finalizaEn, Instant inscripcionAbreEn, Instant inscripcionCierraEn,
+            int capacidadTotal, String esquemaFormularioJson, String configuracionGruposJson,
+            List<SolicitudRequisitoEvento> requisitos, Long version) {
+        this(titulo, descripcion, lugar, iniciaEn, finalizaEn, inscripcionAbreEn, inscripcionCierraEn,
+                capacidadTotal, esquemaFormularioJson, configuracionGruposJson, requisitos, version, false);
+    }
 
     public SolicitudEvento {
         requisitos = requisitos == null ? List.of() : List.copyOf(requisitos);

@@ -2,6 +2,9 @@ package gt.gob.parqueerickbarrondo.eventos.api;
 
 import gt.gob.parqueerickbarrondo.eventos.api.modelo.RespuestaPersonaInscritaReporte;
 import gt.gob.parqueerickbarrondo.eventos.api.modelo.RespuestaResumenInscripcionesCurso;
+import gt.gob.parqueerickbarrondo.eventos.api.modelo.RespuestaDetalleParticipante;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.CacheControl;
 import gt.gob.parqueerickbarrondo.eventos.aplicacion.ServicioReportesInscripciones;
 import gt.gob.parqueerickbarrondo.portalpublico.api.modelo.RespuestaPaginaPublica;
 import org.springframework.validation.annotation.Validated;
@@ -37,5 +40,13 @@ public class ControladorReportesInscripciones {
             @RequestParam(defaultValue = "0") int pagina,
             @RequestParam(defaultValue = "20") int tamano) {
         return servicioReportes.listarPersonas(idEvento, busqueda, pagina, tamano);
+    }
+
+    @GetMapping("/{idEvento}/personas/{idInscripcion}")
+    public ResponseEntity<RespuestaDetalleParticipante> consultarParticipante(
+            @PathVariable Long idEvento, @PathVariable Long idInscripcion) {
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noStore())
+                .body(servicioReportes.consultarParticipante(idEvento, idInscripcion));
     }
 }

@@ -1,0 +1,4 @@
+.entrada-contrasena-visible { position: relative; width: 100%; }
+.entrada-contrasena-visible input { width: 100%; padding-right: 5.5rem !important; box-sizing: border-box; }
+.entrada-contrasena-visible button.alternar-contrasena { position: absolute; right: .5rem; top: 50%; transform: translateY(-50%); width: auto; min-height: 2rem; margin: 0; padding: .3rem .5rem; background: transparent; color: #175745; border: 0; font-size: .85rem; box-shadow: none; }
+.entrada-contrasena-visible button.alternar-contrasena:focus-visible { outline: 2px solid currentColor; }

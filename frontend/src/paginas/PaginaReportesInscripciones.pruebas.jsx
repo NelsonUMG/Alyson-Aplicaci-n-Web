@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const apiReportes = vi.hoisted(() => ({
   listarReporteInscripciones: vi.fn(),
   listarPersonasInscritasReporte: vi.fn(),
+  consultarParticipanteReporte: vi.fn(),
 }));
 
 vi.mock("../api/administracionReportes", () => apiReportes);
@@ -66,5 +67,18 @@ describe("Reportes de inscripciones", () => {
 
     await vi.waitFor(() => expect(apiReportes.listarReporteInscripciones)
       .toHaveBeenLastCalledWith({ busqueda: "futbol" }));
+  });
+
+  it("despliega el resumen privado del participante con fotografía", async () => {
+    apiReportes.consultarParticipanteReporte.mockResolvedValue({ nombre: "Ana", apellido: "López", titular: false,
+      fechaNacimiento: "2018-01-01", nombreResponsable: "Padre López", correo: "padre@example.com",
+      fotografia: "data:image/png;base64,Zm90bw==", requisitos: { Código: "A123" } });
+    render(<MemoryRouter><PaginaReportesInscripciones /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole("button", { name: "Ver personas" }));
+    fireEvent.click(await screen.findByRole("button", { name: "Ana López" }));
+    expect(await screen.findByText("Padre López")).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Ver fotografía" })).toBeTruthy();
+    expect(screen.getByAltText("Fotografía de Ana López")).toBeTruthy();
+    expect(apiReportes.consultarParticipanteReporte).toHaveBeenCalledWith(7, 31);
   });
 });

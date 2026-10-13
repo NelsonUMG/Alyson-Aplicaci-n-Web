@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
 import { useEffect, useState } from "react";
 
@@ -112,7 +113,7 @@ export function PaginaAuditoria() {
       </div>
         </nav>
         <div className="contenido-modulo-administracion">
-      {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
+      {estado.error && <AvisoEnContexto className="mensaje-error" role="alert">{estado.error}</AvisoEnContexto>}
 
       {mostrarListado && <section className="panel-edicion" aria-labelledby="titulo-eventos-auditoria">
         <div className="cabecera-panel-administracion">

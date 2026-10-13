@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
@@ -99,8 +100,8 @@ export function PaginaAdministracionSolicitudes() {
       </nav>
       <div hidden={vista !== "catalogo"}><CatalogoTramitesAdministracion /></div>
       <div className="solicitudes-admin-bandeja" hidden={vista !== "recibidas"}>
-      {estado.error && <p className="catalogo-aviso catalogo-aviso-error" role="alert">{estado.error}</p>}
-      {estado.mensaje && <p className="catalogo-aviso catalogo-aviso-exito" role="status">{estado.mensaje}</p>}
+      {estado.error && <AvisoEnContexto className="catalogo-aviso catalogo-aviso-error" role="alert">{estado.error}</AvisoEnContexto>}
+      {estado.mensaje && <AvisoEnContexto className="catalogo-aviso catalogo-aviso-exito" role="status">{estado.mensaje}</AvisoEnContexto>}
       {estado.cargando && <p role="status">Cargando solicitudes…</p>}
       <section className="panel-edicion panel-listado-administracion" aria-labelledby="titulo-solicitudes-administradas">
         <div className="cabecera-panel-administracion"><div><h2 id="titulo-solicitudes-administradas">Solicitudes recibidas</h2><p>{pagina.totalElementos} solicitudes encontradas.</p></div></div>

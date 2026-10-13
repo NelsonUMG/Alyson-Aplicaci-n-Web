@@ -1,3 +1,5 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
+import { CampoContrasena } from "../componentes/CampoContrasena";
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -183,13 +185,13 @@ export function PaginaPerfil() {
       {!esAdministrador && (
         <section className="panel-cuenta" aria-labelledby="titulo-contrasena">
           <h2 id="titulo-contrasena">Cambiar contraseña</h2>
-          {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
-          {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
+          {estado.error && <AvisoEnContexto className="mensaje-error" role="alert">{estado.error}</AvisoEnContexto>}
+          {estado.mensaje && <AvisoEnContexto className="mensaje-exito" role="status">{estado.mensaje}</AvisoEnContexto>}
           <form className="formulario-compacto" onSubmit={enviarCambio}>
             <label htmlFor="contrasenaActual">Contraseña actual</label>
-            <input id="contrasenaActual" type="password" autoComplete="current-password" required maxLength="128" value={datos.contrasenaActual} onChange={(evento) => setDatos({ ...datos, contrasenaActual: evento.target.value })} />
+            <CampoContrasena id="contrasenaActual" autoComplete="current-password" required maxLength="128" value={datos.contrasenaActual} onChange={(evento) => setDatos({ ...datos, contrasenaActual: evento.target.value })}  />
             <label htmlFor="contrasenaNueva">Contraseña nueva</label>
-            <input id="contrasenaNueva" type="password" autoComplete="new-password" required minLength="12" maxLength="128" aria-describedby="fortalezaContrasenaPerfilAdministrativo" value={datos.contrasenaNueva} onChange={(evento) => setDatos({ ...datos, contrasenaNueva: evento.target.value })} />
+            <CampoContrasena id="contrasenaNueva" autoComplete="new-password" required minLength="12" maxLength="128" aria-describedby="fortalezaContrasenaPerfilAdministrativo" value={datos.contrasenaNueva} onChange={(evento) => setDatos({ ...datos, contrasenaNueva: evento.target.value })}  />
             <IndicadorFortalezaContrasena id="fortalezaContrasenaPerfilAdministrativo" contrasena={datos.contrasenaNueva} />
             <button type="submit" disabled={estado.enviando}>Actualizar contraseña</button>
           </form>
@@ -318,8 +320,8 @@ function PerfilUsuarioComun({
           <div><p>Cuenta personal</p><h1>Mi cuenta</h1><span>Administra tu información personal y la seguridad de tu acceso.</span></div>
         </section>
 
-        {estadoPerfil.error && <p className="mensaje-error aviso-perfil-usuario" role="alert">{estadoPerfil.error}</p>}
-        {estadoPerfil.mensaje && <p className="mensaje-exito aviso-perfil-usuario" role="status">{estadoPerfil.mensaje}</p>}
+        {estadoPerfil.error && <AvisoEnContexto className="mensaje-error aviso-perfil-usuario" role="alert">{estadoPerfil.error}</AvisoEnContexto>}
+        {estadoPerfil.mensaje && <AvisoEnContexto className="mensaje-exito aviso-perfil-usuario" role="status">{estadoPerfil.mensaje}</AvisoEnContexto>}
 
         <form className="formulario-perfil-usuario" onSubmit={guardarDatos}>
           <div className="cuadricula-perfil-usuario">
@@ -372,16 +374,16 @@ function PerfilUsuarioComun({
 
         <section className="seguridad-perfil-usuario" aria-labelledby="titulo-contrasena-usuario">
           <header><span><IconoPerfil tipo="candado" /></span><div><p>Seguridad</p><h2 id="titulo-contrasena-usuario">Cambiar contraseña</h2><small>Por seguridad siempre solicitaremos tu contraseña actual.</small></div></header>
-          {estadoContrasena.error && <p className="mensaje-error" role="alert">{estadoContrasena.error}</p>}
-          {estadoContrasena.mensaje && <p className="mensaje-exito" role="status">{estadoContrasena.mensaje}</p>}
+          {estadoContrasena.error && <AvisoEnContexto className="mensaje-error" role="alert">{estadoContrasena.error}</AvisoEnContexto>}
+          {estadoContrasena.mensaje && <AvisoEnContexto className="mensaje-exito" role="status">{estadoContrasena.mensaje}</AvisoEnContexto>}
           <form onSubmit={enviarCambio}>
             <div className="campo-contrasena">
               <label htmlFor="contrasenaActual">Contraseña actual</label>
-              <input id="contrasenaActual" type="password" autoComplete="current-password" required maxLength="128" value={datosContrasena.contrasenaActual} onChange={(evento) => establecerDatosContrasena({ ...datosContrasena, contrasenaActual: evento.target.value })} />
+              <CampoContrasena id="contrasenaActual" autoComplete="current-password" required maxLength="128" value={datosContrasena.contrasenaActual} onChange={(evento) => establecerDatosContrasena({ ...datosContrasena, contrasenaActual: evento.target.value })}  />
             </div>
             <div className="campo-contrasena">
               <label htmlFor="contrasenaNueva">Contraseña nueva</label>
-              <input id="contrasenaNueva" type="password" autoComplete="new-password" required minLength="12" maxLength="128" aria-describedby="fortalezaContrasenaPerfil" value={datosContrasena.contrasenaNueva} onChange={(evento) => establecerDatosContrasena({ ...datosContrasena, contrasenaNueva: evento.target.value })} />
+              <CampoContrasena id="contrasenaNueva" autoComplete="new-password" required minLength="12" maxLength="128" aria-describedby="fortalezaContrasenaPerfil" value={datosContrasena.contrasenaNueva} onChange={(evento) => establecerDatosContrasena({ ...datosContrasena, contrasenaNueva: evento.target.value })}  />
               <IndicadorFortalezaContrasena id="fortalezaContrasenaPerfil" contrasena={datosContrasena.contrasenaNueva} />
             </div>
             <button type="submit" disabled={estadoContrasena.enviando}>Actualizar contraseña</button>

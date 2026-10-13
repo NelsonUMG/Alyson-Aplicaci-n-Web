@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarCategoriasPublicacion, listarPublicaciones } from "../api/portalPublico";
@@ -128,8 +129,8 @@ export function PaginaNoticias() {
             <p className="portal-sobrelinea">Información oficial</p>
             <h2>Últimas publicaciones</h2>
           </div>
-          {errorCategorias && <p className="portal-mensaje-error" role="alert">{errorCategorias}</p>}
-          {error && <p className="portal-mensaje-error" role="alert">{error}</p>}
+          {errorCategorias && <AvisoEnContexto className="portal-mensaje-error" role="alert">{errorCategorias}</AvisoEnContexto>}
+          {error && <AvisoEnContexto className="portal-mensaje-error" role="alert">{error}</AvisoEnContexto>}
           {cargando && <p className="portal-estado-carga" role="status">Cargando noticias…</p>}
 
           {!error && !cargando && publicaciones.length === 0 && (

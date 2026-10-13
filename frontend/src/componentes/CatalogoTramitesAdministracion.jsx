@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "./AvisosEnContexto";
 import { useEffect, useState } from "react";
 import {
   actualizarCategoriaTramiteAdministrada, actualizarPortadaTramite, actualizarTramiteAdministrado, crearCategoriaTramiteAdministrada,
@@ -74,7 +75,7 @@ function FormularioTramite({ tramite, categorias, ocupado, guardar }) {
     <form onSubmit={continuar}>
       <div className="dialogo-catalogo-cuerpo" key={paso}>
         <p className="catalogo-ayuda-paso">Paso {paso + 1} de 3 · {paso === 0 ? "Así se identificará el trámite en el catálogo." : paso === 1 ? "Agrega cada requisito o documento por separado. Puedes dejar las listas vacías si no se necesitan." : "Revisa las condiciones antes de guardar."}</p>
-        {errorFormulario && <p className="catalogo-aviso catalogo-aviso-error" role="alert">{errorFormulario}</p>}
+        {errorFormulario && <AvisoEnContexto className="catalogo-aviso catalogo-aviso-error" role="alert">{errorFormulario}</AvisoEnContexto>}
         <fieldset className="catalogo-campos" disabled={ocupado}>
           <legend className="solo-lectores-catalogo">{pasos[paso]}</legend>
           {paso === 0 && <>
@@ -98,7 +99,7 @@ function FormularioTramite({ tramite, categorias, ocupado, guardar }) {
             </div>
             <label className="catalogo-campo">Imagen de portada <span className="catalogo-opcional">Opcional · JPG o PNG, hasta 5 MB</span><input type="file" accept="image/png,image/jpeg" onChange={seleccionarArchivo} /></label>
             {(archivo || datos.urlPortada) && <p className="catalogo-ayuda-paso">{archivo ? `Imagen seleccionada: ${archivo.name}` : "Se conservará la portada actual si no seleccionas otra."}</p>}
-            {errorArchivo && <p className="catalogo-aviso catalogo-aviso-error" role="alert">{errorArchivo}</p>}
+            {errorArchivo && <AvisoEnContexto className="catalogo-aviso catalogo-aviso-error" role="alert">{errorArchivo}</AvisoEnContexto>}
             <label className="catalogo-opcion"><input type="checkbox" checked={datos.activo} onChange={(evento) => establecerDatos({ ...datos, activo: evento.target.checked })} /><span><strong>Mostrar en el catálogo de usuarios</strong><small>{datos.activo ? "Estará disponible para iniciar solicitudes al guardar." : "Se guardará oculto. Podrás publicarlo cuando esté listo."}</small></span></label>
           </>}
         </fieldset>
@@ -228,7 +229,7 @@ export function CatalogoTramitesAdministracion() {
       </div>
     </div>}
     {editor && <DialogoCatalogo key={`${editor.tipo}-${editor.datos?.idCategoria || editor.datos?.idTramite || "nuevo"}`} compacto={editor.tipo === "categoria"} ocupado={estado.guardando} cerrar={() => { establecerEditor(null); establecerEstado((actual) => ({ ...actual, error: "" })); }} titulo={editor.tipo === "categoria" ? editor.datos ? "Editar categoría general" : "Nueva categoría general" : editor.datos.idTramite === null ? "Nuevo trámite" : "Editar trámite"} descripcion={editor.tipo === "categoria" ? "Agrupa los trámites que pertenecen al mismo tema." : "Completa la información que verá la persona solicitante."}>
-      {estado.error && <p className="catalogo-aviso catalogo-aviso-error" role="alert">{estado.error}</p>}
+      {estado.error && <AvisoEnContexto className="catalogo-aviso catalogo-aviso-error" role="alert">{estado.error}</AvisoEnContexto>}
       {editor.tipo === "categoria" ? <FormularioCategoria categoria={editor.datos} ocupado={estado.guardando} guardar={guardarCategoria} /> : <FormularioTramite tramite={editor.datos} categorias={categorias} ocupado={estado.guardando} guardar={guardarTramite} />}
     </DialogoCatalogo>}
   </section>;

@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { confirmarCorreo, reenviarVerificacion } from "../api/autenticacion";
@@ -60,15 +61,15 @@ export function PaginaVerificacionCorreo() {
             <Link className="boton-enlace-registro" to="/iniciar-sesion">Ir a iniciar sesión</Link>
           </div>
         )}
-        {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
+        {estado.error && <AvisoEnContexto className="mensaje-error" role="alert">{estado.error}</AvisoEnContexto>}
 
         {necesitaReenvio && (
           <form onSubmit={reenviar}>
             <p>{token ? "Solicita un enlace nuevo para completar la verificación." : "Ingresa el correo de la cuenta para recibir un enlace nuevo."}</p>
             <label htmlFor="correo-reenvio">Correo electrónico</label>
             <input id="correo-reenvio" type="email" autoComplete="email" required maxLength="254" value={correo} onChange={(evento) => setCorreo(evento.target.value)} />
-            {reenvio.error && <p className="mensaje-error" role="alert">{reenvio.error}</p>}
-            {reenvio.mensaje && <p className="mensaje-exito" role="status">{reenvio.mensaje}</p>}
+            {reenvio.error && <AvisoEnContexto className="mensaje-error" role="alert">{reenvio.error}</AvisoEnContexto>}
+            {reenvio.mensaje && <AvisoEnContexto className="mensaje-exito" role="status">{reenvio.mensaje}</AvisoEnContexto>}
             <button type="submit" disabled={reenvio.enviando}>{reenvio.enviando ? "Enviando…" : "Enviar nuevo enlace"}</button>
           </form>
         )}

@@ -14,5 +14,18 @@ public record RespuestaDetalleSolicitud(
         Instant creadoEn,
         Instant actualizadoEn,
         Instant resueltoEn,
-        Long version) {
+        Long version, String resueltoPor) {
+    public RespuestaDetalleSolicitud(
+        Long idSolicitud,
+        String tipoSolicitud,
+        String nombreTipoSolicitud,
+        String estado,
+        DetalleUsoInstalacionSolicitud detalle,
+        List<RespuestaDocumentoSolicitud> documentos,
+        String resolucion,
+        Instant creadoEn,
+        Instant actualizadoEn,
+        Instant resueltoEn,
+        Long version) { this(idSolicitud, tipoSolicitud, nombreTipoSolicitud, estado, detalle, documentos, resolucion, creadoEn, actualizadoEn, resueltoEn, version, null); }
+
 }

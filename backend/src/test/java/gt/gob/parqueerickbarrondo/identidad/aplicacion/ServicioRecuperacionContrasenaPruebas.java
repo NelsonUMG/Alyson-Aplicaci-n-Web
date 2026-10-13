@@ -88,6 +88,23 @@ class ServicioRecuperacionContrasenaPruebas {
         assertThat(registro.getValue().obtenerConsumidoEn()).isNotNull();
         assertThat(usuario.obtenerHashContrasena()).isEqualTo("hash-anterior");
     }
+    @Test void cuentaActivaSinMarcaDeVerificacionPuedeRecuperarContrasena() {
+        ReflectionTestUtils.setField(usuario, "correoVerificadoEn", null);
+        servicio.solicitar("persona@example.com");
+        verify(correo).enviar(eq("persona@example.com"), eq("Persona"), anyString());
+        prepararToken(Instant.now().plusSeconds(3600));
+        when(codificador.encode(anyString())).thenReturn("hash-nuevo");
+        servicio.restablecer(solicitud());
+        assertThat(usuario.obtenerHashContrasena()).isEqualTo("hash-nuevo");
+    }
+    @Test void permiteReintentarCuandoElEnvioAnteriorFallo() {
+        var anterior = registro(Instant.now().plusSeconds(3600));
+        anterior.consumir(Instant.now());
+        when(tokens.findFirstByUsuario_IdUsuarioOrderByCreadoEnDesc(7L)).thenReturn(Optional.of(anterior));
+        servicio.solicitar("persona@example.com");
+        verify(correo).enviar(anyString(), anyString(), anyString());
+    }
+
     private TokenRestablecimientoContrasena registro(Instant expira) {
         return new TokenRestablecimientoContrasena(usuario, TokensSeguros.resumir("token"), expira, Instant.now());
     }

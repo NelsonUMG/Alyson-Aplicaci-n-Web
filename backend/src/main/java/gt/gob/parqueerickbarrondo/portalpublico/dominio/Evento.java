@@ -47,6 +47,12 @@ public class Evento {
     @Column(name = "IniciaEn", nullable = false)
     private Instant iniciaEn;
 
+    @Column(name = "CursoContinuo", nullable = false)
+    private boolean cursoContinuo;
+
+    public boolean esCursoContinuo() { return cursoContinuo; }
+    public void configurarCursoContinuo(boolean valor) { this.cursoContinuo = valor; }
+
     @Column(name = "FinalizaEn")
     private Instant finalizaEn;
 
@@ -67,6 +73,19 @@ public class Evento {
 
     @Column(name = "ClaveImagen", length = 500)
     private String claveImagen;
+
+    @Column(name = "ClaveFormularioInscripcion", length = 500)
+    private String claveFormularioInscripcion;
+    @Column(name = "NombreFormularioInscripcion", length = 255)
+    private String nombreFormularioInscripcion;
+
+    public String obtenerClaveFormularioInscripcion() { return claveFormularioInscripcion; }
+    public String obtenerNombreFormularioInscripcion() { return nombreFormularioInscripcion; }
+    public void asignarFormularioInscripcion(String clave, String nombre) {
+        claveFormularioInscripcion = clave;
+        nombreFormularioInscripcion = nombre;
+        actualizadoEn = Instant.now();
+    }
 
     @Column(name = "EsquemaFormularioJson")
     private String esquemaFormularioJson;

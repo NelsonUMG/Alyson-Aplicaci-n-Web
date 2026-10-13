@@ -3,6 +3,7 @@ package gt.gob.parqueerickbarrondo.identidad.api;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.RespuestaCsrf;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.RespuestaMensaje;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.RespuestaPerfil;
+import gt.gob.parqueerickbarrondo.identidad.api.modelo.RespuestaRegistroCuenta;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudActualizacionPerfil;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudCambioContrasena;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudConfirmacionCorreo;
@@ -43,7 +44,7 @@ public class ControladorAutenticacion {
     private static final String MENSAJE_REGISTRO =
             "Revisa tu correo. Tu cuenta se creará al confirmar la dirección mediante el enlace de verificación.";
     private static final String MENSAJE_REGISTRO_SIN_CORREO =
-            "Tu registro está pendiente y la cuenta aún no se ha creado. No pudimos enviar el correo; solicita un enlace nuevo en unos minutos.";
+            "Error: no se ha podido enviar el enlace de verificación al correo. Comprueba la dirección e inténtalo de nuevo más tarde.";
     private static final String MENSAJE_REENVIO =
             "Si la cuenta está pendiente, enviamos un nuevo enlace de verificación.";
 
@@ -69,7 +70,7 @@ public class ControladorAutenticacion {
     }
 
     @PostMapping("/registro")
-    public ResponseEntity<RespuestaMensaje> registrar(@Valid @RequestBody SolicitudRegistroCuenta solicitud) {
+    public ResponseEntity<RespuestaRegistroCuenta> registrar(@Valid @RequestBody SolicitudRegistroCuenta solicitud) {
         boolean correoEnviado;
         try {
             correoEnviado = servicioRegistroCuenta.registrar(solicitud);
@@ -78,8 +79,10 @@ public class ControladorAutenticacion {
             throw new ConflictoDatosException(
                     "El DPI o CUI ya está registrado. Por favor, inicia sesión con tu correo registrado.");
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(new RespuestaMensaje(
-                correoEnviado ? MENSAJE_REGISTRO : MENSAJE_REGISTRO_SIN_CORREO));
+        return ResponseEntity.status(correoEnviado ? HttpStatus.CREATED : HttpStatus.OK)
+                .body(new RespuestaRegistroCuenta(
+                        correoEnviado ? MENSAJE_REGISTRO : MENSAJE_REGISTRO_SIN_CORREO,
+                        correoEnviado));
     }
 
     @PostMapping("/confirmar-correo")

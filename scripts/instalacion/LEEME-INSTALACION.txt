@@ -1,0 +1,24 @@
+SISTEMA WEB PARQUE ERICK BARRONDO - INSTALACIÓN LOCAL WINDOWS
+
+1. Extraiga TODO el RAR en una carpeta local. El RAR no tiene contraseña.
+2. Ejecute Validar.cmd. No solicita contraseña.
+3. Abra Instalar.cmd. Windows solicitará permisos de administrador.
+4. Lea y acepte los términos de SQL Server cuando el instalador lo solicite.
+5. El instalador importará Gmail SMTP automáticamente sin solicitar contraseña.
+
+El instalador comprueba Windows de 64 bits y descarga SQL Server 2025 Express en inglés universal (ENU), compatible con Windows localizado. Esto evita errores cuando el idioma base de Windows y la región configurada no coinciden; la aplicación web continúa completamente en español.
+Si no localiza un Java 21 funcional, descarga y verifica automáticamente un JDK 21 portátil oficial de Eclipse Temurin dentro de la carpeta runtime del sistema. No depende de que winget registre Java correctamente ni modifica otras versiones de Java instaladas.
+Si no localiza Node.js 18 o superior, descarga y verifica de la misma forma una versión LTS portátil oficial. Java y Node quedan privados para esta aplicación y no interfieren con programas ya instalados.
+
+Al terminar, la consola mostrará la URL, el usuario administrador y su contraseña permanente. También creará ACCESO-ADMINISTRADOR.txt en la misma carpeta descomprimida, con esas credenciales y comandos que incluyen la ruta real detectada.
+
+La carpeta donde se descomprima este paquete será la ubicación definitiva del sistema. El instalador la detecta automáticamente y crea allí la configuración, los logs, el estado de ejecución y el bloc de notas de acceso. No sobrescribe una instalación previa, una instancia SQL llamada PEB ni una base de datos existente. Java, Node.js y SQL Server se instalan en sus ubicaciones normales de Windows; el sistema web permanece y se ejecuta desde esta carpeta. El instalador restaura el respaldo sin WITH REPLACE y genera cuentas SQL nuevas protegidas con DPAPI para el usuario que instala.
+
+Inicio: Iniciar.cmd, dentro de la carpeta descomprimida.
+Detención: Detener.cmd, dentro de la carpeta descomprimida.
+Backend manual con SQL y SMTP: Backend.cmd.
+Frontend manual: Frontend.cmd.
+Dirección local: http://127.0.0.1:5173
+Logs: carpeta logs dentro del sistema descomprimido.
+
+Este paquete está diseñado para uso local HTTP. No abre puertos del firewall, no habilita Cloudflare y no constituye por sí solo un despliegue público HTTPS. Requiere Windows 10/11 o Windows Server compatible, conexión a Internet durante la instalación, winget operativo y al menos 6 GB libres. Puede requerir reinicio si una dependencia lo solicita.

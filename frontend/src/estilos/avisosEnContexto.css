@@ -1,0 +1,8 @@
+.aviso-en-contexto { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-basis: 100%; grid-column: 1 / -1; box-sizing: border-box; width: 100%; margin-block: .75rem; padding: .85rem 1rem; border-radius: .5rem; overflow-wrap: anywhere; }
+.aviso-en-contexto > span { flex: 1; }
+.aviso-en-contexto > button { flex: none; width: auto !important; margin: 0 !important; padding: .1rem .45rem !important; min-height: 1.5rem; background: transparent !important; color: inherit !important; border: 0; box-shadow: none; font-size: 1.2rem; }
+.acciones-comprobante { display: flex; flex-wrap: wrap; gap: 1rem; padding-block: 1rem; }
+.acciones-comprobante a { padding: .8rem 1rem; border: 1px solid currentColor; border-radius: .5rem; }
+.informe-solicitud dl { display: grid; gap: .5rem; }
+.informe-solicitud dt { font-weight: 700; }
+.informe-solicitud dd { margin: 0 0 .75rem; overflow-wrap: anywhere; }

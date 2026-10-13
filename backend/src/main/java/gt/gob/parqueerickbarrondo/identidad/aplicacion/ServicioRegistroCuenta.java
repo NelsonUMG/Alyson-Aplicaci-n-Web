@@ -21,6 +21,7 @@ public class ServicioRegistroCuenta {
     private final RepositorioRegistroPendiente pendientes;
     private final PasswordEncoder codificador;
     private final NormalizadorCorreo normalizador;
+    private final ValidadorDominioCorreo validadorDominio;
     private final PoliticaContrasena politica;
     private final ServicioAuditoria auditoria;
     private final EnviadorCorreoVerificacion correo;
@@ -29,12 +30,14 @@ public class ServicioRegistroCuenta {
 
     public ServicioRegistroCuenta(RepositorioUsuario usuarios, RepositorioRol roles,
             RepositorioRegistroPendiente pendientes, PasswordEncoder codificador,
-            NormalizadorCorreo normalizador, PoliticaContrasena politica, ServicioAuditoria auditoria,
+            NormalizadorCorreo normalizador, ValidadorDominioCorreo validadorDominio,
+            PoliticaContrasena politica, ServicioAuditoria auditoria,
             EnviadorCorreoVerificacion correo,
             @Value("${correo.verificacion.duracion-horas:24}") long horas,
             @Value("${correo.verificacion.reenvio-espera-minutos:5}") long minutos) {
         this.usuarios = usuarios; this.roles = roles; this.pendientes = pendientes;
-        this.codificador = codificador; this.normalizador = normalizador; this.politica = politica;
+        this.codificador = codificador; this.normalizador = normalizador;
+        this.validadorDominio = validadorDominio; this.politica = politica;
         this.auditoria = auditoria; this.correo = correo;
         if (horas <= 0 || minutos < 0) throw new IllegalArgumentException("Duración de verificación inválida.");
         duracion = Duration.ofHours(horas); espera = Duration.ofMinutes(minutos);
@@ -46,8 +49,10 @@ public class ServicioRegistroCuenta {
         if (!solicitud.contrasena().equals(solicitud.confirmarContrasena()))
             throw new SolicitudInvalidaException("Las contraseñas no coinciden.");
         var direccion = normalizador.normalizar(solicitud.correo());
+        validadorDominio.validar(direccion);
         var dpi = solicitud.dpi().strip();
         comprobarDisponibilidad(direccion, dpi);
+        if (!correo.habilitado()) return false;
         var pendiente = pendientes.findByCorreo(direccion).orElse(null);
         var ahora = Instant.now();
         if (pendiente != null && !puedeReenviar(pendiente, ahora))
@@ -104,6 +109,7 @@ public class ServicioRegistroCuenta {
     }
 
     private boolean enviar(RegistroPendiente pendiente) {
+        if (!correo.habilitado()) return false;
         var token = TokensSeguros.generar();
         var ahora = Instant.now();
         pendiente.renovarToken(TokensSeguros.resumir(token), ahora, ahora.plus(duracion));

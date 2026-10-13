@@ -42,7 +42,13 @@ export function EstructuraPortal() {
   }, [ubicacion.pathname]);
 
   return (
-    <div className={`portal-sitio${ubicacion.pathname === "/" ? " portal-inicio-personalizado" : ""}`} style={ubicacion.pathname === "/" ? { "--inicio-color": configuracion.colorPrincipal, "--inicio-contraste": textoSobreColor(configuracion.colorPrincipal) } : undefined}>
+    <div
+      className="portal-sitio portal-tema-personalizado"
+      style={{
+        "--portal-color-personalizado": configuracion.colorPrincipal,
+        "--portal-contraste-personalizado": textoSobreColor(configuracion.colorPrincipal),
+      }}
+    >
       <a className="salto-contenido" href="#contenido-principal">Saltar al contenido</a>
 
       <header className="portal-cabecera">

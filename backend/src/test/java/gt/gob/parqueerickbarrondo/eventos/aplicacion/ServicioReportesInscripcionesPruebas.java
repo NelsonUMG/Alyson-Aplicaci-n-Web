@@ -57,12 +57,12 @@ class ServicioReportesInscripcionesPruebas {
     void listaSolamenteInscripcionesConfirmadasParaElReporte() {
         var usuario = org.mockito.Mockito.mock(Usuario.class);
         when(usuario.obtenerIdUsuario()).thenReturn(12L);
-        when(usuario.obtenerNombre()).thenReturn("Ana");
-        when(usuario.obtenerApellido()).thenReturn("López");
         when(usuario.obtenerCorreoNormalizado()).thenReturn("ana@example.com");
         var inscripcion = org.mockito.Mockito.mock(InscripcionEvento.class);
         when(inscripcion.obtenerIdInscripcionEvento()).thenReturn(31L);
         when(inscripcion.obtenerUsuario()).thenReturn(usuario);
+        when(inscripcion.obtenerNombreParticipante()).thenReturn("Ana");
+        when(inscripcion.obtenerApellidoParticipante()).thenReturn("López");
         when(inscripcion.obtenerConfirmadaEn()).thenReturn(Instant.parse("2026-08-10T18:00:00Z"));
         when(repositorioEvento.existsById(7L)).thenReturn(true);
         when(repositorioInscripcion.buscarAdministradas(
@@ -77,5 +77,23 @@ class ServicioReportesInscripcionesPruebas {
         });
         verify(repositorioInscripcion).buscarAdministradas(
                 eq(7L), eq("ana"), eq("CONFIRMADA"), any(Pageable.class));
+    }
+
+    @Test
+    void detalleDistingueAlNinoDelTitularYDevuelveSuFotoPrivada() {
+        var evento = org.mockito.Mockito.mock(Evento.class);
+        when(evento.obtenerIdEvento()).thenReturn(7L);
+        var titular = new Usuario("padre@example.com", "Padre", "López", "hash", null);
+        var inscripcion = new InscripcionEvento(evento, titular, Instant.now(),
+                "{\"_fotoParticipante\":\"data:image/png;base64,Zm90bw==\"}");
+        inscripcion.asignarParticipante("nino", "Ana", "López", java.time.LocalDate.of(2018, 1, 1));
+        when(repositorioInscripcion.findById(31L)).thenReturn(java.util.Optional.of(inscripcion));
+        var detalle = servicioReportes.consultarParticipante(7L, 31L);
+        assertThat(detalle.nombre()).isEqualTo("Ana");
+        assertThat(detalle.nombreResponsable()).isEqualTo("Padre López");
+        assertThat(detalle.titular()).isFalse();
+        assertThat(detalle.fotografia()).startsWith("data:image/png;base64,");
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> servicioReportes.consultarParticipante(8L, 31L))
+                .isInstanceOf(gt.gob.parqueerickbarrondo.identidad.aplicacion.RecursoNoEncontradoException.class);
     }
 }

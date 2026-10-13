@@ -1,5 +1,6 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useSearchParams } from "react-router-dom";
 import { ErrorApi, obtenerMensajeError } from "../api/clienteHttp";
 import {
   cancelarInscripcionEvento,
@@ -8,7 +9,10 @@ import {
 } from "../api/inscripcionesEventos";
 import { consultarEvento } from "../api/portalPublico";
 import { usarSesion } from "../autenticacion/ContextoSesion";
+import { obtenerPerfil } from "../api/autenticacion";
 import { formatearTextoEditorial } from "../utilidades/formatoTexto";
+
+import { CampoFotoEstudiante } from "../componentes/CampoFotoEstudiante";
 
 const formatoFecha = new Intl.DateTimeFormat("es-GT", {
   dateStyle: "full",
@@ -20,7 +24,9 @@ function interpretarRequisitos(esquemaFormularioJson) {
   if (!esquemaFormularioJson) return [];
   try {
     const esquema = JSON.parse(esquemaFormularioJson);
-    return Array.isArray(esquema.campos) ? esquema.campos : [];
+    return Array.isArray(esquema.campos) ? esquema.campos.map((campo) => ({ ...campo,
+      tipo: campo.tipo === "FOTO" || /\b(foto|fotografia|fotografias)\b/i.test((campo.etiqueta || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "")) ? "FOTO" : campo.tipo,
+    })) : [];
   } catch {
     return [];
   }
@@ -51,6 +57,18 @@ const nombresDias = {
   VIERNES: "Viernes", SABADO: "Sábado", DOMINGO: "Domingo",
 };
 
+function requisitoValido(campo, valor) {
+  const texto = String(valor ?? "").trim();
+  if (!texto) return !campo.obligatorio;
+  if (campo.tipo === "FOTO") return /^data:image\/(jpeg|png);base64,/.test(texto);
+  if (campo.tipo === "DPI_CUI") return /^[0-9]{13}$/.test(texto);
+  if (campo.tipo === "NUMERO") return Number.isFinite(Number(texto));
+  if (campo.tipo === "FECHA") return /^\d{4}-\d{2}-\d{2}$/.test(texto) && !Number.isNaN(new Date(texto).getTime());
+  if (campo.tipo === "SI_NO") return ["true", "false"].includes(texto);
+  if (campo.tipo === "SELECCION_UNICA") return (campo.opciones || []).includes(texto);
+  return texto.length <= (campo.tipo === "TEXTO_LARGO" ? 5000 : 500);
+}
+
 function CampoRequisito({ campo, valor, alCambiar }) {
   const propiedades = {
     id: `requisito-${campo.id}`,
@@ -58,6 +76,7 @@ function CampoRequisito({ campo, valor, alCambiar }) {
     value: valor ?? "",
     onChange: (evento) => alCambiar(campo.id, evento.target.value),
   };
+  if (campo.tipo === "FOTO") return <CampoFotoEstudiante campo={campo} valor={valor} alCambiar={alCambiar} />;
   if (campo.tipo === "TEXTO_LARGO") return <textarea {...propiedades} rows="4" maxLength="5000" />;
   if (campo.tipo === "FECHA") return <input {...propiedades} type="date" />;
   if (campo.tipo === "NUMERO") return <input {...propiedades} type="number" step="any" />;
@@ -75,11 +94,31 @@ function CampoRequisito({ campo, valor, alCambiar }) {
 
 export function PaginaDetalleEvento() {
   const { identificadorUrl } = useParams();
-  const { usuario, cargando: cargandoSesion } = usarSesion();
-  return <DetalleEvento key={`${identificadorUrl}:${usuario?.idUsuario ?? usuario?.correo ?? "visitante"}`} identificadorUrl={identificadorUrl} usuario={usuario} cargandoSesion={cargandoSesion} />;
+  const { usuario, cargando: cargandoSesion, actualizarUsuario } = usarSesion();
+  const idUsuario = usuario?.idUsuario;
+  const [estadoPerfil, setEstadoPerfil] = useState({ cargando: false, error: "" });
+  useEffect(() => {
+    if (!idUsuario || !actualizarUsuario) return;
+    let vigente = true;
+    setEstadoPerfil({ cargando: true, error: "" });
+    obtenerPerfil().then((perfil) => {
+      if (vigente) { actualizarUsuario(perfil); setEstadoPerfil({ cargando: false, error: "" }); }
+    }).catch((error) => {
+      if (vigente) setEstadoPerfil({ cargando: false, error: error.message });
+    });
+    return () => { vigente = false; };
+  }, [idUsuario, identificadorUrl, actualizarUsuario]);
+  return <>
+    {estadoPerfil.error && <AvisoEnContexto role="alert" className="portal-mensaje-error">No se pudo actualizar tu perfil: {estadoPerfil.error}</AvisoEnContexto>}
+    <DetalleEvento key={`${identificadorUrl}:${usuario?.idUsuario ?? usuario?.correo ?? "visitante"}`} identificadorUrl={identificadorUrl} usuario={usuario} cargandoSesion={cargandoSesion || estadoPerfil.cargando} />
+  </>;
 }
 
 function DetalleEvento({ identificadorUrl, usuario, cargandoSesion }) {
+  const [parametros] = useSearchParams();
+  const idInscripcionSeleccionada = parametros.get("inscripcion");
+  const [paraHijo, setParaHijo] = useState(false);
+  const [participante, setParticipante] = useState({ nombre: "", apellido: "", fechaNacimiento: "" });
   const [evento, establecerEvento] = useState(null);
   const [inscripcion, establecerInscripcion] = useState(null);
   const [estadoConsulta, establecerEstadoConsulta] = useState("cargando");
@@ -114,7 +153,7 @@ function DetalleEvento({ identificadorUrl, usuario, cargandoSesion }) {
       return undefined;
     }
     let vigente = true;
-    consultarInscripcionEvento(evento.idEvento)
+    (idInscripcionSeleccionada ? consultarInscripcionEvento(evento.idEvento, idInscripcionSeleccionada) : consultarInscripcionEvento(evento.idEvento))
       .then((datos) => {
         if (vigente) {
           establecerInscripcion(datos);
@@ -133,25 +172,27 @@ function DetalleEvento({ identificadorUrl, usuario, cargandoSesion }) {
     return () => {
       vigente = false;
     };
-  }, [evento?.idEvento, usuario, reintento]);
+  }, [evento?.idEvento, usuario, reintento, idInscripcionSeleccionada]);
 
   const ahora = new Date();
   const inscripcionAbierta = evento
     && evento.estado === "PUBLICADO"
     && evento.cuposDisponibles > 0
-    && new Date(evento.iniciaEn) > ahora
+    && (evento.cursoContinuo ? (!evento.finalizaEn || new Date(evento.finalizaEn) > ahora) : new Date(evento.iniciaEn) > ahora)
     && (!evento.inscripcionAbreEn || new Date(evento.inscripcionAbreEn) <= ahora)
     && (!evento.inscripcionCierraEn || new Date(evento.inscripcionCierraEn) >= ahora);
 
   async function confirmarInscripcion(eventoFormulario) {
     eventoFormulario.preventDefault();
-    if (operacionEnCurso.current || cargandoSesion || !usuario || estadoConsulta !== "lista" || inscripcion?.estado === "CONFIRMADA" || !inscripcionAbierta) return;
+    if (operacionEnCurso.current || cargandoSesion || !usuario || estadoConsulta !== "lista" || inscripcion?.estado === "CONFIRMADA" || !inscripcionAbierta || !formularioValido || !eventoFormulario.currentTarget.checkValidity()) return;
     operacionEnCurso.current = true;
     establecerOperacion({ procesando: true, error: "", mensaje: "" });
     try {
-      const confirmada = gruposEvento.length > 0
-        ? await inscribirEnEvento(evento.idEvento, claveIdempotencia, respuestasRequisitos, codigoGrupo)
-        : await inscribirEnEvento(evento.idEvento, claveIdempotencia, respuestasRequisitos);
+      const confirmada = paraHijo
+        ? await inscribirEnEvento(evento.idEvento, claveIdempotencia, respuestasRequisitos, codigoGrupo || null, participante)
+        : gruposEvento.length > 0
+          ? await inscribirEnEvento(evento.idEvento, claveIdempotencia, respuestasRequisitos, codigoGrupo)
+          : await inscribirEnEvento(evento.idEvento, claveIdempotencia, respuestasRequisitos);
       establecerInscripcion(confirmada);
       establecerEvento((actual) => ({ ...actual, cuposDisponibles: confirmada.cuposDisponibles }));
       establecerClaveIdempotencia(window.crypto.randomUUID());
@@ -171,7 +212,7 @@ function DetalleEvento({ identificadorUrl, usuario, cargandoSesion }) {
     operacionEnCurso.current = true;
     establecerOperacion({ procesando: true, error: "", mensaje: "" });
     try {
-      const cancelada = await cancelarInscripcionEvento(evento.idEvento, motivoCancelacion);
+      const cancelada = await cancelarInscripcionEvento(evento.idEvento, motivoCancelacion, inscripcion.idInscripcionEvento);
       establecerInscripcion(cancelada);
       establecerEvento((actual) => ({ ...actual, cuposDisponibles: cancelada.cuposDisponibles }));
       establecerMotivoCancelacion("");
@@ -188,13 +229,29 @@ function DetalleEvento({ identificadorUrl, usuario, cargandoSesion }) {
     establecerRespuestasRequisitos((actuales) => ({ ...actuales, [idCampo]: valor }));
   }
 
-  const requisitosFormulario = interpretarRequisitos(evento?.esquemaFormularioJson);
+  const requisitosFormulario = interpretarRequisitos(evento?.esquemaFormularioJson).map((campo) => ({
+    ...campo, obligatorio: campo.obligatorio || (paraHijo && campo.tipo === "FOTO"),
+    etiqueta: paraHijo && campo.tipo === "FOTO" ? "Sube la fotografía del niño(a) a inscribir" : campo.etiqueta,
+  }));
+  if (paraHijo && !requisitosFormulario.some((campo) => campo.tipo === "FOTO")) {
+    requisitosFormulario.unshift({ id: "_fotoParticipante", tipo: "FOTO", etiqueta: "Sube la fotografía del niño(a) a inscribir", obligatorio: true });
+  }
   const gruposEvento = interpretarGrupos(evento?.configuracionGruposJson);
-  const edadEnEvento = calcularEdad(usuario?.fechaNacimiento, evento?.iniciaEn);
+  const fechaReferencia = evento?.cursoContinuo && new Date(evento.iniciaEn) < ahora ? ahora.toISOString() : evento?.iniciaEn;
+  const edadEnEvento = calcularEdad(paraHijo ? participante.fechaNacimiento : usuario?.fechaNacimiento, fechaReferencia);
   const gruposDisponibles = edadEnEvento === null ? gruposEvento : gruposEvento.filter((grupo) => (
     (grupo.edadMinima === null || grupo.edadMinima === undefined || edadEnEvento >= Number(grupo.edadMinima))
     && (grupo.edadMaxima === null || grupo.edadMaxima === undefined || edadEnEvento <= Number(grupo.edadMaxima))
   ));
+  const grupoSeleccionado = gruposEvento.find((grupo) => grupo.codigo === codigoGrupo);
+  const edadRequerida = grupoSeleccionado && (grupoSeleccionado.edadMinima != null || grupoSeleccionado.edadMaxima != null);
+  const grupoValido = gruposEvento.length === 0 || (grupoSeleccionado && (!edadRequerida || edadEnEvento !== null)
+    && gruposDisponibles.some((grupo) => grupo.codigo === codigoGrupo));
+  const nacimientoValido = participante.fechaNacimiento && !Number.isNaN(new Date(participante.fechaNacimiento).getTime())
+    && participante.fechaNacimiento <= new Date().toLocaleDateString("en-CA");
+  const participanteValido = !paraHijo || (participante.nombre.trim() && participante.apellido.trim() && nacimientoValido);
+  const formularioValido = Boolean(grupoValido && participanteValido
+    && requisitosFormulario.every((campo) => requisitoValido(campo, respuestasRequisitos[campo.id])));
 
   return (
     <>
@@ -207,7 +264,7 @@ function DetalleEvento({ identificadorUrl, usuario, cargandoSesion }) {
       </header>
       <section className="portal-seccion detalle-evento-seccion">
         <article className="portal-contenedor portal-detalle-publico">
-          {error && <p className="portal-mensaje-error" role="alert">{error}</p>}
+          {error && <AvisoEnContexto className="portal-mensaje-error" role="alert">{error}</AvisoEnContexto>}
           {!error && !evento && <p>Cargando evento…</p>}
           {evento && (
             <>
@@ -216,7 +273,9 @@ function DetalleEvento({ identificadorUrl, usuario, cargandoSesion }) {
               <div>
               <dl className="portal-datos-detalle">
                 <div><dt>Fecha y hora</dt><dd>{formatoFecha.format(new Date(evento.iniciaEn))}</dd></div>
+                {evento.cursoContinuo && <div><dt>Duración</dt><dd>{evento.finalizaEn ? `Curso continuo hasta ${formatoFecha.format(new Date(evento.finalizaEn))}` : "Curso continuo · sin fecha de finalización"}</dd></div>}
                 <div><dt>Lugar</dt><dd>{evento.lugar || "Información pendiente de actualización"}</dd></div>
+                {evento.urlFormularioInscripcion && <div><dt>Formulario</dt><dd><a href={evento.urlFormularioInscripcion} download>Descargar</a></dd></div>}
                 <div><dt>Cupos disponibles</dt><dd>{evento.cuposDisponibles} de {evento.capacidadTotal}</dd></div>
               </dl>
               </div>
@@ -251,17 +310,19 @@ function DetalleEvento({ identificadorUrl, usuario, cargandoSesion }) {
               )}
               <section className="portal-inscripcion-evento" aria-labelledby="titulo-inscripcion-evento">
                 <h2 id="titulo-inscripcion-evento">Inscripción</h2>
-                {operacion.error && <p className="portal-mensaje-error" role="alert">{operacion.error}</p>}
-                {operacion.mensaje && <p className="portal-mensaje-exito" role="status">{operacion.mensaje}</p>}
+                {evento.urlFormularioInscripcion && <p><strong>Formulario: </strong><a className="portal-enlace-ver" href={evento.urlFormularioInscripcion} download>Descargar</a></p>}
+                {operacion.error && <AvisoEnContexto className="portal-mensaje-error" role="alert">{operacion.error}</AvisoEnContexto>}
+                {operacion.mensaje && <AvisoEnContexto className="portal-mensaje-exito" role="status">{operacion.mensaje}</AvisoEnContexto>}
                 {(cargandoSesion || (usuario && estadoConsulta === "cargando")) && <p role="status">Consultando tu inscripción…</p>}
                 {usuario && estadoConsulta === "error" && <div><p role="alert">No pudimos consultar tu inscripción. Inténtalo nuevamente.</p><button type="button" onClick={() => { establecerEstadoConsulta("cargando"); establecerReintento((actual) => actual + 1); }}>Reintentar</button></div>}
                 {usuario && estadoConsulta === "lista" && inscripcion?.estado === "CONFIRMADA" && (
                   <div className="portal-confirmacion-inscripcion">
-                    <p className="detalle-evento-estado"><strong>Ya estás inscrito en esta actividad</strong></p>
-                    <p>Tu cupo está reservado para esta actividad.</p>
+                    <p className="detalle-evento-estado"><strong>Inscripción confirmada en esta actividad</strong></p>
+                    <p>Participante: <strong>{inscripcion.nombreParticipante ? `${inscripcion.nombreParticipante} ${inscripcion.apellidoParticipante || ""}` : "Titular de la cuenta"}</strong>. Su cupo está reservado.</p>
                     {inscripcion.confirmadaEn && <p>Inscripción realizada el {formatoFecha.format(new Date(inscripcion.confirmadaEn))}</p>}
                     {inscripcion.nombreGrupo && <p>Grupo: <strong>{inscripcion.nombreGrupo}</strong></p>}
                     <p><Link className="portal-enlace-ver" to="/mis-inscripciones">Ver mis inscripciones</Link></p>
+                    {inscripcionAbierta && <button type="button" onClick={() => { establecerInscripcion(null); setParaHijo(true); setParticipante({ nombre: "", apellido: "", fechaNacimiento: "" }); establecerOperacion({ procesando: false, error: "", mensaje: "" }); }}>Inscribir a otro niño(a)</button>}
                     <form onSubmit={cancelarInscripcion}>
                       <label htmlFor="motivoCancelacion">Motivo de cancelación (opcional)</label>
                       <input id="motivoCancelacion" maxLength="300" value={motivoCancelacion} onChange={(eventoCampo) => establecerMotivoCancelacion(eventoCampo.target.value)} />
@@ -275,21 +336,31 @@ function DetalleEvento({ identificadorUrl, usuario, cargandoSesion }) {
                 {usuario && !cargandoSesion && estadoConsulta === "lista" && inscripcion?.estado !== "CONFIRMADA" && inscripcionAbierta && (
                   <form className="portal-formulario-inscripcion" onSubmit={confirmarInscripcion}>
                     <p>{inscripcion?.estado === "CANCELADA" ? "Tu inscripción anterior fue cancelada. Puedes volver a inscribirte." : "Aún no estás inscrito en esta actividad."}</p>
+                    <fieldset className="selector-participante"><legend>¿Quién participará?</legend>
+                      <div className="opciones-participante">
+                      <label><input type="radio" name="participante" checked={!paraHijo} onChange={() => { setParaHijo(false); establecerCodigoGrupo(""); establecerRespuestasRequisitos({}); }} />Yo</label>
+                      <label><input type="radio" name="participante" checked={paraHijo} onChange={() => { setParaHijo(true); establecerCodigoGrupo(""); establecerRespuestasRequisitos({}); }} />Un(a) niño(a)</label>
+                      </div>
+                      {paraHijo && <>
+                        <label>Nombre del estudiante<input required maxLength="120" value={participante.nombre} onChange={(e) => setParticipante({ ...participante, nombre: e.target.value })} /></label>
+                        <label>Apellido del estudiante<input required maxLength="120" value={participante.apellido} onChange={(e) => setParticipante({ ...participante, apellido: e.target.value })} /></label>
+                        <label>Fecha de nacimiento del estudiante<input type="date" required max={new Date().toLocaleDateString("en-CA")} value={participante.fechaNacimiento} onChange={(e) => { setParticipante({ ...participante, fechaNacimiento: e.target.value }); establecerCodigoGrupo(""); }} /></label>
+                      </>}
+                    </fieldset>
                     {gruposEvento.length > 0 && <>
-                      {edadEnEvento !== null && <p className="nota-formulario-administracion">Según la fecha de nacimiento de tu cuenta, tienes {edadEnEvento} años para la fecha de esta actividad. Solo mostramos los grupos que corresponden a tu edad.</p>}
-                      {edadEnEvento === null && <p className="portal-mensaje-error">Agrega tu fecha de nacimiento en Mi perfil para mostrar los grupos adecuados.</p>}
-                      {gruposDisponibles.length > 0
-                        ? <label htmlFor="grupoEvento">Grupo o categoría *<select id="grupoEvento" required value={codigoGrupo} onChange={(eventoCampo) => establecerCodigoGrupo(eventoCampo.target.value)}><option value="">Selecciona un grupo</option>{gruposDisponibles.map((grupo) => <option key={grupo.codigo} value={grupo.codigo}>{grupo.nombre} · {grupo.categoriaEdad}</option>)}</select></label>
-                        : <p className="portal-mensaje-error" role="alert">No hay un grupo disponible para tu edad en esta actividad.</p>}
+                      {edadEnEvento !== null && <p className="nota-formulario-administracion">{paraHijo ? "El niño(a) tiene" : "Tienes"} {edadEnEvento} años para esta inscripción.</p>}
+                      <label htmlFor="grupoEvento">Grupo o categoría *<select id="grupoEvento" required value={codigoGrupo} onChange={(eventoCampo) => establecerCodigoGrupo(eventoCampo.target.value)}><option value="">Selecciona un grupo</option>{gruposEvento.map((grupo) => <option key={grupo.codigo} value={grupo.codigo}>{grupo.nombre} · {grupo.categoriaEdad}</option>)}</select></label>
+                      {grupoSeleccionado && edadRequerida && edadEnEvento === null && <p className="portal-mensaje-error" role="alert">{paraHijo ? "Ingresa la fecha de nacimiento del niño(a) para comprobar el grupo." : "Tu cuenta no tiene una fecha de nacimiento guardada. Actualízala en Mi perfil para comprobar la edad."}</p>}
+                      {grupoSeleccionado && edadEnEvento !== null && !grupoValido && <p className="portal-mensaje-error" role="alert">{paraHijo ? "El niño(a) no puede inscribirse" : "No puedes inscribirte"} en este grupo: no cumple{paraHijo ? "" : "s"} el rango de edad {grupoSeleccionado.categoriaEdad || `${grupoSeleccionado.edadMinima ?? "sin mínimo"} a ${grupoSeleccionado.edadMaxima ?? "sin máximo"} años`}.</p>}
                     </>}
                     {requisitosFormulario.length > 0 && <h3>Requisitos para la inscripción</h3>}
                     {requisitosFormulario.map((campo) => (
-                      <label key={campo.id} htmlFor={`requisito-${campo.id}`}>
+                      <label key={`${paraHijo ? "nino" : "yo"}:${campo.id}`} htmlFor={`requisito-${campo.id}`}>
                         {campo.etiqueta}{campo.obligatorio ? " *" : ""}
                         <CampoRequisito campo={campo} valor={respuestasRequisitos[campo.id]} alCambiar={actualizarRespuesta} />
                       </label>
                     ))}
-                    <button type="submit" disabled={operacion.procesando || (gruposEvento.length > 0 && gruposDisponibles.length === 0)}>{operacion.procesando ? "Confirmando…" : "Confirmar inscripción"}</button>
+                    <button type="submit" disabled={operacion.procesando || !formularioValido}>{operacion.procesando ? "Confirmando…" : "Confirmar inscripción"}</button>
                   </form>
                 )}
                 {usuario && !cargandoSesion && estadoConsulta === "lista" && inscripcion?.estado !== "CONFIRMADA" && !inscripcionAbierta && (

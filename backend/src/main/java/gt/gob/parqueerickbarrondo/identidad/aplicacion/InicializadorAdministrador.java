@@ -59,7 +59,7 @@ public class InicializadorAdministrador implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments argumentos) {
-        if (!habilitado || repositorioUsuario.contarAdministradoresActivos() > 0) {
+        if (!habilitado) {
             return;
         }
         if (correo.isBlank() || nombre.isBlank() || apellido.isBlank()) {
@@ -67,7 +67,12 @@ public class InicializadorAdministrador implements ApplicationRunner {
         }
 
         var correoNormalizado = normalizadorCorreo.normalizar(correo);
-        var usuario = repositorioUsuario.findByCorreoNormalizado(correoNormalizado).orElseGet(() -> crearUsuario());
+        var usuarioExistente = repositorioUsuario.findByCorreoNormalizado(correoNormalizado);
+        var usuario = usuarioExistente.orElseGet(() -> crearUsuario());
+        if (usuarioExistente.isPresent()) {
+            politicaContrasena.validar(contrasena);
+            usuario.cambiarContrasena(codificadorContrasena.encode(contrasena));
+        }
         var rolUsuario = repositorioRol.findByCodigo("USUARIOREGISTRADO")
                 .orElseThrow(() -> new IllegalStateException("No existe el rol USUARIOREGISTRADO."));
         var rolAdministrador = repositorioRol.findByCodigo("ADMINISTRADOR")
@@ -82,7 +87,7 @@ public class InicializadorAdministrador implements ApplicationRunner {
                 usuario.obtenerIdUsuario().toString(),
                 "EXITOSO",
                 IdentificadorCorrelacion.actual());
-        REGISTRO.info("Se creó el administrador inicial. Deshabilita y elimina sus variables de inicialización.");
+        REGISTRO.info("Se aseguró el administrador inicial. Deshabilita y elimina sus variables de inicialización.");
     }
 
     private Usuario crearUsuario() {

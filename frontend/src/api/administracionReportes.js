@@ -1,5 +1,9 @@
 import { solicitarApi } from "./clienteHttp";
 
+export function consultarParticipanteReporte(idEvento, idInscripcion) {
+  return solicitarApi(`/administracion/reportes/inscripciones/${idEvento}/personas/${idInscripcion}`);
+}
+
 export function listarReporteInscripciones({
   busqueda = "",
   pagina = 0,

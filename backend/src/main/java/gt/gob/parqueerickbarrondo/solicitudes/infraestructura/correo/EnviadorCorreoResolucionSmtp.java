@@ -13,6 +13,8 @@ public class EnviadorCorreoResolucionSmtp implements EnviadorCorreoResolucionSol
 
     private final JavaMailSender correo;
     private final String remitente;
+    @Value("${correo.verificacion.url-publica:http://127.0.0.1:5173}")
+    private String urlPublica = "http://127.0.0.1:5173";
 
     public EnviadorCorreoResolucionSmtp(JavaMailSender correo,
             @Value("${correo.verificacion.remitente}") String remitente) {
@@ -28,7 +30,9 @@ public class EnviadorCorreoResolucionSmtp implements EnviadorCorreoResolucionSol
         mensaje.setSubject("Resolución de tu solicitud #" + idSolicitud);
         mensaje.setText("Hola " + nombre + ",\n\nTu solicitud #" + idSolicitud + " fue "
                 + ("APROBADA".equals(estado) ? "aprobada" : "rechazada") + ".\n\nMotivo o respuesta:\n"
-                + motivo + "\n\nParque Erick Bernabé Barrondo García");
+                + motivo + "\n\nConsulta el detalle" + ("APROBADA".equals(estado) ? " y descarga o imprime tu comprobante PDF" : "")
+                + " en Mis solicitudes: " + urlPublica.replaceAll("/+$", "") + "/mis-solicitudes"
+                + "\n\nParque Erick Bernabé Barrondo García");
         correo.send(mensaje);
     }
 }

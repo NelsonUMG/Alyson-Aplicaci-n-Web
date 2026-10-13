@@ -4,6 +4,8 @@ import java.util.Locale;
 
 import gt.gob.parqueerickbarrondo.eventos.api.modelo.RespuestaPersonaInscritaReporte;
 import gt.gob.parqueerickbarrondo.eventos.api.modelo.RespuestaResumenInscripcionesCurso;
+import gt.gob.parqueerickbarrondo.eventos.api.modelo.RespuestaDetalleParticipante;
+import tools.jackson.databind.ObjectMapper;
 import gt.gob.parqueerickbarrondo.eventos.infraestructura.persistencia.RepositorioInscripcionEvento;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.RecursoNoEncontradoException;
 import gt.gob.parqueerickbarrondo.identidad.aplicacion.SolicitudInvalidaException;
@@ -20,6 +22,7 @@ public class ServicioReportesInscripciones {
 
     private final RepositorioEvento repositorioEvento;
     private final RepositorioInscripcionEvento repositorioInscripcion;
+    private final ObjectMapper serializadorJson = new ObjectMapper();
 
     public ServicioReportesInscripciones(
             RepositorioEvento repositorioEvento,
@@ -85,8 +88,8 @@ public class ServicioReportesInscripciones {
                     return new RespuestaPersonaInscritaReporte(
                             inscripcion.obtenerIdInscripcionEvento(),
                             usuario.obtenerIdUsuario(),
-                            usuario.obtenerNombre(),
-                            usuario.obtenerApellido(),
+                            inscripcion.obtenerNombreParticipante(),
+                            inscripcion.obtenerApellidoParticipante(),
                             usuario.obtenerCorreoNormalizado(),
                             inscripcion.obtenerGrupoSeleccionadoCodigo(),
                             inscripcion.obtenerConfirmadaEn());
@@ -105,5 +108,40 @@ public class ServicioReportesInscripciones {
             throw new SolicitudInvalidaException("La búsqueda no puede superar 100 caracteres.");
         }
         return busqueda.strip().toLowerCase(Locale.ROOT);
+    }
+
+    @PreAuthorize("hasAuthority('REPORTELEER')")
+    @Transactional(readOnly = true)
+    public RespuestaDetalleParticipante consultarParticipante(
+            Long idEvento, Long idInscripcion) {
+        var inscripcion = repositorioInscripcion.findById(idInscripcion)
+                .filter(i -> idEvento.equals(i.obtenerEvento().obtenerIdEvento()))
+                .orElseThrow(() -> new RecursoNoEncontradoException("No se encontró la inscripción solicitada."));
+        var requisitos = new java.util.LinkedHashMap<String, String>();
+        String foto = null;
+        var respuestas = inscripcion.obtenerRespuestasFormularioJson();
+        if (respuestas != null) {
+            var valores = serializadorJson.readTree(respuestas);
+            var esquema = inscripcion.obtenerEvento().obtenerEsquemaFormularioJson();
+            if (esquema != null) {
+                var campos = serializadorJson.readTree(esquema).path("campos");
+                for (var campo : campos) {
+                    var valor = valores.path(campo.path("id").asText()).asText("");
+                    if (esFotografia(valor)) foto = valor;
+                    else if (!valor.isBlank()) requisitos.put(campo.path("etiqueta").asText(), valor);
+                }
+            }
+            var fotoAdicional = valores.path("_fotoParticipante").asText("");
+            if (esFotografia(fotoAdicional)) foto = fotoAdicional;
+        }
+        var usuario = inscripcion.obtenerUsuario();
+        return new RespuestaDetalleParticipante(
+                inscripcion.obtenerNombreParticipante(), inscripcion.obtenerApellidoParticipante(),
+                inscripcion.obtenerNacimientoParticipante(), inscripcion.esInscripcionDelTitular(),
+                usuario.obtenerNombre() + " " + usuario.obtenerApellido(), usuario.obtenerCorreoNormalizado(), foto, requisitos);
+    }
+
+    private boolean esFotografia(String valor) {
+        return valor.startsWith("data:image/jpeg;base64,") || valor.startsWith("data:image/png;base64,");
     }
 }

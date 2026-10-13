@@ -13,7 +13,12 @@ public record SolicitudInscripcionEvento(
         @Size(max = 64, message = "El grupo seleccionado no es válido.")
         String codigoGrupo,
         @Size(max = 30, message = "No se pueden enviar más de 30 requisitos.")
-        Map<String, Object> respuestas) {
+        Map<String, Object> respuestas,
+        @jakarta.validation.Valid DatosParticipante participante) {
+
+    public SolicitudInscripcionEvento(boolean aceptaRequisitos, String codigoGrupo, Map<String, Object> respuestas) {
+        this(aceptaRequisitos, codigoGrupo, respuestas, null);
+    }
 
     public SolicitudInscripcionEvento {
         respuestas = respuestas == null

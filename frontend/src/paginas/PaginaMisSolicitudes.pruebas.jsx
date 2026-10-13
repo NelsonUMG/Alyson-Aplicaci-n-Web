@@ -57,6 +57,24 @@ describe("Solicitudes del usuario", () => {
     }]);
   });
 
+  it("abre el informe de aprobación con responsable y enlaces de PDF", async () => {
+    apiSolicitudes.listarMisSolicitudes.mockResolvedValue({ ...respuestaBase, contenido: [{
+      idSolicitud: 12, nombreTipoSolicitud: "Reserva de cancha", estado: "APROBADA",
+      creadoEn: "2026-10-12T14:00:00Z", actualizadoEn: "2026-10-12T15:00:00Z",
+    }] });
+    apiSolicitudes.consultarSolicitud.mockResolvedValue({ idSolicitud: 12, estado: "APROBADA",
+      nombreTipoSolicitud: "Reserva de cancha", resueltoPor: "María Administradora",
+      resueltoEn: "2026-10-12T15:00:00Z", resolucion: "Presentarse en recepción",
+      detalle: { nombreArea: "Cancha central", fechaSolicitada: "2026-12-01", horaInicio: "09:00", horaFin: "11:00" },
+    });
+    render(<MemoryRouter><PaginaMisSolicitudes /></MemoryRouter>);
+    fireEvent.click(await screen.findByRole("button", { name: "Ver detalle y comprobante" }));
+    const dialogo = await screen.findByRole("dialog", { name: "Detalle de solicitud" });
+    expect(within(dialogo).getByText("María Administradora")).toBeTruthy();
+    expect(within(dialogo).getByText("Cancha central")).toBeTruthy();
+    expect(within(dialogo).getByRole("link", { name: "Descargar comprobante PDF" }).getAttribute("href")).toBe("/api/v1/solicitudes/12/comprobante");
+  });
+
   it("muestra las solicitudes enviadas del usuario", async () => {
     apiSolicitudes.listarMisSolicitudes.mockResolvedValue({
       ...respuestaBase,

@@ -1,3 +1,5 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
+import { CampoContrasena } from "../componentes/CampoContrasena";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { solicitarRecuperacion, restablecerContrasena } from "../api/autenticacion";
@@ -40,18 +42,18 @@ export function PaginaRecuperarContrasena() {
         <p className="etiqueta-fase">Recupera tu acceso</p>
         <h1>{token ? "Nueva contraseña" : "¿Olvidaste tu contraseña?"}</h1>
         <p>{token ? "Escribe y confirma tu nueva contraseña. El enlace vence una hora después de solicitarlo y solo puede usarse una vez." : "Ingresa tu correo y te enviaremos un enlace para cambiar tu contraseña. El enlace vence en 1 hora."}</p>
-        {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
-        {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
+        {estado.error && <AvisoEnContexto className="mensaje-error" role="alert">{estado.error}</AvisoEnContexto>}
+        {estado.mensaje && <AvisoEnContexto className="mensaje-exito" role="status">{estado.mensaje}</AvisoEnContexto>}
         {!estado.completado && <form onSubmit={enviar}>
           {token ? <>
             <div className="campo-contrasena">
               <label htmlFor="contrasenaNueva">Nueva contraseña</label>
-              <input id="contrasenaNueva" type="password" autoComplete="new-password" minLength="12" maxLength="128" required aria-describedby="fortalezaContrasenaRecuperacion" value={contrasena} onChange={(evento) => setContrasena(evento.target.value)} />
+              <CampoContrasena id="contrasenaNueva" autoComplete="new-password" minLength="12" maxLength="128" required aria-describedby="fortalezaContrasenaRecuperacion" value={contrasena} onChange={(evento) => setContrasena(evento.target.value)}  />
               <IndicadorFortalezaContrasena id="fortalezaContrasenaRecuperacion" contrasena={contrasena} />
             </div>
             <div className="campo-contrasena">
               <label htmlFor="confirmarContrasena">Confirmar contraseña</label>
-              <input id="confirmarContrasena" type="password" autoComplete="new-password" minLength="12" maxLength="128" required value={confirmacion} onChange={(evento) => setConfirmacion(evento.target.value)} />
+              <CampoContrasena id="confirmarContrasena" autoComplete="new-password" minLength="12" maxLength="128" required value={confirmacion} onChange={(evento) => setConfirmacion(evento.target.value)}  />
             </div>
           </> : <>
             <label htmlFor="correoRecuperacion">Correo electrónico</label>

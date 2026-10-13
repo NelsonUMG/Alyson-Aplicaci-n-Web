@@ -436,7 +436,7 @@ public class ServicioSolicitudesUsuario {
                 nombreLegible(solicitud.obtenerTipoSolicitud()), solicitud.obtenerEstado(),
                 deserializarDetalle(solicitud.obtenerDetalle()), documentos,
                 solicitud.obtenerResolucion(), solicitud.obtenerCreadoEn(), solicitud.obtenerActualizadoEn(),
-                solicitud.obtenerResueltoEn(), solicitud.obtenerVersion());
+                solicitud.obtenerResueltoEn(), solicitud.obtenerVersion(), solicitud.obtenerNombreResponsableResolucion());
     }
 
     private RespuestaDocumentoSolicitud convertirDocumento(

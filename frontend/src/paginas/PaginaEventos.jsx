@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarEventos } from "../api/portalPublico";
@@ -53,7 +54,7 @@ export function PaginaEventos() {
       />
       <section className="portal-seccion">
         <div className="portal-contenedor">
-          {error && <p className="portal-mensaje-error" role="alert">{error}</p>}
+          {error && <AvisoEnContexto className="portal-mensaje-error" role="alert">{error}</AvisoEnContexto>}
           {cargando && <p className="portal-estado-carga" role="status">Cargando eventos…</p>}
 
           {!error && !cargando && eventos.length === 0 && (

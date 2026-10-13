@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
 import { useEffect, useState } from "react";
 
@@ -322,8 +323,8 @@ export function PaginaAdministracionAreas() {
         </div>
         </nav>
         <div className="contenido-modulo-administracion">
-        {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
-        {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
+        {estado.error && <AvisoEnContexto className="mensaje-error" role="alert">{estado.error}</AvisoEnContexto>}
+        {estado.mensaje && <AvisoEnContexto className="mensaje-exito" role="status">{estado.mensaje}</AvisoEnContexto>}
         {!estado.cargando && categoriasActivas.length === 0 && (
           <p id="aviso-sin-categorias-area" className="nota-formulario-administracion" role="status">
             Primero crea al menos una categoría activa para poder registrar áreas.

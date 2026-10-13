@@ -17,5 +17,8 @@ public record RespuestaInscripcionAdministrada(
         String motivoCancelacion,
         String respuestasFormularioJson,
         Instant creadoEn,
-        Instant actualizadoEn) {
+        Instant actualizadoEn,
+        java.time.LocalDate fechaNacimientoParticipante,
+        boolean titular,
+        String nombreResponsable) {
 }

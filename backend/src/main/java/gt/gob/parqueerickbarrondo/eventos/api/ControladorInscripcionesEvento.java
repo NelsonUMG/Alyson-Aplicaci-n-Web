@@ -44,8 +44,10 @@ public class ControladorInscripcionesEvento {
     @GetMapping("/{idEvento}/inscripcion")
     public RespuestaInscripcionEvento consultar(
             @PathVariable Long idEvento,
+            @RequestParam(required = false) Long idInscripcion,
             @AuthenticationPrincipal UsuarioSesion actor) {
-        return servicioInscripciones.consultar(idEvento, actor);
+        return idInscripcion == null ? servicioInscripciones.consultar(idEvento, actor)
+                : servicioInscripciones.consultarParticipante(idEvento, idInscripcion, actor);
     }
 
     @PostMapping("/{idEvento}/inscripciones")

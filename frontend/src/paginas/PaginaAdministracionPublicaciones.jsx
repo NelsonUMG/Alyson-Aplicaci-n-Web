@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
@@ -525,8 +526,8 @@ export function PaginaAdministracionPublicaciones() {
       </div>
         </nav>
         <div className="contenido-modulo-administracion">
-      {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
-      {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
+      {estado.error && <AvisoEnContexto className="mensaje-error" role="alert">{estado.error}</AvisoEnContexto>}
+      {estado.mensaje && <AvisoEnContexto className="mensaje-exito" role="status">{estado.mensaje}</AvisoEnContexto>}
       {!estado.cargando && categoriasActivas.length === 0 && (
         <p id="aviso-sin-categorias-publicacion" className="nota-formulario-administracion" role="status">
           Primero crea al menos una categoría activa para poder crear noticias.

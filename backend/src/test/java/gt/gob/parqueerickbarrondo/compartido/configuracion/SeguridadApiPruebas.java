@@ -80,6 +80,7 @@ class SeguridadApiPruebas {
 
     @Test
     void aceptaElRegistroPublicoConCsrf() throws Exception {
+        when(servicioRegistroCuenta.registrar(any())).thenReturn(true);
         clienteApi.perform(post("/api/v1/autenticacion/registro")
                         .with(csrf())
                         .contentType(MediaType.APPLICATION_JSON)

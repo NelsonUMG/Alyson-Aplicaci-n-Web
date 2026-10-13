@@ -39,6 +39,16 @@ public class Solicitud {
     @Column(name = "Resolucion")
     private String resolucion;
 
+    @Column(name = "ResueltoPor")
+    private Long resueltoPor;
+    @Column(name = "NombreResponsableResolucion", length = 250)
+    private String nombreResponsableResolucion;
+
+    public void registrarResponsableResolucion(Long id, String nombre) {
+        resueltoPor = id; nombreResponsableResolucion = nombre;
+    }
+    public String obtenerNombreResponsableResolucion() { return nombreResponsableResolucion; }
+
     @Column(name = "CreadoEn", nullable = false)
     private Instant creadoEn;
 

@@ -1,3 +1,5 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
+import { CampoContrasena } from "../componentes/CampoContrasena";
 import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
 import { useEffect, useState } from "react";
 
@@ -296,8 +298,8 @@ export function PaginaAdministracionUsuarios() {
           Primero crea al menos un rol asignable con el botón Crear Roles para poder registrar empleados.
         </p>
       )}
-      {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
-      {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
+      {estado.error && <AvisoEnContexto className="mensaje-error" role="alert">{estado.error}</AvisoEnContexto>}
+      {estado.mensaje && <AvisoEnContexto className="mensaje-exito" role="status">{estado.mensaje}</AvisoEnContexto>}
       {panelActivo === "empleado" && (
         <section className="panel-edicion panel-formulario-administracion" aria-labelledby="titulo-empleado">
           <h2 id="titulo-empleado">Registrar empleado</h2>
@@ -330,12 +332,12 @@ export function PaginaAdministracionUsuarios() {
             <div className="campos-formulario-administracion">
               <div>
                 <label htmlFor="contrasenaEmpleado">Contraseña inicial</label>
-                <input id="contrasenaEmpleado" type="password" autoComplete="new-password" required minLength="12" maxLength="128" aria-describedby="fortalezaContrasenaEmpleado" value={datosEmpleado.contrasenaInicial} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, contrasenaInicial: evento.target.value }))} />
+                <CampoContrasena id="contrasenaEmpleado" autoComplete="new-password" required minLength="12" maxLength="128" aria-describedby="fortalezaContrasenaEmpleado" value={datosEmpleado.contrasenaInicial} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, contrasenaInicial: evento.target.value }))}  />
                 <IndicadorFortalezaContrasena id="fortalezaContrasenaEmpleado" contrasena={datosEmpleado.contrasenaInicial} />
               </div>
               <div>
                 <label htmlFor="confirmarContrasenaEmpleado">Confirmar contraseña</label>
-                <input id="confirmarContrasenaEmpleado" type="password" autoComplete="new-password" required minLength="12" maxLength="128" value={datosEmpleado.confirmarContrasena} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, confirmarContrasena: evento.target.value }))} />
+                <CampoContrasena id="confirmarContrasenaEmpleado" autoComplete="new-password" required minLength="12" maxLength="128" value={datosEmpleado.confirmarContrasena} onChange={(evento) => setDatosEmpleado((actual) => ({ ...actual, confirmarContrasena: evento.target.value }))}  />
               </div>
             </div>
             <fieldset className="selector-administracion">

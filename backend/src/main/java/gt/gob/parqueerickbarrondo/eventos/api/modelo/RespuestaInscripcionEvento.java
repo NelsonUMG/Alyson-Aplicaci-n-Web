@@ -17,7 +17,25 @@ public record RespuestaInscripcionEvento(
         Instant canceladaEn,
         String motivoCancelacion,
         int cuposDisponibles,
-        Long version) {
+        Long version, String nombreParticipante, String apellidoParticipante,
+        java.time.LocalDate fechaNacimientoParticipante, String nombreResponsable) {
+    public RespuestaInscripcionEvento(
+        Long idInscripcionEvento,
+        Long idEvento,
+        String identificadorUrl,
+        String tituloEvento,
+        String codigoGrupo,
+        String nombreGrupo,
+        String estado,
+        Instant iniciaEn,
+        String lugar,
+        Instant requisitosAceptadosEn,
+        Instant confirmadaEn,
+        Instant canceladaEn,
+        String motivoCancelacion,
+        int cuposDisponibles,
+        Long version) { this(idInscripcionEvento, idEvento, identificadorUrl, tituloEvento, codigoGrupo, nombreGrupo, estado, iniciaEn, lugar, requisitosAceptadosEn, confirmadaEn, canceladaEn, motivoCancelacion, cuposDisponibles, version, null, null, null, null); }
+
 
     public RespuestaInscripcionEvento(
             Long idInscripcionEvento,

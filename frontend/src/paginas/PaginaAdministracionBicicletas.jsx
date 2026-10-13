@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
 import { useEffect, useRef, useState } from "react";
 
@@ -218,8 +219,8 @@ export function PaginaAdministracionBicicletas() {
       </div>
         </nav>
         <div className="contenido-modulo-administracion">
-      {estadoPagina.error && <p className="mensaje-error" role="alert">{estadoPagina.error}</p>}
-      {estadoPagina.mensaje && <p className="mensaje-exito" role="status">{estadoPagina.mensaje}</p>}
+      {estadoPagina.error && <AvisoEnContexto className="mensaje-error" role="alert">{estadoPagina.error}</AvisoEnContexto>}
+      {estadoPagina.mensaje && <AvisoEnContexto className="mensaje-exito" role="status">{estadoPagina.mensaje}</AvisoEnContexto>}
 
       {mostrarListado && <section className="panel-edicion panel-listado-administracion" aria-labelledby="titulo-inventario-bicicletas">
         <div className="cabecera-panel-administracion">

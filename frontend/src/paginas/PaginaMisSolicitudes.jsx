@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import * as api from "../api/solicitudes";
@@ -125,6 +126,15 @@ export function PaginaMisSolicitudes() {
       setEstado((a) => ({ ...a, cargando: false }));
     } catch (error) { setEstado((a) => ({ ...a, cargando: false, error: error.message })); }
   }
+  async function verInforme(idSolicitud) {
+    setEstado((a) => ({ ...a, cargando: true, error: "", mensaje: "" }));
+    try {
+      setSolicitud(await api.consultarSolicitud(idSolicitud));
+      setModal("informe");
+      setEstado((a) => ({ ...a, cargando: false }));
+    } catch (error) { setEstado((a) => ({ ...a, cargando: false, error: error.message })); }
+  }
+
   function cerrarModal() { setModal(""); setTramite(null); setSolicitud(null); setExito(""); setEstado((a) => ({ ...a, error: "" })); }
   async function abrirTramite(codigo) {
     setEstado((a) => ({ ...a, cargando: true, error: "" }));
@@ -291,7 +301,7 @@ export function PaginaMisSolicitudes() {
     <div className="cuerpo-aplicacion-solicitudes">
       <main className="contenido-aplicacion-solicitudes">
         <section className="encabezado-mis-solicitudes"><div><p>Cuenta personal</p><h1>Mis solicitudes</h1><span>Consulta, continúa y da seguimiento a tus gestiones desde un solo lugar.</span></div><div className="accion-nueva-superior"><button type="button" aria-label="Nueva solicitud" onClick={abrirCatalogo}><IconoPanel tipo="nueva" /> Nueva solicitud</button><button type="button" aria-label="Más opciones de nueva solicitud" onClick={abrirCatalogo}>⌄</button></div></section>
-        {estado.error && <p className="mensaje-error mensaje-flotante-solicitudes" role="alert">{estado.error}</p>}{estado.mensaje && <p className="mensaje-exito mensaje-flotante-solicitudes" role="status">{estado.mensaje}</p>}
+        {!modal && estado.error && <AvisoEnContexto className="mensaje-error mensaje-flotante-solicitudes" role="alert">{estado.error}</AvisoEnContexto>}{!modal && estado.mensaje && <AvisoEnContexto className="mensaje-exito mensaje-flotante-solicitudes" role="status">{estado.mensaje}</AvisoEnContexto>}
         <section className="panel-filtros-solicitudes">
           <div className="fila-pestanas-solicitudes"><nav className="pestanas-solicitudes" aria-label="Estados de solicitudes"><button type="button" className={grupo === "TODOS" ? "activo" : ""} onClick={() => seleccionarGrupo("TODOS")}>Todos<b>{totalSolicitudes}</b></button>{grupos.map((item) => <button key={item.codigo} type="button" className={grupo === item.codigo ? "activo" : ""} onClick={() => seleccionarGrupo(item.codigo)}>{item.etiqueta}<b>{pagina.conteos[item.conteo]}</b></button>)}</nav><label className="orden-solicitudes"><span>Ordenar por:</span><select aria-label="Ordenar solicitudes" value={orden} onChange={(evento) => setOrden(evento.target.value)}><option value="RECIENTES">Más recientes</option><option value="ANTIGUAS">Más antiguas</option></select></label></div>
         </section>
@@ -300,14 +310,29 @@ export function PaginaMisSolicitudes() {
           <div className="resultados-solicitudes" aria-live="polite">
             {estado.cargando && <div className="carga-solicitudes-dashboard"><i /><p>Cargando solicitudes…</p></div>}
             {!estado.cargando && solicitudesVisibles.length === 0 && <div className="estado-vacio-solicitudes estado-vacio-dashboard"><span><IconoPanel tipo="portapapeles" /></span><i className="destello-vacio uno">◇</i><i className="destello-vacio dos">◇</i><h3>No hay solicitudes en esta categoría</h3><p>{busquedaSolicitudes ? "Prueba con otra palabra o número de solicitud." : mensajesVacios[grupo]}</p><button type="button" onClick={abrirCatalogo}>Crear una nueva solicitud</button></div>}
-            {solicitudesVisibles.map((item) => <article key={item.idSolicitud} className="tarjeta-solicitud-dashboard"><strong className="numero-tarjeta-solicitud">#{item.idSolicitud}</strong><div className="datos-tarjeta-solicitud"><h3>{item.nombreTipoSolicitud}</h3></div><span className={`estado-solicitud estado-${item.estado.toLowerCase()}`}>{formatearTextoTecnico(item.estado)}</span><time>{formatoFechaCorta.format(new Date(item.creadoEn || item.actualizadoEn))}</time><time>{formatoFecha.format(new Date(item.actualizadoEn))}</time><div className="acciones-tarjeta-solicitud">{item.estado === "BORRADOR" && <><button type="button" className="continuar-tarjeta-solicitud" disabled={estado.guardando} onClick={() => continuarBorrador(item.idSolicitud)}>Continuar <span>→</span></button><button type="button" className="eliminar-tarjeta-solicitud" disabled={estado.guardando} onClick={() => eliminarBorrador(item.idSolicitud)}>Eliminar</button></>}</div>{item.resolucion && <p className="respuesta-solicitud"><strong>Respuesta de la administración</strong>{item.resolucion}</p>}</article>)}
+            {solicitudesVisibles.map((item) => <article key={item.idSolicitud} className="tarjeta-solicitud-dashboard"><strong className="numero-tarjeta-solicitud">#{item.idSolicitud}</strong><div className="datos-tarjeta-solicitud"><h3>{item.nombreTipoSolicitud}</h3></div><span className={`estado-solicitud estado-${item.estado.toLowerCase()}`}>{formatearTextoTecnico(item.estado)}</span><time>{formatoFechaCorta.format(new Date(item.creadoEn || item.actualizadoEn))}</time><time>{formatoFecha.format(new Date(item.actualizadoEn))}</time><div className="acciones-tarjeta-solicitud">{item.estado !== "BORRADOR" && <button type="button" onClick={() => verInforme(item.idSolicitud)}>Ver detalle{item.estado === "APROBADA" ? " y comprobante" : ""}</button>}{item.estado === "BORRADOR" && <><button type="button" className="continuar-tarjeta-solicitud" disabled={estado.guardando} onClick={() => continuarBorrador(item.idSolicitud)}>Continuar <span>→</span></button><button type="button" className="eliminar-tarjeta-solicitud" disabled={estado.guardando} onClick={() => eliminarBorrador(item.idSolicitud)}>Eliminar</button></>}</div>{item.resolucion && <p className="respuesta-solicitud"><strong>Respuesta de la administración</strong>{item.resolucion}</p>}</article>)}
           </div>
         </section>
       </main>
     </div>
 
-    {modal && <div className="fondo-modal-tramites" role="presentation"><section className="modal-tramites ventanilla-agil" role="dialog" aria-modal="true" aria-label={modal === "denuncia" ? "Denuncias y quejas" : "Nueva solicitud"}><header><div><h2>{modal === "denuncia" ? "Denuncias y quejas" : "Nueva solicitud"}</h2></div><button type="button" className="cerrar-modal-tramites" onClick={cerrarModal} aria-label="Cerrar">×</button></header>{estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
+    {modal && <div className="fondo-modal-tramites" role="presentation"><section className="modal-tramites ventanilla-agil" role="dialog" aria-modal="true" aria-label={modal === "informe" ? "Detalle de solicitud" : modal === "denuncia" ? "Denuncias y quejas" : "Nueva solicitud"}><header><div><h2>{modal === "denuncia" ? "Denuncias y quejas" : "Nueva solicitud"}</h2></div><button type="button" className="cerrar-modal-tramites" onClick={cerrarModal} aria-label="Cerrar">×</button></header>{estado.error && <AvisoEnContexto className="mensaje-error" role="alert">{estado.error}</AvisoEnContexto>}
       {modal === "catalogo" && <Catalogo catalogo={catalogoSolicitudes} categoria={categoria} setCategoria={setCategoria} busqueda={busqueda} setBusqueda={setBusqueda} categoriasVisibles={categoriasVisibles} totalTramites={totalTramitesVisibles} abrir={abrirTramite} />}
+      {modal === "informe" && solicitud && <div className="contenido-modal-tramites informe-solicitud">
+        <h3>Solicitud #{solicitud.idSolicitud} · {formatearTextoTecnico(solicitud.estado)}</h3>
+        <dl><dt>Trámite</dt><dd>{solicitud.nombreTipoSolicitud}</dd>
+          <dt>Lugar</dt><dd>{solicitud.detalle.nombreArea || solicitud.detalle.centroDeportivo || "Consulta las indicaciones de la resolución"}</dd>
+          <dt>Fecha solicitada</dt><dd>{solicitud.detalle.fechaSolicitada || "No aplica"}</dd>
+          <dt>Horario</dt><dd>{solicitud.detalle.horaInicio ? `${solicitud.detalle.horaInicio} a ${solicitud.detalle.horaFin}` : "No aplica"}</dd>
+          <dt>Resuelta por</dt><dd>{solicitud.resueltoPor || (solicitud.resueltoEn ? "No registrado en la resolución original" : "Pendiente de resolución")}</dd>
+          <dt>Fecha de resolución</dt><dd>{solicitud.resueltoEn ? formatoFecha.format(new Date(solicitud.resueltoEn)) : "Pendiente"}</dd>
+          <dt>Respuesta de la administración</dt><dd style={{ whiteSpace: "pre-wrap" }}>{solicitud.resolucion || "En proceso de revisión"}</dd>
+        </dl>
+        {solicitud.estado === "APROBADA" && <div className="acciones-comprobante">
+          <a href={`/api/v1/solicitudes/${solicitud.idSolicitud}/comprobante`} download>Descargar comprobante PDF</a>
+          <a href={`/api/v1/solicitudes/${solicitud.idSolicitud}/comprobante?imprimir=true`} target="_blank" rel="noopener noreferrer">Abrir PDF para imprimir</a>
+        </div>}
+      </div>}
       {modal === "detalle" && tramite && <DetalleTramite tramite={tramite} volver={() => setModal("catalogo")} comenzar={comenzarTramite} resena={resena} setResena={setResena} guardarResena={guardarResena} guardando={estado.guardando} />}
       {modal === "paso1" && <PasoSolicitante datos={aspirante} setDatos={setAspirante} guardar={guardarSolicitante} guardando={estado.guardando} />}
       {modal === "tipo" && <SelectorTipo seleccionar={seleccionarTipo} volver={() => setModal("paso1")} />}

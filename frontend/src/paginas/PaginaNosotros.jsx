@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { useEffect, useState } from "react";
 import { consultarContenidoInstitucional } from "../api/portalPublico";
 import { obtenerMensajeError } from "../api/clienteHttp";
@@ -45,7 +46,7 @@ export function PaginaNosotros() {
       />
       <section className="portal-seccion">
         <div className="portal-contenedor nosotros-panel nosotros-panel-institucional">
-          {error && <p className="portal-mensaje-error" role="alert">{error}</p>}
+          {error && <AvisoEnContexto className="portal-mensaje-error" role="alert">{error}</AvisoEnContexto>}
           <div className="nosotros-introduccion">
             <h2>Sobre nosotros</h2>
             <p>{contenido.resumen}</p>

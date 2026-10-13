@@ -53,6 +53,25 @@ public class InscripcionEvento {
     @Column(name = "GrupoSeleccionadoCodigo", length = 64)
     private String grupoSeleccionadoCodigo;
 
+    @Column(name = "ClaveParticipante", nullable = false, length = 64)
+    private String claveParticipante = "TITULAR";
+    @Column(name = "NombreParticipante", length = 120)
+    private String nombreParticipante;
+    @Column(name = "ApellidoParticipante", length = 120)
+    private String apellidoParticipante;
+    @Column(name = "NacimientoParticipante")
+    private java.time.LocalDate nacimientoParticipante;
+
+    public void asignarParticipante(String clave, String nombre, String apellido, java.time.LocalDate nacimiento) {
+        claveParticipante = clave; nombreParticipante = nombre; apellidoParticipante = apellido;
+        nacimientoParticipante = nacimiento;
+    }
+    public String obtenerNombreParticipante() { return nombreParticipante == null ? usuario.obtenerNombre() : nombreParticipante; }
+    public boolean esInscripcionDelTitular() { return "TITULAR".equals(claveParticipante); }
+    public String obtenerApellidoParticipante() { return apellidoParticipante == null ? usuario.obtenerApellido() : apellidoParticipante; }
+    public java.time.LocalDate obtenerNacimientoParticipante() { return nacimientoParticipante == null ? usuario.obtenerFechaNacimiento() : nacimientoParticipante; }
+    public String obtenerNombreResponsable() { return usuario.obtenerNombre() + " " + usuario.obtenerApellido(); }
+
     @Column(name = "CreadoEn", nullable = false)
     private Instant creadoEn;
 

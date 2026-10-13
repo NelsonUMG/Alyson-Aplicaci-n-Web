@@ -11,15 +11,20 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api/v1/autenticacion")
 public class ControladorRecuperacionContrasena {
+    @org.springframework.beans.factory.annotation.Value("${correo.verificacion.envio-habilitado:false}")
+    private boolean envioHabilitado;
     private final ServicioRecuperacionContrasena servicio;
     public ControladorRecuperacionContrasena(ServicioRecuperacionContrasena servicio) { this.servicio = servicio; }
 
     @PostMapping("/recuperar-contrasena")
     public ResponseEntity<RespuestaMensaje> solicitar(@Valid @RequestBody SolicitudReenvioVerificacion solicitud) {
+        if (!envioHabilitado) throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "El envío de correo no está habilitado. Contacta al parque.");
         try { servicio.solicitar(solicitud.correo()); }
-        catch (TaskRejectedException ignorada) { /* Mantener la misma respuesta si la cola está llena. */ }
+        catch (TaskRejectedException error) { throw new org.springframework.web.server.ResponseStatusException(
+                org.springframework.http.HttpStatus.SERVICE_UNAVAILABLE, "El servicio de correo está ocupado. Inténtalo nuevamente en unos minutos."); }
         return ResponseEntity.accepted().cacheControl(CacheControl.noStore()).body(new RespuestaMensaje(
-                "Si el correo corresponde a una cuenta verificada, recibirás un enlace que vence en 1 hora. Revisa también la carpeta de spam. Puedes solicitar otro en 5 minutos."));
+                "Si el correo corresponde a una cuenta activa, recibirás un enlace que vence en 1 hora. Revisa también la carpeta de spam. Puedes solicitar otro en 5 minutos."));
     }
 
     @PostMapping("/restablecer-contrasena")

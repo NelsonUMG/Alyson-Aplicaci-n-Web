@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarMisInscripciones } from "../api/inscripcionesEventos";
@@ -56,7 +57,7 @@ export function PaginaMisInscripciones() {
 
       <main className="contenido-inscripciones">
         <section className="hero-inscripciones">
-          <div><p>Cuenta personal</p><h1>Mis inscripciones</h1><span>Consulta tus próximas actividades y el historial de eventos en los que participaste.</span></div>
+          <div><p>Cuenta personal</p><h1>Mis inscripciones</h1><span>Consulta tus inscripciones y las de tus hijos o dependientes.</span></div>
         </section>
 
         <section className="resumen-inscripciones" aria-label="Resumen de inscripciones">
@@ -65,7 +66,7 @@ export function PaginaMisInscripciones() {
           <article><span><IconoInscripcion tipo="cancelada" /></span><div><strong>{canceladasEnPagina}</strong><p>Canceladas en esta página</p></div></article>
         </section>
 
-        {estado.error && <p className="mensaje-error mensaje-inscripciones" role="alert">{estado.error}</p>}
+        {estado.error && <AvisoEnContexto className="mensaje-error mensaje-inscripciones" role="alert">{estado.error}</AvisoEnContexto>}
         <section className="panel-inscripciones" aria-label="Inscripciones registradas">
           <header><div><p>Actividad personal</p><h2>Tus eventos</h2></div><span>{pagina.totalElementos} {pagina.totalElementos === 1 ? "registro" : "registros"}</span></header>
           {estado.cargando && <div className="carga-inscripciones"><i /><p>Cargando inscripciones…</p></div>}
@@ -74,8 +75,8 @@ export function PaginaMisInscripciones() {
             {pagina.contenido.map((inscripcion) => (
               <article key={inscripcion.idInscripcionEvento}>
                 <span className={`icono-estado-inscripcion estado-${inscripcion.estado.toLowerCase()}`}><IconoInscripcion tipo={inscripcion.estado === "CANCELADA" ? "cancelada" : "confirmada"} /></span>
-                <div className="datos-inscripcion"><p className={`estado-inscripcion estado-${inscripcion.estado.toLowerCase()}`}>{formatearTextoTecnico(inscripcion.estado)}</p><h3>{formatearTextoEditorial(inscripcion.tituloEvento)}</h3><time>{formatoFecha.format(new Date(inscripcion.iniciaEn))}</time>{inscripcion.lugar && <p className="lugar-inscripcion">{inscripcion.lugar}</p>}{inscripcion.nombreGrupo && <p className="grupo-inscripcion">Grupo: <strong>{inscripcion.nombreGrupo}</strong></p>}</div>
-                <Link to={`/eventos/${inscripcion.identificadorUrl}`}>Consultar actividad <span>→</span></Link>
+                <div className="datos-inscripcion"><p className={`estado-inscripcion estado-${inscripcion.estado.toLowerCase()}`}>{formatearTextoTecnico(inscripcion.estado)}</p><h3>{formatearTextoEditorial(inscripcion.tituloEvento)}</h3>{inscripcion.nombreParticipante && <p>Estudiante: <strong>{inscripcion.nombreParticipante} {inscripcion.apellidoParticipante}</strong></p>}<time>{formatoFecha.format(new Date(inscripcion.iniciaEn))}</time>{inscripcion.lugar && <p className="lugar-inscripcion">{inscripcion.lugar}</p>}{inscripcion.nombreGrupo && <p className="grupo-inscripcion">Grupo: <strong>{inscripcion.nombreGrupo}</strong></p>}</div>
+                <Link to={`/eventos/${inscripcion.identificadorUrl}?inscripcion=${inscripcion.idInscripcionEvento}`}>Consultar actividad <span>→</span></Link>
               </article>
             ))}
           </div>

@@ -42,11 +42,11 @@ public class ServicioRecuperacionContrasena {
     @Transactional
     public void solicitar(String direccion) {
         var usuario = usuarios.buscarPorCorreoParaVerificacion(normalizador.normalizar(direccion))
-                .filter(u -> u.estaActivo() && u.obtenerCorreoVerificadoEn() != null).orElse(null);
+                .filter(u -> u.estaActivo()).orElse(null);
         if (usuario == null) return;
         var ahora = Instant.now();
         if (tokens.findFirstByUsuario_IdUsuarioOrderByCreadoEnDesc(usuario.obtenerIdUsuario())
-                .filter(t -> t.obtenerCreadoEn().isAfter(ahora.minus(ESPERA))).isPresent()) return;
+                .filter(t -> t.obtenerConsumidoEn() == null && t.obtenerCreadoEn().isAfter(ahora.minus(ESPERA))).isPresent()) return;
         var token = TokensSeguros.generar();
         var registro = new TokenRestablecimientoContrasena(usuario, TokensSeguros.resumir(token), ahora.plus(VIGENCIA), ahora);
         var anteriores = tokens.findAllByUsuario_IdUsuarioAndConsumidoEnIsNull(usuario.obtenerIdUsuario());
@@ -56,7 +56,8 @@ public class ServicioRecuperacionContrasena {
             anteriores.forEach(t -> t.consumir(ahora));
         } catch (RuntimeException error) {
             registro.consumir(ahora);
-            LOG.warn("Falló el envío de recuperación para usuario {}.", usuario.obtenerIdUsuario());
+            LOG.warn("Falló el envío de recuperación para usuario {}. Tipo: {}", usuario.obtenerIdUsuario(), error.getClass().getSimpleName());
+            auditoria.registrar(usuario.obtenerIdUsuario(), "RECUPERACIONCORREOFALLIDO", "USUARIO", usuario.obtenerIdUsuario().toString(), "FALLIDO", null);
         }
     }
 
@@ -73,7 +74,7 @@ public class ServicioRecuperacionContrasena {
         var registro = tokens.buscarParaConsumir(hash).orElseThrow(this::enlaceInvalido);
         var ahora = Instant.now();
         if (registro.obtenerConsumidoEn() != null || registro.estaExpirado(ahora)
-                || !usuario.estaActivo() || usuario.obtenerCorreoVerificadoEn() == null
+                || !usuario.estaActivo()
                 || !registro.correspondeContrasenaActual()) throw enlaceInvalido();
         if (codificador.matches(solicitud.contrasenaNueva(), usuario.obtenerHashContrasena()))
             throw new SolicitudInvalidaException("La contraseña nueva debe ser diferente de la actual.");

@@ -48,6 +48,6 @@ describe("Panel de inscripciones del usuario", () => {
     expect(await screen.findByRole("heading", { name: "Torneo familiar" })).toBeTruthy();
     expect(screen.getByText("Confirmada")).toBeTruthy();
     expect(screen.getByText("Cancha central")).toBeTruthy();
-    expect(screen.getByRole("link", { name: /Consultar actividad/ }).getAttribute("href")).toBe("/eventos/torneo-familiar");
+    expect(screen.getByRole("link", { name: /Consultar actividad/ }).getAttribute("href")).toBe("/eventos/torneo-familiar?inscripcion=8");
   });
 });

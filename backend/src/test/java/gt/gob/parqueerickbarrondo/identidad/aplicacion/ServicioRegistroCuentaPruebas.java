@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import java.time.*;
 import java.util.*;
+import org.junit.jupiter.api.BeforeEach;
 import gt.gob.parqueerickbarrondo.identidad.api.modelo.SolicitudRegistroCuenta;
 import gt.gob.parqueerickbarrondo.identidad.dominio.*;
 import gt.gob.parqueerickbarrondo.identidad.infraestructura.persistencia.*;
@@ -19,8 +20,12 @@ class ServicioRegistroCuentaPruebas {
     final RepositorioRegistroPendiente pendientes = mock(RepositorioRegistroPendiente.class);
     final PasswordEncoder codificador = mock(PasswordEncoder.class);
     final EnviadorCorreoVerificacion correo = mock(EnviadorCorreoVerificacion.class);
+    final ValidadorDominioCorreo validadorDominio = mock(ValidadorDominioCorreo.class);
     final ServicioRegistroCuenta servicio = new ServicioRegistroCuenta(usuarios, roles, pendientes, codificador,
-            new NormalizadorCorreo(), new PoliticaContrasena(12), mock(ServicioAuditoria.class), correo, 24, 5);
+            new NormalizadorCorreo(), validadorDominio, new PoliticaContrasena(12),
+            mock(ServicioAuditoria.class), correo, 24, 5);
+
+    @BeforeEach void habilitaSmtpEnLosCasosNormales() { when(correo.habilitado()).thenReturn(true); }
 
     @Test void guardaUnaSolicitudSinCrearUsuarioNiAsignarRoles() {
         when(codificador.encode(anyString())).thenReturn("hash-seguro");
@@ -74,6 +79,21 @@ class ServicioRegistroCuentaPruebas {
         assertThat(servicio.registrar(solicitud("Contrasena larga de prueba"))).isFalse();
         verify(usuarios, never()).saveAndFlush(any());
         verify(pendientes).saveAndFlush(any());
+    }
+    @Test void noCreaPendienteNiTokenCuandoSmtpEstaDeshabilitado() {
+        when(correo.habilitado()).thenReturn(false);
+        assertThat(servicio.registrar(solicitud("Contrasena larga de prueba"))).isFalse();
+        verifyNoInteractions(pendientes);
+        verify(correo).habilitado();
+        verify(correo, never()).enviar(any(), any(), any());
+    }
+    @Test void noCreaPendienteCuandoElDominioDelCorreoNoExiste() {
+        doThrow(new SolicitudInvalidaException("Dominio no válido"))
+                .when(validadorDominio).validar("persona@ejemplo.com");
+        assertThatThrownBy(() -> servicio.registrar(solicitud("Contrasena larga de prueba")))
+                .isInstanceOf(SolicitudInvalidaException.class);
+        verifyNoInteractions(pendientes);
+        verify(correo, never()).enviar(any(), any(), any());
     }
     @Test void limitaReenviosDeUnRegistroReciente() {
         when(pendientes.findByCorreo("persona@ejemplo.com"))

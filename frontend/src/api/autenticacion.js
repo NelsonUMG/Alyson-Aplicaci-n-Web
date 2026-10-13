@@ -49,14 +49,14 @@ export async function reenviarVerificacion(correo) {
 
 export async function iniciarSesion(datos) {
   await prepararCsrf();
-  const perfil = await solicitarApi("/autenticacion/iniciar-sesion", {
+  await solicitarApi("/autenticacion/iniciar-sesion", {
     method: "POST",
     body: JSON.stringify(datos),
   });
   // Spring renueva el token al autenticar. No se debe reutilizar el token de la sesión anónima.
   recordarTokenCsrf("");
   await prepararCsrf();
-  return perfil;
+  return obtenerPerfil();
 }
 
 export function obtenerPerfil() {

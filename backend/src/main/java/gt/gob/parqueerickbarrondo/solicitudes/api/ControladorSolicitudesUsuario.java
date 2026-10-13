@@ -126,6 +126,19 @@ public class ControladorSolicitudesUsuario {
         return servicioSolicitudes.consultar(idSolicitud, usuario.obtenerIdUsuario());
     }
 
+    @GetMapping(value = "/{idSolicitud}/comprobante", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> comprobante(@PathVariable Long idSolicitud,
+            @AuthenticationPrincipal UsuarioSesion usuario,
+            @RequestParam(defaultValue = "false") boolean imprimir) {
+        var detalle = servicioSolicitudes.consultar(idSolicitud, usuario.obtenerIdUsuario());
+        var pdf = gt.gob.parqueerickbarrondo.solicitudes.aplicacion.GeneradorComprobanteSolicitud.generar(detalle);
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_PDF)
+                .header(HttpHeaders.CACHE_CONTROL, "private, no-store")
+                .header(HttpHeaders.CONTENT_DISPOSITION, (imprimir ? ContentDisposition.inline() : ContentDisposition.attachment())
+                        .filename("comprobante-solicitud-" + idSolicitud + ".pdf").build().toString())
+                .body(pdf);
+    }
+
     @PostMapping(value = "/{idSolicitud}/documentos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<RespuestaDocumentoSolicitud> agregarDocumento(
             @PathVariable Long idSolicitud,

@@ -121,6 +121,7 @@ public class ServicioAdministracionEventos {
                   solicitud.capacidadTotal(),
                   normalizarFormulario(solicitud.esquemaFormularioJson()),
                   normalizarGrupos(solicitud.configuracionGruposJson()));
+        evento.configurarCursoContinuo(solicitud.cursoContinuo());
         reemplazarRequisitos(evento, solicitud.requisitos());
         evento = repositorioEvento.saveAndFlush(evento);
         auditar(actor, "EVENTOCREADO", evento.obtenerIdEvento());
@@ -148,6 +149,7 @@ public class ServicioAdministracionEventos {
                   solicitud.capacidadTotal(),
                   normalizarFormulario(solicitud.esquemaFormularioJson()),
                   normalizarGrupos(solicitud.configuracionGruposJson()));
+        evento.configurarCursoContinuo(solicitud.cursoContinuo());
         reemplazarRequisitos(evento, solicitud.requisitos());
         repositorioEvento.saveAndFlush(evento);
         auditar(actor, "EVENTOACTUALIZADO", idEvento);
@@ -347,8 +349,8 @@ public class ServicioAdministracionEventos {
                     return new RespuestaInscripcionAdministrada(
                             inscripcion.obtenerIdInscripcionEvento(),
                             usuario.obtenerIdUsuario(),
-                            usuario.obtenerNombre(),
-                            usuario.obtenerApellido(),
+                            inscripcion.obtenerNombreParticipante(),
+                            inscripcion.obtenerApellidoParticipante(),
                             usuario.obtenerCorreoNormalizado(),
                             inscripcion.obtenerGrupoSeleccionadoCodigo(),
                             nombreGrupo(evento, inscripcion.obtenerGrupoSeleccionadoCodigo()),
@@ -359,7 +361,10 @@ public class ServicioAdministracionEventos {
                             inscripcion.obtenerMotivoCancelacion(),
                             inscripcion.obtenerRespuestasFormularioJson(),
                             inscripcion.obtenerCreadoEn(),
-                            inscripcion.obtenerActualizadoEn());
+                            inscripcion.obtenerActualizadoEn(),
+                            inscripcion.obtenerNacimientoParticipante(),
+                            inscripcion.esInscripcionDelTitular(),
+                            usuario.obtenerNombre() + " " + usuario.obtenerApellido());
                 }).toList(),
                 pagina.getNumber(),
                 pagina.getSize(),
@@ -424,7 +429,7 @@ public class ServicioAdministracionEventos {
             throw new SolicitudInvalidaException(
                     "El cierre de inscripción no puede ser anterior a su apertura.");
         }
-        if (solicitud.inscripcionCierraEn() != null
+        if (!solicitud.cursoContinuo() && solicitud.inscripcionCierraEn() != null
                 && solicitud.inscripcionCierraEn().isAfter(solicitud.iniciaEn())) {
             throw new SolicitudInvalidaException(
                     "El periodo de inscripción debe cerrar antes de iniciar el evento.");
@@ -619,7 +624,9 @@ public class ServicioAdministracionEventos {
                 tieneImagen ? "/api/v1/administracion/eventos/" + evento.obtenerIdEvento() + "/imagen" : null,
                 evento.obtenerCreadoEn(),
                 evento.obtenerActualizadoEn(),
-                evento.obtenerVersion());
+                evento.obtenerVersion(), evento.esCursoContinuo(),
+                evento.obtenerClaveFormularioInscripcion() == null ? null : "/api/v1/administracion/eventos/" + evento.obtenerIdEvento() + "/formulario-inscripcion",
+                evento.obtenerNombreFormularioInscripcion());
     }
 
     private void eliminarArchivoSiTransaccionFalla(String clave) {

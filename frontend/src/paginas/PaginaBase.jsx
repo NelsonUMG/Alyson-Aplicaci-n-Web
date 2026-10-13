@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listarPublicaciones } from "../api/portalPublico";
@@ -92,7 +93,7 @@ export function PaginaBase() {
             </div>
           </div>
           {errorPublicaciones && (
-            <p className="portal-mensaje-error" role="alert">{errorPublicaciones}</p>
+            <AvisoEnContexto className="portal-mensaje-error" role="alert">{errorPublicaciones}</AvisoEnContexto>
           )}
           <div className="inicio-rejilla-publicaciones">
             <article className="inicio-publicacion" key={publicacionActual.identificadorUrl || publicacionActual.tipo}>

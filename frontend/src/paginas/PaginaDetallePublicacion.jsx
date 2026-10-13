@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { consultarPublicacion } from "../api/portalPublico";
@@ -34,7 +35,7 @@ export function PaginaDetallePublicacion() {
       />
       <section className="portal-seccion">
         <article className="portal-contenedor portal-detalle-publico">
-          {error && <p className="portal-mensaje-error" role="alert">{error}</p>}
+          {error && <AvisoEnContexto className="portal-mensaje-error" role="alert">{error}</AvisoEnContexto>}
           {!error && !publicacion && <p>Cargando publicación…</p>}
           {publicacion && (
             <>

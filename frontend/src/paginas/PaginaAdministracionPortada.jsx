@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { useEffect, useState } from "react";
 import { consultarPortada, guardarPortada } from "../api/configuracionPortada";
 import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
@@ -88,8 +89,8 @@ export function PaginaAdministracionPortada() {
   const portada = quitarPortada ? null : urlLocal || datos?.portadaUrl;
   return <main className="pagina-administracion pagina-configuracion-portada">
     <CabeceraAdministracion titulo="Página principal" descripcion="Cambia el color principal de Inicio y su imagen de portada." />
-    {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
-    {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
+    {estado.error && <AvisoEnContexto className="mensaje-error" role="alert">{estado.error}</AvisoEnContexto>}
+    {estado.mensaje && <AvisoEnContexto className="mensaje-exito" role="status">{estado.mensaje}</AvisoEnContexto>}
     {!datos ? <><p>{estado.error ? "No se pudo cargar la configuración." : "Cargando configuración…"}</p>{estado.error && <button onClick={recargar}>Reintentar</button>}</> : <form onSubmit={guardar} className="portada-editor">
       <fieldset disabled={estado.guardando} className="portada-controles">
         <legend>Personalizar Inicio</legend>

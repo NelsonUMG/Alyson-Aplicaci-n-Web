@@ -277,7 +277,7 @@ describe("Administración de noticias", () => {
       fireEvent.click(paginaActual.getByRole("button", { name: "Eliminar" }));
 
       const alerta = await paginaActual.findByRole("alert");
-      expect(alerta.parentElement.classList.contains("contenido-modulo-administracion")).toBe(true);
+      expect(Boolean(alerta.closest(".contenido-modulo-administracion"))).toBe(true);
       expect(vista.container.querySelector("main > .mensaje-error")).toBeNull();
 
       fireEvent.click(paginaActual.getByRole("heading", { name: "Noticias", level: 1 }));

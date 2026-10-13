@@ -4,5 +4,6 @@ import jakarta.validation.constraints.Size;
 
 public record SolicitudCancelacionInscripcion(
         @Size(max = 300, message = "El motivo de cancelación no puede superar 300 caracteres.")
-        String motivo) {
+        String motivo, Long idInscripcionEvento) {
+    public SolicitudCancelacionInscripcion(String motivo) { this(motivo, null); }
 }

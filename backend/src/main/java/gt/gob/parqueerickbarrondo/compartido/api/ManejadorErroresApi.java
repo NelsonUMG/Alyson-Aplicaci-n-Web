@@ -208,6 +208,12 @@ public class ManejadorErroresApi {
                 peticion);
     }
 
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    ProblemDetail manejarEstadoExplicito(org.springframework.web.server.ResponseStatusException excepcion, HttpServletRequest peticion) {
+        return crearProblema(HttpStatus.valueOf(excepcion.getStatusCode().value()), "SERVICIONODISPONIBLE",
+                excepcion.getReason() == null ? "El servicio no está disponible temporalmente." : excepcion.getReason(), peticion);
+    }
+
     @ExceptionHandler(Exception.class)
     ProblemDetail manejarErrorNoControlado(Exception excepcion, HttpServletRequest peticion) {
         var identificador = IdentificadorCorrelacion.obtener(peticion);

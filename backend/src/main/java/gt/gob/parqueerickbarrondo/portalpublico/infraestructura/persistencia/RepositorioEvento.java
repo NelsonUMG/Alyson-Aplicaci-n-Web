@@ -36,7 +36,8 @@ public interface RepositorioEvento extends JpaRepository<Evento, Long> {
     @Query("""
             select e from Evento e
             where e.estado in :estados
-              and coalesce(e.finalizaEn, e.iniciaEn) >= :ahora
+              and ((e.cursoContinuo = true and (e.finalizaEn is null or e.finalizaEn >= :ahora))
+                   or (e.cursoContinuo = false and coalesce(e.finalizaEn, e.iniciaEn) >= :ahora))
             """)
     Page<Evento> buscarAgendaPublica(
             @Param("estados") Set<String> estados,
@@ -64,7 +65,8 @@ public interface RepositorioEvento extends JpaRepository<Evento, Long> {
                and e.cantidadOcupada < e.capacidadTotal
                and (e.inscripcionAbreEn is null or e.inscripcionAbreEn <= :ahora)
                and (e.inscripcionCierraEn is null or e.inscripcionCierraEn >= :ahora)
-               and e.iniciaEn > :ahora
+               and ((e.cursoContinuo = true and (e.finalizaEn is null or e.finalizaEn > :ahora))
+                   or (e.cursoContinuo = false and e.iniciaEn > :ahora))
             """)
     int reservarCupo(@Param("idEvento") Long idEvento, @Param("ahora") Instant ahora);
 

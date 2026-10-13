@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { useEffect, useState } from "react";
 import { consultarResumenBicicletas } from "../api/portalPublico";
 import { CabeceraPagina } from "../componentes/CabeceraPagina";
@@ -51,7 +52,7 @@ export function PaginaBicicletas() {
       <section className="portal-seccion">
         <div className="portal-contenedor bicicletas-resumen" aria-live="polite">
           {estado.cargando && <p className="portal-estado-carga">Consultando disponibilidad…</p>}
-          {estado.error && <p className="portal-mensaje-error" role="alert">{estado.error}</p>}
+          {estado.error && <AvisoEnContexto className="portal-mensaje-error" role="alert">{estado.error}</AvisoEnContexto>}
           {!estado.cargando && !estado.error && (
             <>
               <div className="bicicletas-totales">

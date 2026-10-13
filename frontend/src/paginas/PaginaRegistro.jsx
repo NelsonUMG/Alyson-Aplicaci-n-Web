@@ -1,3 +1,5 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
+import { CampoContrasena } from "../componentes/CampoContrasena";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { registrarCuenta } from "../api/autenticacion";
@@ -19,6 +21,17 @@ function fechaLocalActual() {
   const fecha = new Date();
   fecha.setMinutes(fecha.getMinutes() - fecha.getTimezoneOffset());
   return fecha.toISOString().slice(0, 10);
+}
+
+function tieneDominioPublico(correo) {
+  const partes = correo.trim().split("@");
+  if (partes.length !== 2 || !partes[0] || /[\s/:?#]/.test(partes[1])) return false;
+  try {
+    const dominio = new URL(`https://${partes[1]}`).hostname;
+    return /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/i.test(dominio);
+  } catch {
+    return false;
+  }
 }
 
 export function PaginaRegistro() {
@@ -46,6 +59,10 @@ export function PaginaRegistro() {
 
   async function enviar(evento) {
     evento.preventDefault();
+    if (!tieneDominioPublico(datos.correo)) {
+      setEstado({ enviando: false, error: "Ingresa un correo con un dominio público válido.", mensaje: "" });
+      return;
+    }
     if (datos.contrasena !== datos.confirmarContrasena) {
       setEstado({ enviando: false, error: "Las contraseñas no coinciden.", mensaje: "" });
       return;
@@ -63,6 +80,10 @@ export function PaginaRegistro() {
         contrasena: datos.contrasena,
         confirmarContrasena: datos.confirmarContrasena,
       });
+      if (respuesta.correoEnviado === false) {
+        setEstado({ enviando: false, error: respuesta.mensaje, mensaje: "" });
+        return;
+      }
       setEstado({ enviando: false, error: "", mensaje: respuesta.mensaje });
       setEtapa(3);
     } catch (error) {
@@ -91,7 +112,7 @@ export function PaginaRegistro() {
           )}
         </header>
 
-        {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
+        {estado.error && <AvisoEnContexto className="mensaje-error" role="alert">{estado.error}</AvisoEnContexto>}
 
         {etapa === 1 && (
           <form onSubmit={continuar}>
@@ -121,12 +142,12 @@ export function PaginaRegistro() {
             <input id="correo" name="correo" type="email" autoComplete="email" required maxLength="254" placeholder="nombre@correo.com" value={datos.correo} onChange={actualizarCampo} />
             <div className="campo-contrasena">
               <label htmlFor="contrasena">Contraseña</label>
-              <input id="contrasena" name="contrasena" type="password" autoComplete="new-password" required minLength="12" maxLength="128" aria-describedby="fortalezaContrasenaRegistro" value={datos.contrasena} onChange={actualizarCampo} />
+              <CampoContrasena id="contrasena" name="contrasena" autoComplete="new-password" required minLength="12" maxLength="128" aria-describedby="fortalezaContrasenaRegistro" value={datos.contrasena} onChange={actualizarCampo}  />
               <IndicadorFortalezaContrasena id="fortalezaContrasenaRegistro" contrasena={datos.contrasena} />
             </div>
             <div className="campo-contrasena">
               <label htmlFor="confirmarContrasena">Confirmar contraseña</label>
-              <input id="confirmarContrasena" name="confirmarContrasena" type="password" autoComplete="new-password" required minLength="12" maxLength="128" value={datos.confirmarContrasena} onChange={actualizarCampo} />
+              <CampoContrasena id="confirmarContrasena" name="confirmarContrasena" autoComplete="new-password" required minLength="12" maxLength="128" value={datos.confirmarContrasena} onChange={actualizarCampo}  />
             </div>
             <div className="acciones-registro">
               <button className="boton-registro-secundario" type="button" disabled={estado.enviando} onClick={() => setEtapa(1)}>← Regresar</button>
@@ -137,7 +158,7 @@ export function PaginaRegistro() {
 
         {etapa === 3 && (
           <div className="registro-completado">
-            <p className="mensaje-exito" role="status">{estado.mensaje}</p>
+            <AvisoEnContexto className="mensaje-exito" role="status">{estado.mensaje}</AvisoEnContexto>
             <Link className="boton-enlace-registro" to="/verificar-correo">¿Necesitas otro enlace?</Link>
           </div>
         )}

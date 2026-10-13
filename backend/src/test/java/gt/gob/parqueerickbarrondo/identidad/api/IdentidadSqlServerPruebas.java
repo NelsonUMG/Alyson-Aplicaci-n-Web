@@ -33,12 +33,14 @@ class IdentidadSqlServerPruebas {
     @Autowired TransactionTemplate transacciones;
     @MockitoBean EnviadorCorreoVerificacion verificacion;
     @MockitoBean EnviadorCorreoRecuperacion recuperacion;
+    @MockitoBean ValidadorDominioCorreo validadorDominio;
     final ObjectMapper json = new ObjectMapper();
     final HttpClient cliente = HttpClient.newBuilder().cookieHandler(new CookieManager(null, CookiePolicy.ACCEPT_ALL)).build();
 
     @Test void verificaRegistroRecuperacionCaducidadYUsoUnicoConSqlReal() throws Exception {
         var tokenVerificacion = new AtomicReference<String>();
         var tokenRecuperacion = new AtomicReference<String>();
+        when(verificacion.habilitado()).thenReturn(true);
         doAnswer(i -> { tokenVerificacion.set(i.getArgument(2)); return null; }).when(verificacion).enviar(any(), any(), any());
         doAnswer(i -> { tokenRecuperacion.set(i.getArgument(2)); return null; }).when(recuperacion).enviar(any(), any(), any());
 

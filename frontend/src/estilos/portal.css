@@ -1892,15 +1892,18 @@
 
 .portal-galeria-evento > div {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(15rem, 100%), 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(32rem, 100%), 1fr));
   gap: 1rem;
 }
 
 .portal-galeria-evento img {
+  display: block;
   width: 100%;
-  height: 16rem;
+  height: auto;
+  max-height: 85vh;
   border-radius: 0;
-  object-fit: cover;
+  object-fit: contain;
+  background: var(--portal-verde-100);
 }
 
 .portal-imagen-evento {
@@ -1924,6 +1927,7 @@
 .portal-inscripcion-evento h2 {
   margin-top: 0;
 }
+
 
 .portal-formulario-inscripcion,
 .portal-confirmacion-inscripcion form {
@@ -1950,6 +1954,12 @@
   font: inherit;
   font-weight: 400;
 }
+
+.portal-formulario-inscripcion .selector-participante { border: 1px solid var(--portal-linea); border-radius: 8px; padding: 1rem; display: grid; gap: .8rem; }
+.portal-formulario-inscripcion .opciones-participante { display: flex; flex-wrap: wrap; gap: 1rem; }
+.portal-formulario-inscripcion .opciones-participante label { display: flex; align-items: center; gap: .5rem; cursor: pointer; white-space: nowrap; }
+.portal-formulario-inscripcion .opciones-participante input { flex: 0 0 18px; width: 18px; height: 18px; min-height: 0; margin: 0; padding: 0; accent-color: var(--portal-verde-800); }
+.portal-formulario-inscripcion button:disabled { background: #d5dadd; color: #616a6f; cursor: not-allowed; opacity: 1; }
 
 .portal-formulario-inscripcion textarea {
   min-height: 7rem;

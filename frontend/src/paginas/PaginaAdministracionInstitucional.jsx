@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
 import { useEffect, useState } from "react";
 
@@ -57,8 +58,8 @@ export function PaginaAdministracionInstitucional() {
             </div>
         </nav>
         <div className="contenido-modulo-administracion">
-      {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
-      {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
+      {estado.error && <AvisoEnContexto className="mensaje-error" role="alert">{estado.error}</AvisoEnContexto>}
+      {estado.mensaje && <AvisoEnContexto className="mensaje-exito" role="status">{estado.mensaje}</AvisoEnContexto>}
       {estado.cargando ? <p className="estado-carga">Cargando contenido institucional…</p> : mostrarEdicion && (
         <section className="panel-edicion" aria-labelledby="titulo-edicion-institucional">
           <div className="cabecera-panel-administracion">

@@ -64,4 +64,44 @@ describe("Registro de usuario", () => {
     expect(screen.getByRole("alert").textContent).toContain("no coinciden");
     expect(registrarCuenta).not.toHaveBeenCalled();
   });
+
+  it("impide crear la cuenta con un correo sin dominio público", () => {
+    render(<MemoryRouter><PaginaRegistro /></MemoryRouter>);
+    fireEvent.change(screen.getByLabelText("Número de DPI/CUI"), { target: { value: "1234567890101" } });
+    fireEvent.change(screen.getByLabelText("Nombres"), { target: { value: "Persona" } });
+    fireEvent.change(screen.getByLabelText("Apellidos"), { target: { value: "Prueba" } });
+    fireEvent.change(screen.getByLabelText("Celular"), { target: { value: "55551234" } });
+    fireEvent.change(screen.getByLabelText("Fecha de nacimiento"), { target: { value: "1995-04-10" } });
+    fireEvent.click(screen.getByRole("button", { name: "Continuar →" }));
+    fireEvent.change(screen.getByLabelText("Correo electrónico"), { target: { value: "persona@localhost" } });
+    fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "Contrasena larga de prueba" } });
+    fireEvent.change(screen.getByLabelText("Confirmar contraseña"), { target: { value: "Contrasena larga de prueba" } });
+    fireEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
+
+    expect(screen.getByRole("alert").textContent).toContain("dominio público válido");
+    expect(registrarCuenta).not.toHaveBeenCalled();
+    expect(screen.getByRole("heading", { name: "Datos de acceso" })).toBeTruthy();
+  });
+
+  it("permanece en el formulario de acceso si el servidor no pudo enviar el correo", async () => {
+    registrarCuenta.mockResolvedValue({
+      correoEnviado: false,
+      mensaje: "No se completó el registro porque SMTP está deshabilitado. No se creó un enlace.",
+    });
+    render(<MemoryRouter><PaginaRegistro /></MemoryRouter>);
+    fireEvent.change(screen.getByLabelText("Número de DPI/CUI"), { target: { value: "1234567890101" } });
+    fireEvent.change(screen.getByLabelText("Nombres"), { target: { value: "Persona" } });
+    fireEvent.change(screen.getByLabelText("Apellidos"), { target: { value: "Prueba" } });
+    fireEvent.change(screen.getByLabelText("Celular"), { target: { value: "55551234" } });
+    fireEvent.change(screen.getByLabelText("Fecha de nacimiento"), { target: { value: "1995-04-10" } });
+    fireEvent.click(screen.getByRole("button", { name: "Continuar →" }));
+    fireEvent.change(screen.getByLabelText("Correo electrónico"), { target: { value: "persona@ejemplo.com" } });
+    fireEvent.change(screen.getByLabelText("Contraseña"), { target: { value: "Contrasena larga de prueba" } });
+    fireEvent.change(screen.getByLabelText("Confirmar contraseña"), { target: { value: "Contrasena larga de prueba" } });
+    fireEvent.click(screen.getByRole("button", { name: "Crear cuenta" }));
+
+    expect((await screen.findByRole("alert")).textContent).toContain("SMTP está deshabilitado");
+    expect(screen.getByRole("heading", { name: "Datos de acceso" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "Confirma tu correo" })).toBeNull();
+  });
 });

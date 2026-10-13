@@ -1,9 +1,12 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
+import { FotografiaParticipante } from "../componentes/FotografiaParticipante";
 
 import {
   listarPersonasInscritasReporte,
   listarReporteInscripciones,
+  consultarParticipanteReporte,
 } from "../api/administracionReportes";
 import { formatearTextoEditorial, formatearTextoTecnico } from "../utilidades/formatoTexto";
 
@@ -66,6 +69,26 @@ export function PaginaReportesInscripciones() {
   const [estadoCursos, establecerEstadoCursos] = useState({ cargando: true, error: "" });
   const [estadoPersonas, establecerEstadoPersonas] = useState({ cargando: false, error: "" });
   const [exportando, establecerExportando] = useState(false);
+  const [detalleParticipante, setDetalleParticipante] = useState(null);
+  const consultaDetalle = useRef(0);
+
+  useEffect(() => {
+    consultaDetalle.current += 1;
+    setDetalleParticipante(null);
+    return () => { consultaDetalle.current += 1; };
+  }, [cursoSeleccionado, busquedaPersonas, personas.pagina]);
+
+  async function verParticipante(persona) {
+    const consulta = ++consultaDetalle.current;
+    if (detalleParticipante?.id === persona.idInscripcionEvento) { setDetalleParticipante(null); return; }
+    setDetalleParticipante({ id: persona.idInscripcionEvento, cargando: true });
+    try {
+      const datos = await consultarParticipanteReporte(cursoSeleccionado.idEvento, persona.idInscripcionEvento);
+      if (consulta === consultaDetalle.current) setDetalleParticipante({ id: persona.idInscripcionEvento, datos });
+    } catch (error) {
+      if (consulta === consultaDetalle.current) setDetalleParticipante({ id: persona.idInscripcionEvento, error: error.message });
+    }
+  }
 
   useEffect(() => {
     let vigente = true;
@@ -192,7 +215,7 @@ export function PaginaReportesInscripciones() {
         </nav>
 
         <div className="contenido-modulo-administracion">
-          {estadoCursos.error && <p className="mensaje-error" role="alert">{estadoCursos.error}</p>}
+          {estadoCursos.error && <AvisoEnContexto className="mensaje-error" role="alert">{estadoCursos.error}</AvisoEnContexto>}
           <section className="panel-edicion" aria-labelledby="titulo-reporte-cursos">
             <div className="cabecera-panel-administracion">
               <div>
@@ -241,7 +264,7 @@ export function PaginaReportesInscripciones() {
                 </div>
                 <div className="acciones-exportacion-reporte"><button className="boton-secundario" type="button" disabled={exportando || personas.contenido.length === 0} onClick={exportarPersonas}>{exportando ? "Preparando archivo…" : "Descargar para Excel"}</button><button className="boton-secundario" type="button" onClick={() => window.print()}>Imprimir o guardar PDF</button><button className="boton-secundario" type="button" onClick={() => establecerCursoSeleccionado(null)}>Cerrar detalle</button></div>
               </div>
-              {estadoPersonas.error && <p className="mensaje-error" role="alert">{estadoPersonas.error}</p>}
+              {estadoPersonas.error && <AvisoEnContexto className="mensaje-error" role="alert">{estadoPersonas.error}</AvisoEnContexto>}
               <div className="busqueda-usuarios busqueda-reporte">
                 <label htmlFor="busquedaPersonaReporte">Buscar persona por nombre o correo</label>
                 <input id="busquedaPersonaReporte" maxLength="100" autoComplete="off" value={busquedaPersonas} onChange={(evento) => establecerBusquedaPersonas(evento.target.value)} />
@@ -251,12 +274,29 @@ export function PaginaReportesInscripciones() {
                   <thead><tr><th>Persona</th><th>Correo</th><th>Horario o grupo</th><th>Confirmación</th></tr></thead>
                   <tbody>
                     {personas.contenido.map((persona) => (
-                      <tr key={persona.idInscripcionEvento}>
-                        <td>{persona.nombre} {persona.apellido}</td>
+                      <Fragment key={persona.idInscripcionEvento}>
+                      <tr>
+                        <td><button type="button" className="boton-secundario" aria-expanded={detalleParticipante?.id === persona.idInscripcionEvento} onClick={() => verParticipante(persona)}>{persona.nombre} {persona.apellido}</button></td>
                         <td>{persona.correo}</td>
                         <td><HorarioCurso curso={cursoSeleccionado} codigoGrupo={persona.codigoGrupo} /></td>
                         <td>{formatearFecha(persona.confirmadaEn)}</td>
                       </tr>
+                      {detalleParticipante?.id === persona.idInscripcionEvento && <tr><td colSpan="4">
+                        {detalleParticipante.cargando && <p role="status">Cargando participante…</p>}
+                        {detalleParticipante.error && <AvisoEnContexto role="alert" className="mensaje-error">{detalleParticipante.error}</AvisoEnContexto>}
+                        {detalleParticipante.datos && <div className="resumen-participante">
+                          {detalleParticipante.datos.fotografia ? <FotografiaParticipante src={detalleParticipante.datos.fotografia} nombre={`${persona.nombre} ${persona.apellido}`} /> : <p>Sin fotografía registrada.</p>}
+                          <dl>
+                            <div><dt>Participante</dt><dd>{detalleParticipante.datos.nombre} {detalleParticipante.datos.apellido}</dd></div>
+                            <div><dt>Inscrito como</dt><dd>{detalleParticipante.datos.titular ? "Titular de la cuenta (Yo)" : "Niño(a)"}</dd></div>
+                            <div><dt>Nacimiento</dt><dd>{detalleParticipante.datos.fechaNacimiento || "Sin fecha registrada"}</dd></div>
+                            <div><dt>{detalleParticipante.datos.titular ? "Cuenta" : "Encargado"}</dt><dd>{detalleParticipante.datos.nombreResponsable}</dd></div>
+                            <div><dt>Correo</dt><dd>{detalleParticipante.datos.correo}</dd></div>
+                            {Object.entries(detalleParticipante.datos.requisitos || {}).map(([etiqueta, valor]) => <div key={etiqueta}><dt>{etiqueta}</dt><dd>{valor}</dd></div>)}
+                          </dl>
+                        </div>}
+                      </td></tr>}
+                      </Fragment>
                     ))}
                     {!estadoPersonas.cargando && personas.contenido.length === 0 && <tr><td colSpan="4">No hay inscripciones confirmadas que coincidan con la búsqueda.</td></tr>}
                   </tbody>

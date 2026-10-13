@@ -1,4 +1,6 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { CabeceraAdministracion } from "../componentes/CabeceraAdministracion";
+import { FotografiaParticipante } from "../componentes/FotografiaParticipante";
 import { useEffect, useState } from "react";
 
 import {
@@ -15,12 +17,15 @@ import {
   listarImagenesSecundariasEvento,
   listarInscripcionesAdministradas,
   publicarEvento,
+  subirFormularioInscripcion,
+  eliminarFormularioInscripcion,
 } from "../api/administracionEventos";
 import { usarSesion } from "../autenticacion/ContextoSesion";
 import { formatearTextoTecnico } from "../utilidades/formatoTexto";
 
 const paginaVacia = { contenido: [], pagina: 0, totalPaginas: 0, totalElementos: 0 };
 const tiposCampoFormulario = [
+  { valor: "FOTO", etiqueta: "Fotografía del estudiante (imagen, hasta 15 MB)" },
   { valor: "FECHA", etiqueta: "Fecha" },
   { valor: "DPI_CUI", etiqueta: "DPI o CUI" },
   { valor: "NUMERO", etiqueta: "Número" },
@@ -62,7 +67,8 @@ function interpretarFormularioJson(esquemaFormularioJson) {
       clave: crearClaveCampoFormulario(),
       id: String(campo.id || ""),
       etiqueta: String(campo.etiqueta || campo.pregunta || campo.nombre || ""),
-      tipo: tiposCampoPermitidos.has(campo.tipo) ? campo.tipo : "TEXTO_CORTO",
+      tipo: /\b(foto|fotografia|fotografias)\b/i.test(String(campo.etiqueta || "").normalize("NFD").replace(/[\u0300-\u036f]/g, ""))
+        ? "FOTO" : tiposCampoPermitidos.has(campo.tipo) ? campo.tipo : "TEXTO_CORTO",
       obligatorio: campo.obligatorio !== false,
       opciones: Array.isArray(campo.opciones) ? campo.opciones.map(String) : [],
     }));
@@ -147,6 +153,7 @@ const eventoVacio = {
   lugar: "",
   iniciaEn: "",
   finalizaEn: "",
+  cursoContinuo: false,
   inscripcionAbreEn: "",
   inscripcionCierraEn: "",
   capacidadTotal: 0,
@@ -179,6 +186,7 @@ function prepararEdicion(evento) {
     lugar: evento.lugar || "",
     iniciaEn: aFechaLocal(evento.iniciaEn),
     finalizaEn: aFechaLocal(evento.finalizaEn),
+    cursoContinuo: Boolean(evento.cursoContinuo),
     inscripcionAbreEn: aFechaLocal(evento.inscripcionAbreEn),
     inscripcionCierraEn: aFechaLocal(evento.inscripcionCierraEn),
     esquemaFormularioJson: evento.esquemaFormularioJson || "",
@@ -204,6 +212,13 @@ function respuestasInscripcion(inscripcion, camposFormulario) {
   } catch {
     return [];
   }
+}
+
+function fotografiaInscripcion(inscripcion) {
+  try {
+    return Object.values(JSON.parse(inscripcion.respuestasFormularioJson || "{}"))
+      .find((valor) => typeof valor === "string" && /^data:image\/(jpeg|png);base64,/.test(valor));
+  } catch { return null; }
 }
 
 export function PaginaAdministracionEventos() {
@@ -419,12 +434,15 @@ export function PaginaAdministracionEventos() {
       lugar: eventoEdicion.lugar || null,
       iniciaEn: aInstant(eventoEdicion.iniciaEn),
       finalizaEn: aInstant(eventoEdicion.finalizaEn),
+      cursoContinuo: eventoEdicion.cursoContinuo,
       inscripcionAbreEn: aInstant(eventoEdicion.inscripcionAbreEn),
       inscripcionCierraEn: aInstant(eventoEdicion.inscripcionCierraEn),
       capacidadTotal: Number(eventoEdicion.capacidadTotal),
       esquemaFormularioJson,
       configuracionGruposJson,
-      requisitos: [],
+      requisitos: (eventoEdicion.requisitos || []).map(({ descripcion, obligatorio, ordenVisualizacion }, indice) => ({
+        descripcion, obligatorio, ordenVisualizacion: ordenVisualizacion ?? indice,
+      })),
       version: eventoEdicion.version,
     };
     try {
@@ -480,6 +498,28 @@ export function PaginaAdministracionEventos() {
     } catch (error) {
       establecerEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" });
     }
+  }
+
+  async function gestionarFormulario(eventoFormulario) {
+    eventoFormulario.preventDefault();
+    const formulario = eventoFormulario.currentTarget;
+    const archivo = formulario.elements.namedItem("formularioInscripcion").files?.[0];
+    establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
+    try {
+      const actualizado = await subirFormularioInscripcion(eventoEdicion.idEvento, archivo);
+      establecerEventoEdicion((actual) => ({ ...actual, ...actualizado }));
+      formulario.reset();
+      establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Formulario disponible para descargar e imprimir en la inscripción." });
+    } catch (error) { establecerEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" }); }
+  }
+
+  async function quitarFormulario() {
+    establecerEstado((actual) => ({ ...actual, guardando: true, error: "", mensaje: "" }));
+    try {
+      const actualizado = await eliminarFormularioInscripcion(eventoEdicion.idEvento);
+      establecerEventoEdicion((actual) => ({ ...actual, ...actualizado }));
+      establecerEstado({ cargando: false, guardando: false, error: "", mensaje: "Formulario retirado del curso." });
+    } catch (error) { establecerEstado({ cargando: false, guardando: false, error: error.message, mensaje: "" }); }
   }
 
   async function quitarImagen() {
@@ -549,8 +589,8 @@ export function PaginaAdministracionEventos() {
       </div>
         </nav>
         <div className="contenido-modulo-administracion">
-      {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
-      {estado.mensaje && <p className="mensaje-exito" role="status">{estado.mensaje}</p>}
+      {estado.error && <AvisoEnContexto className="mensaje-error" role="alert">{estado.error}</AvisoEnContexto>}
+      {estado.mensaje && <AvisoEnContexto className="mensaje-exito" role="status">{estado.mensaje}</AvisoEnContexto>}
 
       {mostrarListado && <section className="panel-edicion panel-listado-administracion" aria-labelledby="titulo-listado-eventos">
         <div className="cabecera-panel-administracion">
@@ -612,6 +652,8 @@ export function PaginaAdministracionEventos() {
             <fieldset className="campo-ancho seccion-formulario-evento">
               <legend>Fechas y cupos</legend>
               <label>Inicia<input type="datetime-local" required disabled={!puedeEditarFormulario} value={eventoEdicion.iniciaEn} onChange={(evento) => actualizarCampo("iniciaEn", evento.target.value)} /></label>
+              <label className="campo-ancho"><input type="checkbox" checked={eventoEdicion.cursoContinuo} disabled={!puedeEditarFormulario} onChange={(e) => actualizarCampo("cursoContinuo", e.target.checked)} /> Curso continuo: permite inscripciones después del inicio</label>
+              {eventoEdicion.cursoContinuo && <p className="campo-ancho">Deja «Finaliza» vacío para mantener el curso disponible todos los años. Los cupos se conservan y puedes cerrar las inscripciones o finalizar el curso cuando lo necesites.</p>}
               <label>Finaliza <span className="indicador-opcional">(opcional)</span><input type="datetime-local" disabled={!puedeEditarFormulario} value={eventoEdicion.finalizaEn} onChange={(evento) => actualizarCampo("finalizaEn", evento.target.value)} /></label>
               <label>Inscripción abre <span className="indicador-opcional">(opcional)</span><input type="datetime-local" disabled={!puedeEditarFormulario} value={eventoEdicion.inscripcionAbreEn} onChange={(evento) => actualizarCampo("inscripcionAbreEn", evento.target.value)} /></label>
               <label>Inscripción cierra <span className="indicador-opcional">(opcional)</span><input type="datetime-local" disabled={!puedeEditarFormulario} value={eventoEdicion.inscripcionCierraEn} onChange={(evento) => actualizarCampo("inscripcionCierraEn", evento.target.value)} /></label>
@@ -621,7 +663,7 @@ export function PaginaAdministracionEventos() {
               <div className="cabecera-panel-administracion">
                 <div>
                   <h3>Grupos, edades y horarios</h3>
-                  <p>Crea grupos solo si hay edades u horarios distintos.</p>
+                  <p>Crea un grupo para indicar sus edades y horario semanal. Si se repite, escribe un horario y selecciona los días en «Repetir horario».</p>
                 </div>
                 {puedeEditarFormulario && <button type="button" disabled={(eventoEdicion.grupos || []).length >= 20} onClick={agregarGrupo}>Agregar grupo</button>}
               </div>
@@ -637,7 +679,10 @@ export function PaginaAdministracionEventos() {
                     </div>
                     <div className="cabecera-horarios-grupo"><strong>Días y horarios</strong>{puedeEditarFormulario && <button type="button" disabled={grupo.horarios.length >= 14} onClick={() => agregarHorario(indiceGrupo)}>Agregar horario</button>}</div>
                     <div className="lista-horarios-grupo">
-                      {grupo.horarios.map((horario, indiceHorario) => <div className="horario-grupo-evento" key={`${grupo.clave}-horario-${indiceHorario}`}><label>Día<select disabled={!puedeEditarFormulario} value={horario.dia} onChange={(evento) => actualizarHorario(indiceGrupo, indiceHorario, { dia: evento.target.value })}>{diasSemana.map(([codigo, nombre]) => <option key={codigo} value={codigo}>{nombre}</option>)}</select></label><label>Inicia<input type="time" required disabled={!puedeEditarFormulario} value={horario.horaInicio} onChange={(evento) => actualizarHorario(indiceGrupo, indiceHorario, { horaInicio: evento.target.value })} /></label><label>Finaliza<input type="time" required disabled={!puedeEditarFormulario} value={horario.horaFin} onChange={(evento) => actualizarHorario(indiceGrupo, indiceHorario, { horaFin: evento.target.value })} /></label><label>Lugar específico<input maxLength="180" disabled={!puedeEditarFormulario} value={horario.lugar} onChange={(evento) => actualizarHorario(indiceGrupo, indiceHorario, { lugar: evento.target.value })} /></label>{puedeEditarFormulario && grupo.horarios.length > 1 && <button className="boton-peligro" type="button" onClick={() => eliminarHorario(indiceGrupo, indiceHorario)}>Quitar horario</button>}</div>)}
+                      {grupo.horarios.map((horario, indiceHorario) => <div className="horario-grupo-evento" key={`${grupo.clave}-horario-${indiceHorario}`}><label>Día<select disabled={!puedeEditarFormulario} value={horario.dia} onChange={(evento) => actualizarHorario(indiceGrupo, indiceHorario, { dia: evento.target.value })}>{diasSemana.map(([codigo, nombre]) => <option key={codigo} value={codigo}>{nombre}</option>)}</select></label><label>Inicia<input type="time" required disabled={!puedeEditarFormulario} value={horario.horaInicio} onChange={(evento) => actualizarHorario(indiceGrupo, indiceHorario, { horaInicio: evento.target.value })} /></label><label>Finaliza<input type="time" required disabled={!puedeEditarFormulario} value={horario.horaFin} onChange={(evento) => actualizarHorario(indiceGrupo, indiceHorario, { horaFin: evento.target.value })} /></label><label>Lugar específico<input maxLength="180" disabled={!puedeEditarFormulario} value={horario.lugar} onChange={(evento) => actualizarHorario(indiceGrupo, indiceHorario, { lugar: evento.target.value })} /></label>{puedeEditarFormulario && <details><summary>Repetir horario</summary><p>Marca los días donde se repite esta hora y lugar. Los horarios diferentes se conservan.</p>{diasSemana.filter(([dia]) => dia !== horario.dia).map(([dia, nombre]) => <label key={dia}><input type="checkbox" checked={grupo.horarios.some((h) => h.dia === dia && h.horaInicio === horario.horaInicio && h.horaFin === horario.horaFin && h.lugar === horario.lugar)} onChange={(e) => {
+                          const iguales = (h) => h.dia === dia && h.horaInicio === horario.horaInicio && h.horaFin === horario.horaFin && h.lugar === horario.lugar;
+                          actualizarGrupo(indiceGrupo, { horarios: e.target.checked ? [...grupo.horarios.filter((h) => !iguales(h)), { ...horario, dia }].slice(0, 14) : grupo.horarios.filter((h) => !iguales(h)) });
+                        }} />{nombre}</label>)}</details>}{puedeEditarFormulario && grupo.horarios.length > 1 && <button className="boton-peligro" type="button" onClick={() => eliminarHorario(indiceGrupo, indiceHorario)}>Quitar horario</button>}</div>)}
                     </div>
                     {puedeEditarFormulario && <button className="boton-peligro" type="button" onClick={() => eliminarGrupo(indiceGrupo)}>Quitar grupo</button>}
                   </fieldset>
@@ -742,6 +787,16 @@ export function PaginaAdministracionEventos() {
 
           {eventoEdicion.idEvento && puedeActualizar && eventoEditable && (
             <div className="gestion-imagen-evento">
+              <section className="bloque-imagen-evento" aria-labelledby="titulo-formulario-descargable">
+                <h3 id="titulo-formulario-descargable">Formulario de inscripción para imprimir</h3>
+                <p>Sube el formulario en PDF (hasta 20 MB). Los usuarios podrán descargarlo, llenarlo y llevarlo físicamente.</p>
+                {eventoEdicion.urlFormularioInscripcion && <p><a href={eventoEdicion.urlFormularioInscripcion} download>{eventoEdicion.nombreFormularioInscripcion || "Descargar formulario actual"}</a></p>}
+                <form onSubmit={gestionarFormulario}>
+                  <label>Archivo PDF del formulario<input name="formularioInscripcion" type="file" accept="application/pdf,.pdf" required disabled={estado.guardando} /></label>
+                  <button type="submit" disabled={estado.guardando}>{eventoEdicion.urlFormularioInscripcion ? "Reemplazar formulario PDF" : "Subir formulario PDF"}</button>
+                  {eventoEdicion.urlFormularioInscripcion && <button className="boton-peligro" type="button" disabled={estado.guardando} onClick={quitarFormulario}>Retirar formulario</button>}
+                </form>
+              </section>
               <section className="bloque-imagen-evento" aria-labelledby="titulo-imagen-principal-evento">
                 <div>
                   <h3 id="titulo-imagen-principal-evento">Imagen principal</h3>
@@ -787,7 +842,22 @@ export function PaginaAdministracionEventos() {
           <div className="tabla-administracion tabla-inscripciones">
             <table><thead><tr><th>Persona</th><th>Correo</th><th>Grupo</th><th>Estado</th><th>Requisitos enviados</th><th>Confirmación</th></tr></thead><tbody>{inscripciones.contenido.map((inscripcion) => {
               const respuestas = respuestasInscripcion(inscripcion, camposFormularioEvento);
-              return <tr key={inscripcion.idInscripcionEvento}><td>{inscripcion.nombre} {inscripcion.apellido}</td><td>{inscripcion.correo}</td><td>{inscripcion.nombreGrupo || "Horario general"}</td><td>{formatearTextoTecnico(inscripcion.estado)}</td><td>{respuestas.length > 0 ? <details><summary>Ver respuestas</summary><dl className="respuestas-requisitos-evento">{respuestas.map((respuesta) => <div key={respuesta.etiqueta}><dt>{respuesta.etiqueta}</dt><dd>{respuesta.valor}</dd></div>)}</dl></details> : "—"}</td><td>{inscripcion.confirmadaEn ? new Date(inscripcion.confirmadaEn).toLocaleString("es-GT") : "—"}</td></tr>;
+              const foto = fotografiaInscripcion(inscripcion);
+              return <tr key={inscripcion.idInscripcionEvento}>
+                <td><details><summary>{inscripcion.nombre} {inscripcion.apellido}</summary>
+                  <div className="resumen-participante">
+                    {foto ? <FotografiaParticipante src={foto} nombre={`${inscripcion.nombre} ${inscripcion.apellido}`} /> : <p>Sin fotografía registrada.</p>}
+                    <dl><div><dt>Inscrito como</dt><dd>{inscripcion.titular ? "Titular de la cuenta (Yo)" : "Niño(a)"}</dd></div>
+                      <div><dt>Nacimiento</dt><dd>{inscripcion.fechaNacimientoParticipante || "Sin fecha registrada"}</dd></div>
+                      <div><dt>{inscripcion.titular ? "Cuenta" : "Encargado"}</dt><dd>{inscripcion.nombreResponsable}</dd></div>
+                      <div><dt>Correo</dt><dd>{inscripcion.correo}</dd></div>
+                    </dl>
+                  </div>
+                </details></td>
+                <td>{inscripcion.correo}</td><td>{inscripcion.nombreGrupo || "Horario general"}</td><td>{formatearTextoTecnico(inscripcion.estado)}</td>
+                <td>{respuestas.length > 0 ? <details><summary>Ver respuestas</summary><dl className="respuestas-requisitos-evento">{respuestas.map((respuesta) => <div key={respuesta.etiqueta}><dt>{respuesta.etiqueta}</dt><dd>{/^data:image\/(jpeg|png);base64,/.test(respuesta.valor) ? <FotografiaParticipante src={respuesta.valor} nombre={`${inscripcion.nombre} ${inscripcion.apellido}`} /> : respuesta.valor}</dd></div>)}</dl></details> : "—"}</td>
+                <td>{inscripcion.confirmadaEn ? new Date(inscripcion.confirmadaEn).toLocaleString("es-GT") : "—"}</td>
+              </tr>;
             })}</tbody></table>
             {inscripciones.contenido.length === 0 && <p>No hay inscripciones para mostrar.</p>}
           </div>

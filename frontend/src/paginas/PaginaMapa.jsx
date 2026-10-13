@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { maplibregl } from "../utilidades/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -605,8 +606,8 @@ export function PaginaMapa() {
                 </p>
               )}
             </div>
-            {errorUbicacion && <p className="portal-mensaje-error" role="alert">{errorUbicacion}</p>}
-            {error && <p className="portal-mensaje-error" role="alert">{error}</p>}
+            {errorUbicacion && <AvisoEnContexto className="portal-mensaje-error" role="alert">{errorUbicacion}</AvisoEnContexto>}
+            {error && <AvisoEnContexto className="portal-mensaje-error" role="alert">{error}</AvisoEnContexto>}
           </aside>
         </div>
       </section>

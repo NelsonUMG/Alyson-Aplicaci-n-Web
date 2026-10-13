@@ -1,13 +1,31 @@
-.portal-inicio-personalizado .portal-barra-superior,
-.portal-inicio-personalizado .portal-pie,
-.portal-inicio-personalizado .portal-boton-principal {
-  background: var(--inicio-color);
-  color: var(--inicio-contraste);
+.portal-tema-personalizado .portal-barra-superior,
+.portal-tema-personalizado .portal-boton-principal,
+.portal-tema-personalizado .portal-boton-verde {
+  background: var(--portal-color-personalizado);
+  color: var(--portal-contraste-personalizado);
 }
-.portal-inicio-personalizado .portal-pie :is(h2, p, a, strong, small, dt, dd) { color: inherit; }
-.portal-inicio-personalizado .inicio-portada::after,
-.portal-inicio-personalizado .inicio-carrusel-controles button.activo { background: var(--inicio-color); }
-.portal-inicio-personalizado .portal-navegacion a[aria-current="page"] { border-color: var(--inicio-color); }
+.portal-tema-personalizado .portal-boton-principal:hover,
+.portal-tema-personalizado .portal-boton-verde:hover {
+  background: color-mix(in srgb, var(--portal-color-personalizado), #000 12%);
+  color: var(--portal-contraste-personalizado);
+}
+.portal-tema-personalizado .portal-navegacion > a:not(.portal-enlace-cuenta)::after,
+.portal-tema-personalizado .inicio-portada::after,
+.portal-tema-personalizado .inicio-carrusel-controles button.activo { background: var(--portal-color-personalizado); }
+.portal-tema-personalizado .portal-navegacion > a:hover,
+.portal-tema-personalizado .portal-navegacion > .portal-enlace-activo { color: var(--portal-color-personalizado); }
+.portal-tema-personalizado .portal-navegacion .portal-enlace-cuenta {
+  border-color: var(--portal-color-personalizado);
+  color: var(--portal-color-personalizado);
+}
+.portal-tema-personalizado .portal-navegacion .portal-enlace-cuenta:hover {
+  background: var(--portal-color-personalizado);
+  color: var(--portal-contraste-personalizado);
+}
+.portal-tema-personalizado .portal-pie {
+  background: #071f1a;
+  color: rgb(255 255 255 / 72%);
+}
 .portada-editor { display: grid; grid-template-columns: minmax(16rem, 1fr) minmax(0, 1.6fr); gap: 2rem; }
 .portada-controles { display: flex; flex-direction: column; gap: 1rem; min-width: 0; border: 1px solid #dce3e9; padding: 1.5rem; }
 .portada-controles legend { font-weight: 700; padding-inline: .4rem; }

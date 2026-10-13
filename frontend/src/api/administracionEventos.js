@@ -1,6 +1,18 @@
 import { prepararCsrf } from "./autenticacion";
 import { solicitarApi } from "./clienteHttp";
 
+export async function subirFormularioInscripcion(idEvento, archivo) {
+  await prepararCsrf();
+  const formulario = new window.FormData();
+  formulario.append("archivo", archivo);
+  return solicitarApi(`/administracion/eventos/${idEvento}/formulario-inscripcion`, { method: "POST", body: formulario });
+}
+
+export async function eliminarFormularioInscripcion(idEvento) {
+  await prepararCsrf();
+  return solicitarApi(`/administracion/eventos/${idEvento}/formulario-inscripcion`, { method: "DELETE" });
+}
+
 export function listarEventosAdministrados({
   busqueda = "",
   estado = "",

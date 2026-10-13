@@ -16,7 +16,7 @@ public interface RepositorioInscripcionEvento extends JpaRepository<InscripcionE
 
     @Query("""
             select i from InscripcionEvento i
-            where i.evento.idEvento = :idEvento and i.usuario.idUsuario = :idUsuario
+            where i.evento.idEvento = :idEvento and i.usuario.idUsuario = :idUsuario and i.claveParticipante = 'TITULAR'
             """)
     @EntityGraph(attributePaths = {"evento", "usuario"})
     Optional<InscripcionEvento> buscarPorEventoYUsuario(
@@ -26,12 +26,24 @@ public interface RepositorioInscripcionEvento extends JpaRepository<InscripcionE
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
             select i from InscripcionEvento i
-            where i.evento.idEvento = :idEvento and i.usuario.idUsuario = :idUsuario
+            where i.evento.idEvento = :idEvento and i.usuario.idUsuario = :idUsuario and i.claveParticipante = 'TITULAR'
             """)
     @EntityGraph(attributePaths = {"evento", "usuario"})
     Optional<InscripcionEvento> buscarParaActualizar(
             @Param("idEvento") Long idEvento,
             @Param("idUsuario") Long idUsuario);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select i from InscripcionEvento i where i.evento.idEvento = :idEvento and i.usuario.idUsuario = :idUsuario and i.claveParticipante = :clave")
+    Optional<InscripcionEvento> buscarParticipanteParaActualizar(
+            @Param("idEvento") Long idEvento, @Param("idUsuario") Long idUsuario, @Param("clave") String clave);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select i from InscripcionEvento i where i.idInscripcionEvento = :id and i.usuario.idUsuario = :usuario")
+    Optional<InscripcionEvento> bloquearInscripcionPropia(@Param("id") Long id, @Param("usuario") Long usuario);
+
+    @EntityGraph(attributePaths = {"evento", "usuario"})
+    Optional<InscripcionEvento> findByIdInscripcionEventoAndUsuario_IdUsuario(Long idInscripcionEvento, Long idUsuario);
 
     @Query("select i from InscripcionEvento i where i.usuario.idUsuario = :idUsuario")
     @EntityGraph(attributePaths = "evento")
@@ -45,6 +57,8 @@ public interface RepositorioInscripcionEvento extends JpaRepository<InscripcionE
               and (:estado = '' or i.estado = :estado)
               and (:busqueda = ''
                    or lower(i.usuario.correoNormalizado) like lower(concat('%', :busqueda, '%'))
+                   or lower(i.nombreParticipante) like lower(concat('%', :busqueda, '%'))
+                   or lower(i.apellidoParticipante) like lower(concat('%', :busqueda, '%'))
                    or lower(i.usuario.nombre) like lower(concat('%', :busqueda, '%'))
                    or lower(i.usuario.apellido) like lower(concat('%', :busqueda, '%')))
             """)

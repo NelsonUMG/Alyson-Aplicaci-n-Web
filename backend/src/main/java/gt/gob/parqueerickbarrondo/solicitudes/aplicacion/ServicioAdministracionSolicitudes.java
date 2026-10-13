@@ -124,6 +124,7 @@ public class ServicioAdministracionSolicitudes {
         }
         try {
             solicitud.resolver("APROBADA".equals(datos.decision()), datos.respuesta().strip());
+            solicitud.registrarResponsableResolucion(actor.obtenerIdUsuario(), actor.obtenerNombre() + " " + actor.obtenerApellido());
         } catch (IllegalStateException excepcion) {
             throw new SolicitudInvalidaException(excepcion.getMessage());
         }
@@ -211,7 +212,7 @@ public class ServicioAdministracionSolicitudes {
                 solicitud.obtenerIdSolicitud(), solicitud.obtenerTipoSolicitud(),
                 nombreTipo(solicitud.obtenerTipoSolicitud()), solicitud.obtenerEstado(), leerDetalle(solicitud),
                 documentos, solicitud.obtenerResolucion(), solicitud.obtenerCreadoEn(),
-                solicitud.obtenerActualizadoEn(), solicitud.obtenerResueltoEn(), solicitud.obtenerVersion());
+                solicitud.obtenerActualizadoEn(), solicitud.obtenerResueltoEn(), solicitud.obtenerVersion(), solicitud.obtenerNombreResponsableResolucion());
     }
 
     private RespuestaDocumentoSolicitud convertirDocumento(SolicitudDocumento relacion) {

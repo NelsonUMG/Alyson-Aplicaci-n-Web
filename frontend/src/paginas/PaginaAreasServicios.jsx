@@ -1,3 +1,4 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
 import { useEffect, useState } from "react";
 import { listarAreas } from "../api/portalPublico";
 import { obtenerMensajeError } from "../api/clienteHttp";
@@ -38,7 +39,7 @@ export function PaginaAreasServicios() {
       />
       <section className="portal-seccion">
         <div className="portal-contenedor">
-          {error && <p className="portal-mensaje-error" role="alert">{error}</p>}
+          {error && <AvisoEnContexto className="portal-mensaje-error" role="alert">{error}</AvisoEnContexto>}
           {cargando && <p className="portal-estado-carga" role="status">Cargando áreas y servicios…</p>}
           {!cargando && areas.length > 0 ? (
             <div className="pagina-rejilla-tarjetas">

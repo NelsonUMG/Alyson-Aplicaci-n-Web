@@ -1,3 +1,5 @@
+import { AvisoEnContexto } from "../componentes/AvisosEnContexto";
+import { CampoContrasena } from "../componentes/CampoContrasena";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { usarSesion } from "../autenticacion/ContextoSesion";
@@ -35,7 +37,7 @@ export function PaginaInicioSesion() {
         <p className="etiqueta-fase">Acceso a la plataforma</p>
         <h1>Iniciar sesión</h1>
         <p>Utiliza tus credenciales.</p>
-        {estado.error && <p className="mensaje-error" role="alert">{estado.error}</p>}
+        {estado.error && <AvisoEnContexto className="mensaje-error" role="alert">{estado.error}</AvisoEnContexto>}
         <form onSubmit={enviar}>
           <label htmlFor="correo">Correo electrónico</label>
           <input
@@ -49,16 +51,15 @@ export function PaginaInicioSesion() {
             onChange={actualizarCampo}
           />
           <label htmlFor="contrasena">Contraseña</label>
-          <input
+          <CampoContrasena
             id="contrasena"
             name="contrasena"
-            type="password"
             autoComplete="current-password"
             required
             maxLength="128"
             value={datos.contrasena}
             onChange={actualizarCampo}
-          />
+           />
           <label className="opcion-mantener-sesion" htmlFor="mantenerSesionActiva">
             <input
               id="mantenerSesionActiva"
